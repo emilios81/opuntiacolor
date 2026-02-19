@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPC – OpuntiaColor · Realce de pigmentos en arte rupestre</title>
+  <meta name="description" content="Herramienta de procesamiento digital para realce de pigmentos en arte rupestre. Decorrelation stretching, CIE-LAB, YCbCr, CLAHE. 100% local.">
+  <meta name="author" content="Dr. Emilio A. Villafañez · LATDAA · UNCa · Fund. Félix de Azara">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌵</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Crimson Pro', serif; overflow-x: hidden; }
+    #root { min-height: 100vh; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef, useCallback, useEffect } = React;
+
+
+// ============================================================
+// OPC – OpuntiaColor v2.0 · Herramienta Profesional de Campo
+// Decorrelation Stretch & pigment enhancement for archaeology
+// Features: EXIF/GPS, Solar Mode, Projects
+// ============================================================
+// ============================================================
+
+// --- Image Processing Core (INTACTO) ---
+
+function rgb2lab(r, g, b) {
+  let rr = r / 255, gg = g / 255, bb = b / 255;
+  rr = rr > 0.04045 ? Math.pow((rr + 0.055) / 1.055, 2.4) : rr / 12.92;
+  gg = gg > 0.04045 ? Math.pow((gg + 0.055) / 1.055, 2.4) : gg / 12.92;
+  bb = bb > 0.04045 ? Math.pow((bb + 0.055) / 1.055, 2.4) : bb / 12.92;
+  let x = (rr * 0.4124564 + gg * 0.3575761 + bb * 0.1804375) / 0.95047;
+  let y = (rr * 0.2126729 + gg * 0.7151522 + bb * 0.0721750);
+  let z = (rr * 0.0193339 + gg * 0.1191920 + bb * 0.9503041) / 1.08883;
+  const f = t => t > 0.008856 ? Math.cbrt(t) : (7.787 * t + 16 / 116);
+  x = f(x); y = f(y); z = f(z);
+  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+}
+
+function lab2rgb(L, a, b) {
+  let y = (L + 16) / 116, x = a / 500 + y, z = y - b / 200;
+  const finv = t => { const t3 = t*t*t; return t3 > 0.008856 ? t3 : (t - 16/116) / 7.787; };
+  x = 0.95047*finv(x); y = 1.0*finv(y); z = 1.08883*finv(z);
+  let rr = x*3.2404542 - y*1.5371385 - z*0.4985314;
+  let gg = -x*0.9692660 + y*1.8760108 + z*0.0415560;
+  let bb = x*0.0556434 - y*0.2040259 + z*1.0572252;
+  const gamma = c => c > 0.0031308 ? 1.055*Math.pow(c, 1/2.4) - 0.055 : 12.92*c;
+  return [Math.max(0,Math.min(255,Math.round(gamma(rr)*255))),Math.max(0,Math.min(255,Math.round(gamma(gg)*255))),Math.max(0,Math.min(255,Math.round(gamma(bb)*255)))];
+}
+
+function rgb2ycbcr(r, g, b) { return [0.299*r+0.587*g+0.114*b, 128-0.168736*r-0.331264*g+0.5*b, 128+0.5*r-0.418688*g-0.081312*b]; }
+function ycbcr2rgb(y, cb, cr) { return [Math.max(0,Math.min(255,Math.round(y+1.402*(cr-128)))),Math.max(0,Math.min(255,Math.round(y-0.344136*(cb-128)-0.714136*(cr-128)))),Math.max(0,Math.min(255,Math.round(y+1.772*(cb-128))))]; }
+
+// ---- DECORRELATION STRETCH (Jacobi) ----
+function decorrelationStretch(imageData, strength = 1.0, targetBand = null) {
+  const data = imageData.data, n = data.length / 4;
+  const R = new Float64Array(n), G = new Float64Array(n), B = new Float64Array(n);
+  for (let i = 0; i < n; i++) { R[i]=data[i*4]; G[i]=data[i*4+1]; B[i]=data[i*4+2]; }
+  let mR=0,mG=0,mB=0;
+  for (let i=0;i<n;i++){mR+=R[i];mG+=G[i];mB+=B[i];}
+  mR/=n;mG/=n;mB/=n;
+  let cRR=0,cRG=0,cRB=0,cGG=0,cGB=0,cBB=0;
+  for(let i=0;i<n;i++){const dr=R[i]-mR,dg=G[i]-mG,db=B[i]-mB;cRR+=dr*dr;cRG+=dr*dg;cRB+=dr*db;cGG+=dg*dg;cGB+=dg*db;cBB+=db*db;}
+  cRR/=n;cRG/=n;cRB/=n;cGG/=n;cGB/=n;cBB/=n;
+  const eps=1e-10; cRR+=eps;cGG+=eps;cBB+=eps;
+  let a=[[cRR,cRG,cRB],[cRG,cGG,cGB],[cRB,cGB,cBB]];
+  let v=[[1,0,0],[0,1,0],[0,0,1]];
+  for(let iter=0;iter<50;iter++){let maxVal=0,p=0,q=1;for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)if(Math.abs(a[i][j])>maxVal){maxVal=Math.abs(a[i][j]);p=i;q=j;}if(maxVal<1e-12)break;const theta=0.5*Math.atan2(2*a[p][q],a[p][p]-a[q][q]),c=Math.cos(theta),s=Math.sin(theta);const nA=a.map(r=>[...r]);for(let i=0;i<3;i++){nA[i][p]=c*a[i][p]+s*a[i][q];nA[i][q]=-s*a[i][p]+c*a[i][q];}for(let j=0;j<3;j++){a[p][j]=c*nA[p][j]+s*nA[q][j];a[q][j]=-s*nA[p][j]+c*nA[q][j];}const nV=v.map(r=>[...r]);for(let i=0;i<3;i++){v[i][p]=c*nV[i][p]+s*nV[i][q];v[i][q]=-s*nV[i][p]+c*nV[i][q];}}
+  const eigenvalues=[a[0][0],a[1][1],a[2][2]];
+  const output=new Uint8ClampedArray(data.length);
+  for(let i=0;i<n;i++){const dr=R[i]-mR,dg=G[i]-mG,db=B[i]-mB;let pc=[0,0,0];for(let k=0;k<3;k++)pc[k]=v[0][k]*dr+v[1][k]*dg+v[2][k]*db;for(let k=0;k<3;k++){const std=Math.sqrt(Math.max(eigenvalues[k],eps));let sf=(targetBand!==null&&k===targetBand)?strength*1.5:strength;pc[k]=(pc[k]/std)*sf;}let nr=mR,ng=mG,nb=mB;for(let k=0;k<3;k++){nr+=v[0][k]*pc[k]*Math.sqrt(Math.max(eigenvalues[k],eps))/strength;ng+=v[1][k]*pc[k]*Math.sqrt(Math.max(eigenvalues[k],eps))/strength;nb+=v[2][k]*pc[k]*Math.sqrt(Math.max(eigenvalues[k],eps))/strength;}output[i*4]=Math.max(0,Math.min(255,Math.round(nr)));output[i*4+1]=Math.max(0,Math.min(255,Math.round(ng)));output[i*4+2]=Math.max(0,Math.min(255,Math.round(nb)));output[i*4+3]=255;}
+  for(let ch=0;ch<3;ch++){let mn=255,mx=0;for(let i=0;i<n;i++){const val=output[i*4+ch];if(val<mn)mn=val;if(val>mx)mx=val;}const range=mx-mn||1;for(let i=0;i<n;i++)output[i*4+ch]=Math.round(((output[i*4+ch]-mn)/range)*255);}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+// ---- PRESET FILTERS (TODOS INTACTOS) ----
+function enhanceRedPigment(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  for(let i=0;i<n;i++){const r=data[i*4],g=data[i*4+1],b=data[i*4+2];const[L,a,bL]=rgb2lab(r,g,b);const nA=a*intensity,nB=bL*(1+(intensity-1)*0.3),nL=L+(a>0?(intensity-1)*8:-(intensity-1)*5);const[nr,ng,nb]=lab2rgb(Math.max(0,Math.min(100,nL)),Math.max(-128,Math.min(127,nA)),Math.max(-128,Math.min(127,nB)));output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function enhanceWhitePigment(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  let lv=new Float64Array(n),sL=0;for(let i=0;i<n;i++){const[L]=rgb2lab(data[i*4],data[i*4+1],data[i*4+2]);lv[i]=L;sL+=L;}
+  const mL=sL/n;let stdL=0;for(let i=0;i<n;i++)stdL+=(lv[i]-mL)**2;stdL=Math.sqrt(stdL/n);
+  for(let i=0;i<n;i++){const r=data[i*4],g=data[i*4+1],b=data[i*4+2];const[L,a,bL]=rgb2lab(r,g,b);const z=(L-mL)/(stdL||1),boost=z>0?z*intensity*5:z*intensity*2,nL=Math.max(0,Math.min(100,L+boost)),sf=L>mL?1/(1+(intensity-1)*0.5):1;const[nr,ng,nb]=lab2rgb(nL,a*sf,bL*sf);output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function enhanceBichrome(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  let sL=0;const labs=new Array(n);for(let i=0;i<n;i++){labs[i]=rgb2lab(data[i*4],data[i*4+1],data[i*4+2]);sL+=labs[i][0];}const mL=sL/n;
+  for(let i=0;i<n;i++){let[L,a,bL]=labs[i];const rb=a>5?intensity*1.3:(a>0?intensity:1),nA=a*rb,ch=Math.sqrt(a*a+bL*bL),isW=L>mL&&ch<25,wb=isW?(L-mL)*intensity*0.15:0,nL=Math.max(0,Math.min(100,L+wb)),isR=!isW&&a<5&&L<mL,rs=isR?0.7:1;const[nr,ng,nb]=lab2rgb(nL*rs+(1-rs)*(nL*0.6),Math.max(-128,Math.min(127,nA)),Math.max(-128,Math.min(127,bL*(isW?0.5:1))));output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function enhanceBlackPigment(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  const lv=new Float64Array(n);let sL=0;for(let i=0;i<n;i++){const[L]=rgb2lab(data[i*4],data[i*4+1],data[i*4+2]);lv[i]=L;sL+=L;}
+  const mL=sL/n;let stdL=0;for(let i=0;i<n;i++)stdL+=(lv[i]-mL)**2;stdL=Math.sqrt(stdL/n)||1;
+  for(let i=0;i<n;i++){const r=data[i*4],g=data[i*4+1],b=data[i*4+2];const[L,a,bL]=rgb2lab(r,g,b);const ch=Math.sqrt(a*a+bL*bL),z=(L-mL)/stdL,isDLC=L<mL&&ch<20;let nL=L,nA=a,nB=bL;if(isDLC){const df=Math.max(0,(mL-L)/mL);nL=L-df*intensity*18;const cr=1/(1+(intensity-1)*0.8);nA=a*cr;nB=bL*cr;}else{nL=L+Math.max(0,z)*intensity*3;nA=a*(1+(intensity-1)*0.15);nB=bL*(1+(intensity-1)*0.15);}const[nr,ng,nb]=lab2rgb(Math.max(0,Math.min(100,nL)),Math.max(-128,Math.min(127,nA)),Math.max(-128,Math.min(127,nB)));output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function ybkEnhance(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  for(let i=0;i<n;i++){const[y,cb,cr]=rgb2ycbcr(data[i*4],data[i*4+1],data[i*4+2]);const[nr,ng,nb]=ycbcr2rgb(y,128+(cb-128)*intensity,128+(cr-128)*intensity);output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function ldsEnhance(imageData, intensity = 1.5) { return decorrelationStretch(imageData, intensity * 1.2, null); }
+
+function localContrastEnhance(imageData, strength = 1.5) {
+  const data=imageData.data,w=imageData.width,h=imageData.height,n=w*h,output=new Uint8ClampedArray(data.length);
+  const lum=new Float64Array(n);for(let i=0;i<n;i++)lum[i]=0.299*data[i*4]+0.587*data[i*4+1]+0.114*data[i*4+2];
+  const bs=Math.max(16,Math.floor(Math.min(w,h)/16));
+  for(let i=0;i<n;i++){const x=i%w,y=Math.floor(i/w),x0=Math.max(0,x-bs),x1=Math.min(w-1,x+bs),y0=Math.max(0,y-bs),y1=Math.min(h-1,y+bs);let ls=0,lq=0,lc=0;for(let yy=y0;yy<=y1;yy+=4)for(let xx=x0;xx<=x1;xx+=4){const val=lum[yy*w+xx];ls+=val;lq+=val*val;lc++;}const lm=ls/lc,ld=Math.sqrt(Math.max(0,lq/lc-lm*lm))||1;for(let ch=0;ch<3;ch++){const val=data[i*4+ch];output[i*4+ch]=Math.max(0,Math.min(255,Math.round(lm+(val-lm)*(strength*40/ld))));}output[i*4+3]=255;}
+  return new ImageData(output, w, h);
+}
+
+function pigmentMapping(imageData) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  let sL=0;const labs=new Array(n);for(let i=0;i<n;i++){labs[i]=rgb2lab(data[i*4],data[i*4+1],data[i*4+2]);sL+=labs[i][0];}const mL=sL/n;
+  for(let i=0;i<n;i++){const[L,a,bL]=labs[i];const ch=Math.sqrt(a*a+bL*bL);if(a>8&&ch>12){const ri=Math.min(1,a/40);output[i*4]=Math.round(255*ri);output[i*4+1]=Math.round(80*(1-ri));output[i*4+2]=0;}else if(L<(mL-10)&&ch<15){const bi=Math.min(1,(mL-L)/(mL*0.6));output[i*4]=Math.round(40*(1-bi));output[i*4+1]=Math.round(200+55*bi);output[i*4+2]=Math.round(40*(1-bi));}else if(L>65&&ch<18){const wi=Math.min(1,(L-65)/35);output[i*4]=Math.round(100*(1-wi));output[i*4+1]=Math.round(200+55*wi);output[i*4+2]=Math.round(220+35*wi);}else{const g=Math.min(255,Math.round(L*1.2));output[i*4]=g;output[i*4+1]=g;output[i*4+2]=g;}output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+// ============================================================
+// PETROGLYPH ENHANCER
+// Para grabados rupestres: amplifica micro-diferencias de
+// patina, textura y relieve en superficies no pintadas.
+// Combina: realce local multi-escala + amplificación de
+// micro-crominancia + detección de bordes (gradientes).
+// ============================================================
+
+function enhancePetroglyph(imageData, intensity = 1.5) {
+  const data = imageData.data;
+  const w = imageData.width, h = imageData.height, n = w * h;
+  const output = new Uint8ClampedArray(data.length);
+
+  // Paso 1: Convertir a LAB y extraer canales
+  const Lchan = new Float64Array(n);
+  const Achan = new Float64Array(n);
+  const Bchan = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const [L, a, b] = rgb2lab(data[i*4], data[i*4+1], data[i*4+2]);
+    Lchan[i] = L; Achan[i] = a; Bchan[i] = b;
+  }
+
+  // Paso 2: Contraste local multi-escala sobre L
+  // Dos escalas: fina (surcos pequeños) y gruesa (áreas amplias)
+  const scaleSmall = Math.max(8, Math.floor(Math.min(w,h) / 40));
+  const scaleLarge = Math.max(24, Math.floor(Math.min(w,h) / 10));
+
+  const localEnhL = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = i % w, y = Math.floor(i / w);
+    let sumS = 0, cntS = 0, sumL = 0, cntL = 0;
+    // Escala fina
+    const sx0 = Math.max(0, x-scaleSmall), sx1 = Math.min(w-1, x+scaleSmall);
+    const sy0 = Math.max(0, y-scaleSmall), sy1 = Math.min(h-1, y+scaleSmall);
+    for (let yy = sy0; yy <= sy1; yy += 2) {
+      for (let xx = sx0; xx <= sx1; xx += 2) {
+        sumS += Lchan[yy*w+xx]; cntS++;
+      }
+    }
+    // Escala gruesa
+    const lx0 = Math.max(0, x-scaleLarge), lx1 = Math.min(w-1, x+scaleLarge);
+    const ly0 = Math.max(0, y-scaleLarge), ly1 = Math.min(h-1, y+scaleLarge);
+    for (let yy = ly0; yy <= ly1; yy += 4) {
+      for (let xx = lx0; xx <= lx1; xx += 4) {
+        sumL += Lchan[yy*w+xx]; cntL++;
+      }
+    }
+    const meanS = sumS / cntS;
+    const meanL = sumL / cntL;
+    // Mezcla ponderada: fina detecta surcos, gruesa detecta paneles
+    const devS = (Lchan[i] - meanS) * intensity * 2.5;
+    const devL = (Lchan[i] - meanL) * intensity * 1.2;
+    localEnhL[i] = Lchan[i] + devS * 0.6 + devL * 0.4;
+  }
+
+  // Paso 3: Detección de bordes (gradiente Sobel simplificado)
+  const edges = new Float64Array(n);
+  let maxEdge = 0;
+  for (let i = 0; i < n; i++) {
+    const x = i % w, y = Math.floor(i / w);
+    if (x === 0 || x === w-1 || y === 0 || y === h-1) { edges[i] = 0; continue; }
+    // Sobel sobre luminancia
+    const gx = -Lchan[(y-1)*w+(x-1)] + Lchan[(y-1)*w+(x+1)]
+              -2*Lchan[y*w+(x-1)] + 2*Lchan[y*w+(x+1)]
+              -Lchan[(y+1)*w+(x-1)] + Lchan[(y+1)*w+(x+1)];
+    const gy = -Lchan[(y-1)*w+(x-1)] -2*Lchan[(y-1)*w+x] -Lchan[(y-1)*w+(x+1)]
+              +Lchan[(y+1)*w+(x-1)] +2*Lchan[(y+1)*w+x] +Lchan[(y+1)*w+(x+1)];
+    edges[i] = Math.sqrt(gx*gx + gy*gy);
+    if (edges[i] > maxEdge) maxEdge = edges[i];
+  }
+
+  // Paso 4: Amplificación de micro-crominancia
+  // Las diferencias de pátina suelen estar en a* y b* con rango muy bajo
+  let minA = 128, maxA = -128, minB = 128, maxB = -128;
+  for (let i = 0; i < n; i++) {
+    if (Achan[i] < minA) minA = Achan[i]; if (Achan[i] > maxA) maxA = Achan[i];
+    if (Bchan[i] < minB) minB = Bchan[i]; if (Bchan[i] > maxB) maxB = Bchan[i];
+  }
+  const rangeA = maxA - minA || 1;
+  const rangeB = maxB - minB || 1;
+  const chromaBoost = intensity * 3;
+
+  // Paso 5: Componer resultado
+  const edgeNorm = maxEdge || 1;
+  const edgeMix = intensity * 0.25;
+
+  for (let i = 0; i < n; i++) {
+    // L: contraste local + inyección de bordes
+    let newL = localEnhL[i] + (edges[i] / edgeNorm) * 20 * edgeMix;
+    newL = Math.max(0, Math.min(100, newL));
+
+    // a* y b*: estirar crominancia centrada en la media
+    const midA = (minA + maxA) / 2, midB = (minB + maxB) / 2;
+    let newA = midA + (Achan[i] - midA) * chromaBoost;
+    let newB = midB + (Bchan[i] - midB) * chromaBoost;
+    newA = Math.max(-128, Math.min(127, newA));
+    newB = Math.max(-128, Math.min(127, newB));
+
+    const [r, g, b] = lab2rgb(newL, newA, newB);
+    output[i*4] = r; output[i*4+1] = g; output[i*4+2] = b; output[i*4+3] = 255;
+  }
+
+  return new ImageData(output, w, h);
+}
+
+// ============================================================
+// NUEVO: EXIF / GPS PARSER (sin dependencias)
+// ============================================================
+
+function parseExifData(arrayBuffer) {
+  const view = new DataView(arrayBuffer);
+  if (view.getUint16(0) !== 0xFFD8) return null;
+  let offset = 2;
+  while (offset < view.byteLength - 4) {
+    const marker = view.getUint16(offset);
+    if (marker === 0xFFE1) {
+      const length = view.getUint16(offset + 2);
+      return parseExifBlock(arrayBuffer, offset + 4, length - 2);
+    }
+    if ((marker & 0xFF00) !== 0xFF00) break;
+    offset += 2 + view.getUint16(offset + 2);
+  }
+  return null;
+}
+
+function parseExifBlock(buffer, start, length) {
+  const view = new DataView(buffer, start, Math.min(length, buffer.byteLength - start));
+  if (view.getUint32(0) !== 0x45786966 || view.getUint16(4) !== 0x0000) return null;
+  const tiffStart = start + 6;
+  const tiffView = new DataView(buffer, tiffStart);
+  const le = tiffView.getUint16(0) === 0x4949;
+  const ifdOff = tiffView.getUint32(4, le);
+  const result = { dateTime: null, gps: null };
+  const ifd0 = parseIFD(buffer, tiffStart, ifdOff, le);
+  if (ifd0[0x0132]) result.dateTime = ifd0[0x0132];
+  if (ifd0[0x8769]) {
+    const exifIFD = parseIFD(buffer, tiffStart, ifd0[0x8769], le);
+    if (exifIFD[0x9003]) result.dateTime = exifIFD[0x9003];
+    else if (exifIFD[0x9004]) result.dateTime = exifIFD[0x9004];
+  }
+  if (ifd0[0x8825]) {
+    const gpsIFD = parseIFD(buffer, tiffStart, ifd0[0x8825], le);
+    result.gps = extractGPS(gpsIFD);
+  }
+  return result;
+}
+
+function parseIFD(buffer, tiffStart, ifdOffset, le) {
+  const view = new DataView(buffer, tiffStart);
+  const entries = {};
+  try {
+    const count = view.getUint16(ifdOffset, le);
+    for (let i = 0; i < count; i++) {
+      const eOff = ifdOffset + 2 + i * 12;
+      const tag = view.getUint16(eOff, le);
+      const type = view.getUint16(eOff + 2, le);
+      const numV = view.getUint32(eOff + 4, le);
+      const vOff = eOff + 8;
+      const typeSize = { 1:1, 2:1, 3:2, 4:4, 5:8, 7:1, 10:8 };
+      const totalBytes = (typeSize[type] || 1) * numV;
+      const realOff = totalBytes > 4 ? tiffStart + view.getUint32(vOff, le) : tiffStart + eOff + 8;
+      if (type === 2) {
+        let str = "";
+        for (let j = 0; j < numV - 1; j++) {
+          const cc = new DataView(buffer).getUint8(realOff + j);
+          if (cc === 0) break;
+          str += String.fromCharCode(cc);
+        }
+        entries[tag] = str;
+      } else if (type === 3) { entries[tag] = view.getUint16(vOff, le);
+      } else if (type === 4) { entries[tag] = view.getUint32(vOff, le);
+      } else if (type === 5) {
+        const rV = new DataView(buffer, realOff);
+        if (numV === 1) { entries[tag] = rV.getUint32(0, le) / (rV.getUint32(4, le) || 1); }
+        else { const rats = []; for (let j = 0; j < numV; j++) rats.push(rV.getUint32(j*8, le) / (rV.getUint32(j*8+4, le) || 1)); entries[tag] = rats; }
+      } else if (type === 1) { entries[tag] = new DataView(buffer).getUint8(realOff); }
+    }
+  } catch (e) {}
+  return entries;
+}
+
+function extractGPS(gpsIFD) {
+  const latRef = gpsIFD[1] || "N", lat = gpsIFD[2], lonRef = gpsIFD[3] || "W", lon = gpsIFD[4], alt = gpsIFD[6];
+  if (!lat || !lon || !Array.isArray(lat) || !Array.isArray(lon)) return null;
+  const toD = (dms, ref) => { const d = dms[0] + dms[1]/60 + (dms[2]||0)/3600; return (ref==="S"||ref==="W") ? -d : d; };
+  return { latitude: toD(lat, latRef), longitude: toD(lon, lonRef), altitude: typeof alt === "number" ? alt : null, latRef, lonRef };
+}
+
+function formatGPSCoord(decimal, isLat) {
+  const abs = Math.abs(decimal), d = Math.floor(abs), m = Math.floor((abs-d)*60), s = ((abs-d-m/60)*3600).toFixed(1);
+  return `${d}° ${m}' ${s}" ${isLat ? (decimal>=0?"N":"S") : (decimal>=0?"E":"W")}`;
+}
+
+
+
+// ============================================================
+// THEMES
+// ============================================================
+
+const TD = { bg:"#1a1714",text:"#e8e0d4",tm:"#8a7e6e",td:"#6a5e4e",ac:"#c0392b",acBg:"rgba(192,57,43,0.12)",acBd:"rgba(192,57,43,0.35)",cBg:"rgba(232,224,212,0.04)",cBd:"rgba(232,224,212,0.08)",hBd:"rgba(232,224,212,0.08)",ov:"rgba(26,23,20,0.7)",gn:"#6db85d",gnBg:"rgba(109,184,93,0.1)",gnBd:"rgba(109,184,93,0.15)",iBg:"#0e0d0b",fTx:"#5a4e3e",fBd:"rgba(232,224,212,0.06)",bBg:"rgba(232,224,212,0.06)",sT:"rgba(232,224,212,0.15)",tB:"#1a1714" };
+const TS = { bg:"#FFFFFF",text:"#000000",tm:"#333333",td:"#555555",ac:"#B71C1C",acBg:"rgba(183,28,28,0.1)",acBd:"rgba(183,28,28,0.4)",cBg:"#F5F5F5",cBd:"#CCCCCC",hBd:"#BBBBBB",ov:"rgba(255,255,255,0.8)",gn:"#2E7D32",gnBg:"rgba(46,125,50,0.1)",gnBd:"rgba(46,125,50,0.3)",iBg:"#EEEEEE",fTx:"#555555",fBd:"#CCCCCC",bBg:"#EEEEEE",sT:"#BBBBBB",tB:"#FFFFFF" };
+
+// ============================================================
+// PRESETS & MAIN COMPONENT
+// ============================================================
+
+const PRESETS = [
+  { id:"red", name:"Rojo", desc:"Pigmentos rojos", icon:"🔴", fn:enhanceRedPigment },
+  { id:"white", name:"Blanco", desc:"Pigmentos blancos", icon:"⚪", fn:enhanceWhitePigment },
+  { id:"bichrome", name:"Bicromo", desc:"Rojo + Blanco", icon:"◑", fn:enhanceBichrome },
+  { id:"black", name:"Negro", desc:"Pigmentos negros", icon:"⚫", fn:enhanceBlackPigment },
+  { id:"petro", name:"Petroglifo", desc:"Grabados / pátina", icon:"🪨", fn:enhancePetroglyph },
+  { id:"ybk", name:"YBK", desc:"Estilo DStretch YBK", icon:"🟡", fn:ybkEnhance },
+  { id:"lds", name:"LDS", desc:"Decorrelation Stretch", icon:"🟣", fn:ldsEnhance },
+  { id:"clahe", name:"Contraste Local", desc:"CLAHE adaptativo", icon:"◐", fn:localContrastEnhance },
+  { id:"map", name:"Mapa Pigmentos", desc:"Falso color", icon:"🗺️", fn:pigmentMapping },
+];
+
+function RockArtEnhancer() {
+  const [image, setImage] = useState(null);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [processedSrc, setProcessedSrc] = useState(null);
+  const [activePreset, setActivePreset] = useState(null);
+  const [intensity, setIntensity] = useState(1.5);
+  const [processing, setProcessing] = useState(false);
+  const [sliderPos, setSliderPos] = useState(50);
+  const [dragging, setDragging] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [imageSize, setImageSize] = useState({ w: 0, h: 0 });
+  // NUEVO
+  const [solar, setSolar] = useState(false);
+  const [exifData, setExifData] = useState(null);
+
+  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const compareRef = useRef(null);
+  const T = solar ? TS : TD;
+
+  // Handle image + EXIF
+  const handleFile = useCallback((file) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    setFileName(file.name); setExifData(null);
+    const er = new FileReader();
+    er.onload = (e) => { try { const p = parseExifData(e.target.result); if(p) setExifData(p); } catch(e){} };
+    er.readAsArrayBuffer(file);
+    const dr = new FileReader();
+    dr.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const mx = 2000; let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > mx || h > mx) { const s = mx / Math.max(w,h); w = Math.round(w*s); h = Math.round(h*s); }
+        setImageSize({w,h}); setImage(img); setImageSrc(e.target.result); setProcessedSrc(null); setActivePreset(null);
+      };
+      img.src = e.target.result;
+    };
+    dr.readAsDataURL(file);
+  }, []);
+
+  const processImage = useCallback((preset, int) => {
+    if (!image) return; setProcessing(true); setActivePreset(preset.id);
+    requestAnimationFrame(() => { setTimeout(() => {
+      try {
+        const cv = document.createElement("canvas"), ctx = cv.getContext("2d"), {w,h} = imageSize;
+        cv.width=w; cv.height=h; ctx.drawImage(image,0,0,w,h);
+        const id = ctx.getImageData(0,0,w,h);
+        const result = preset.id==="map" ? preset.fn(id) : preset.fn(id, int);
+        ctx.putImageData(result,0,0); setProcessedSrc(cv.toDataURL("image/png"));
+      } catch(e) { console.error(e); }
+      setProcessing(false);
+    }, 50); });
+  }, [image, imageSize]);
+
+  useEffect(() => {
+    if (activePreset && image) { const p = PRESETS.find(x=>x.id===activePreset); if(p){ const t=setTimeout(()=>processImage(p,intensity),200); return ()=>clearTimeout(t); }}
+  }, [intensity]);
+
+  const handleSliderMove = useCallback((cx) => { if(!compareRef.current) return; const r=compareRef.current.getBoundingClientRect(); setSliderPos(Math.max(0,Math.min(100,((cx-r.left)/r.width)*100))); }, []);
+  const handlePointerDown = (e) => { setDragging(true); handleSliderMove(e.clientX); };
+  useEffect(() => { if(!dragging) return; const m=(e)=>handleSliderMove(e.clientX), u=()=>setDragging(false); window.addEventListener("pointermove",m); window.addEventListener("pointerup",u); return ()=>{window.removeEventListener("pointermove",m);window.removeEventListener("pointerup",u);}; }, [dragging,handleSliderMove]);
+
+  const handleDownload = () => {
+    if (!processedSrc) return;
+    try { const bs=atob(processedSrc.split(",")[1]),ms=processedSrc.split(",")[0].split(":")[1].split(";")[0],ab=new ArrayBuffer(bs.length),ia=new Uint8Array(ab);for(let i=0;i<bs.length;i++)ia[i]=bs.charCodeAt(i);const blob=new Blob([ab],{type:ms}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`${(fileName||"opc").replace(/\.[^.]+$/,"")}_OPC_${activePreset}.png`;a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},300); }
+    catch(e) { const w=window.open(); if(w) w.document.write(`<img src="${processedSrc}" style="max-width:100%"/>`); }
+  };
+
+  const handleDrop = (e) => { e.preventDefault(); const f=e.dataTransfer?.files?.[0]; if(f) handleFile(f); };
+  const handleReset = () => { setImage(null);setImageSrc(null);setProcessedSrc(null);setActivePreset(null);setExifData(null);setFileName(""); };
+
+  const mono = "'JetBrains Mono', monospace";
+
+  return (
+    <div style={{ fontFamily:"'Crimson Pro','Georgia',serif", background:T.bg, color:T.text, minHeight:"100vh", position:"relative", overflow:"hidden", transition:"background 0.3s,color 0.3s" }}>
+      {!solar && <div style={{ position:"fixed",inset:0,opacity:0.04,pointerEvents:"none",backgroundImage:`url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />}
+      <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+      {/* HEADER */}
+      <header style={{ padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10,borderBottom:`1px solid ${T.hBd}`,position:"relative",zIndex:10 }}>
+        <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+          <div style={{ fontSize:28 }}>🌵</div>
+          <div>
+            <h1 style={{ margin:0,fontSize:18,fontWeight:700,color:T.text,display:"flex",alignItems:"baseline",gap:6 }}>
+              <span style={{ color:T.gn,fontFamily:mono,fontSize:11,fontWeight:500,background:T.gnBg,padding:"1px 6px",borderRadius:4,border:`1px solid ${T.gnBd}` }}>OPC</span>
+              Opuntia<span style={{ color:T.ac,fontWeight:700 }}>Color</span>
+              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v2.0</span>
+            </h1>
+            <p style={{ margin:"1px 0 0",fontSize:9.5,color:T.tm,fontFamily:mono,letterSpacing:"1px",textTransform:"uppercase" }}>Herramienta profesional de campo · Arte rupestre</p>
+          </div>
+        </div>
+        <div style={{ display:"flex",gap:6,alignItems:"center",flexWrap:"wrap" }}>
+          <button onClick={()=>setSolar(!solar)} style={{ background:solar?"#000":"#FFD600",border:`1px solid ${solar?"#333":"#FFA000"}`,color:solar?"#FFD600":"#000",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:11,fontFamily:mono,fontWeight:600 }}>
+            {solar ? "☾ Normal" : "☀ Solar"}
+          </button>
+          <button onClick={()=>setShowInfo(!showInfo)} style={{ background:showInfo?T.acBg:T.bBg,border:`1px solid ${showInfo?T.acBd:T.cBd}`,color:showInfo?T.ac:T.tm,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:11,fontFamily:mono }}>
+            {showInfo ? "✕ Cerrar" : "ⓘ Info"}
+          </button>
+        </div>
+      </header>
+
+
+      {/* INFO PANEL */}
+      {showInfo && (
+        <div style={{ margin:"0 20px",padding:20,background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:10,fontSize:13,lineHeight:1.7,position:"relative",zIndex:10 }}>
+          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>¿Qué es OPC – OpuntiaColor?</h3>
+          <p style={{ margin:"0 0 10px",color:T.tm }}>Herramienta de procesamiento digital para realce de pigmentos en arte rupestre, inspirada en DStretch (J. Harman). Filtros para <strong style={{color:T.text}}>rojos, blancos y negros</strong>.</p>
+          <p style={{ margin:"0 0 10px",color:T.tm }}>Técnicas: <strong style={{color:T.text}}>decorrelation stretching</strong>, CIE-LAB, YCbCr, CLAHE adaptativo, Jacobi eigendecomposition.</p>
+          <p style={{ margin:"0 0 10px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Dr. Emilio A. Villafañez</strong> · <strong style={{color:T.text}}>LATDAA</strong> · <strong style={{color:T.text}}>UNCa</strong> · <strong style={{color:T.text}}>Fund. Félix de Azara</strong></p>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:8,marginTop:12 }}>
+            {["🔴 Rojo|a* LAB rojos","⚪ Blanco|Luminosidad baja sat.","◑ Bicromo|Rojo+Blanco","⚫ Negro|Oscuros acromáticos","🪨 Petroglifo|Micro-relieve y pátina","🟡 YBK|YCbCr crominancia","🟣 LDS|PCA decorrelation","◐ CLAHE|Contraste local","🗺️ Mapa|Falso color pigmentos"].map((s,i) => {
+              const[t,d]=s.split("|");
+              return <div key={i} style={{ padding:"8px 10px",background:solar?"#f5f5f5":"rgba(232,224,212,0.04)",borderRadius:6,border:`1px solid ${T.cBd}` }}><div style={{fontSize:11,fontWeight:600,color:T.text,marginBottom:2}}>{t}</div><div style={{fontSize:10,color:T.tm}}>{d}</div></div>;
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* MAIN */}
+      <main style={{ padding:"16px 20px",position:"relative",zIndex:5 }}>
+        {/* Upload */}
+        {!image && (
+          <div onDrop={handleDrop} onDragOver={e=>e.preventDefault()} onClick={()=>fileInputRef.current?.click()} style={{ maxWidth:680,margin:"50px auto",border:`2px dashed ${solar?"#999":"rgba(192,57,43,0.25)"}`,borderRadius:14,padding:"70px 36px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",cursor:"pointer",background:solar?"#f9f9f9":"rgba(192,57,43,0.03)" }}>
+            <div style={{ fontSize:56,marginBottom:14,opacity:0.7 }}>🌵</div>
+            <p style={{ fontSize:19,fontWeight:600,margin:"0 0 6px",color:T.text }}>Arrastrá tu foto aquí</p>
+            <p style={{ fontSize:13,color:T.tm,margin:0 }}>o hacé clic para seleccionar · JPG, PNG, TIFF</p>
+            <p style={{ fontSize:10,color:T.td,margin:"14px 0 0",fontFamily:mono }}>Máx: 2000×2000px · Procesamiento local · Extracción GPS automática</p>
+          </div>
+        )}
+        <input ref={fileInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleFile(e.target.files?.[0])} />
+
+        {/* EDITOR */}
+        {image && (
+          <div style={{ display:"flex",gap:18,flexWrap:"wrap" }}>
+            {/* LEFT PANEL */}
+            <div style={{ width:210,flexShrink:0,display:"flex",flexDirection:"column",gap:6 }}>
+              <div style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:2,padding:"0 4px" }}>Filtros de realce</div>
+              {PRESETS.map(p => (
+                <button key={p.id} onClick={()=>processImage(p,intensity)} disabled={processing} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:activePreset===p.id?T.acBg:T.cBg,border:`1px solid ${activePreset===p.id?T.acBd:T.cBd}`,borderRadius:8,cursor:processing?"wait":"pointer",transition:"all 0.2s",textAlign:"left",color:T.text,opacity:processing?0.6:1 }}>
+                  <span style={{fontSize:16,width:24,textAlign:"center"}}>{p.icon}</span>
+                  <div><div style={{fontSize:12,fontWeight:600}}>{p.name}</div><div style={{fontSize:9,color:T.tm,fontFamily:mono}}>{p.desc}</div></div>
+                </button>
+              ))}
+
+              {/* Intensity */}
+              <div style={{ marginTop:10,padding:"10px 12px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8 }}>
+                <div style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:6 }}>Intensidad: {intensity.toFixed(1)}</div>
+                <input type="range" min="0.5" max="3.0" step="0.1" value={intensity} onChange={e=>setIntensity(parseFloat(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
+                <div style={{ display:"flex",justifyContent:"space-between",fontSize:8,color:T.td,fontFamily:mono }}><span>Sutil</span><span>Extremo</span></div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ marginTop:6,display:"flex",flexDirection:"column",gap:6 }}>
+                {processedSrc && <button onClick={handleDownload} style={{ padding:"9px 12px",background:`linear-gradient(135deg,${T.ac},${solar?"#7f1d1d":"#8e2118"})`,border:"none",borderRadius:8,color:"#fff",fontWeight:600,fontSize:12,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>⬇ Descargar imagen</button>}
+                <button onClick={handleReset} style={{ padding:"9px 12px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8,color:T.tm,fontSize:12,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>↻ Nueva imagen</button>
+              </div>
+
+              {/* File info */}
+              <div style={{ marginTop:6,padding:"8px 12px",background:solar?"#f5f5f5":"rgba(232,224,212,0.02)",borderRadius:6,fontSize:9,fontFamily:mono,color:T.td,lineHeight:1.6 }}>
+                <div style={{ wordBreak:"break-all",marginBottom:1,fontWeight:600,color:T.tm }}>{fileName}</div>
+                <div>{imageSize.w} × {imageSize.h} px</div>
+              </div>
+
+              {/* EXIF/GPS */}
+              {exifData ? (
+                <div style={{ padding:"8px 12px",background:solar?"#E8F5E9":"rgba(109,184,93,0.06)",border:`1px solid ${solar?"#A5D6A7":"rgba(109,184,93,0.15)"}`,borderRadius:6,fontSize:9,fontFamily:mono,color:T.tm,lineHeight:1.7 }}>
+                  <div style={{ fontWeight:600,color:T.gn,marginBottom:3,fontSize:10 }}>📍 Datos EXIF / GPS</div>
+                  {exifData.dateTime && <div>📅 {exifData.dateTime}</div>}
+                  {exifData.gps ? (<>
+                    <div>Lat: {formatGPSCoord(exifData.gps.latitude, true)}</div>
+                    <div>Lon: {formatGPSCoord(exifData.gps.longitude, false)}</div>
+                    <div style={{fontSize:8,color:T.td,marginTop:1}}>({exifData.gps.latitude.toFixed(6)}, {exifData.gps.longitude.toFixed(6)})</div>
+                    {exifData.gps.altitude!=null && <div>Alt: {exifData.gps.altitude.toFixed(1)} m</div>}
+                  </>) : (!exifData.dateTime && <div style={{fontStyle:"italic"}}>Sin GPS/fecha</div>)}
+                </div>
+              ) : image && (
+                <div style={{ padding:"6px 12px",borderRadius:6,fontSize:9,fontFamily:mono,color:T.td,fontStyle:"italic",background:solar?"#f5f5f5":"rgba(232,224,212,0.02)" }}>📍 Sin datos EXIF</div>
+              )}
+            </div>
+
+            {/* RIGHT: Image viewer */}
+            <div style={{ flex:1,minWidth:0 }}>
+              <div ref={compareRef} style={{ position:"relative",width:"100%",aspectRatio:`${imageSize.w}/${imageSize.h}`,maxHeight:"75vh",borderRadius:10,overflow:"hidden",border:`1px solid ${T.cBd}`,cursor:processedSrc?"col-resize":"default",userSelect:"none",background:T.iBg }} onPointerDown={processedSrc?handlePointerDown:undefined}>
+                <img src={imageSrc} alt="Original" style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain" }} />
+                {processedSrc && <img src={processedSrc} alt="Procesada" style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",clipPath:`inset(0 ${100-sliderPos}% 0 0)` }} />}
+                {processedSrc && (<>
+                  <div style={{ position:"absolute",top:0,bottom:0,left:`${sliderPos}%`,width:2,background:"rgba(255,255,255,0.7)",transform:"translateX(-1px)",pointerEvents:"none" }} />
+                  <div style={{ position:"absolute",top:"50%",left:`${sliderPos}%`,transform:"translate(-50%,-50%)",width:32,height:32,borderRadius:"50%",background:solar?"rgba(255,255,255,0.9)":"rgba(30,28,24,0.85)",border:"2px solid rgba(255,255,255,0.7)",display:"flex",alignItems:"center",justifyContent:"center",color:solar?"#000":"#fff",fontSize:13,pointerEvents:"none" }}>⟺</div>
+                </>)}
+                {processedSrc && (<>
+                  <div style={{ position:"absolute",bottom:10,left:10,padding:"3px 8px",borderRadius:5,background:solar?"rgba(183,28,28,0.85)":"rgba(192,57,43,0.65)",fontSize:10,fontFamily:mono,color:"#fff" }}>{PRESETS.find(p=>p.id===activePreset)?.name.toUpperCase()||"PROCESADA"}</div>
+                  <div style={{ position:"absolute",bottom:10,right:10,padding:"3px 8px",borderRadius:5,background:"rgba(0,0,0,0.65)",fontSize:10,fontFamily:mono,color:"#aaa" }}>ORIGINAL</div>
+                </>)}
+                {processing && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:T.ov }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.95)":"rgba(26,23,20,0.9)",border:`1px solid ${T.acBd}`,color:T.ac,fontSize:13,fontFamily:mono,animation:"pulse 1.5s ease-in-out infinite" }}>Procesando píxeles...</div></div>}
+                {!processedSrc && !processing && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:solar?"rgba(255,255,255,0.3)":"rgba(26,23,20,0.3)",pointerEvents:"none" }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.9)":"rgba(26,23,20,0.8)",border:`1px solid ${T.cBd}`,color:T.tm,fontSize:13,textAlign:"center" }}>← Seleccioná un filtro</div></div>}
+              </div>
+              {processedSrc && <p style={{ textAlign:"center",fontSize:10,color:T.td,marginTop:6,fontFamily:mono }}>Arrastrá el deslizador · Ajustá intensidad en el panel lateral</p>}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* FOOTER */}
+      <footer style={{ padding:"14px 20px",borderTop:`1px solid ${T.fBd}`,textAlign:"center",fontSize:10,color:T.fTx,fontFamily:mono,position:"relative",zIndex:5,lineHeight:1.8 }}>
+        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> – OpuntiaColor v2.0 · 100% local · GPS/EXIF · Modo Solar</div>
+        <div><span style={{color:T.tm}}>Dr. Emilio A. Villafañez</span> · <span style={{color:T.tm}}>LATDAA</span> · <span style={{color:T.tm}}>UNCa</span> · <span style={{color:T.tm}}>Fund. Félix de Azara</span></div>
+      </footer>
+
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        input[type="range"]{-webkit-appearance:none;height:3px;border-radius:2px;background:${T.sT};outline:none}
+        input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:${T.ac};cursor:pointer;border:2px solid ${T.tB};box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+        *{box-sizing:border-box}
+      `}</style>
+      <canvas ref={canvasRef} style={{display:"none"}} />
+    </div>
+  );
+}
+
+
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(RockArtEnhancer));
+  </script>
+</body>
+</html>
