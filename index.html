@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPC – OpuntiaColor v2.5 · Realce de pigmentos en arte rupestre</title>
+  <meta name="description" content="Herramienta de procesamiento digital para realce de pigmentos en arte rupestre. 12 filtros + contraste/saturación. 100% local.">
+  <meta name="author" content="Dr. Emilio A. Villafañez · LATDAA · UNCa · Fund. Félix de Azara">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌵</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Crimson Pro', serif; overflow-x: hidden; }
+    #root { min-height: 100vh; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef, useCallback, useEffect } = React;
+
+const OPC_LOGO = "data:image/png;base64,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";
+
+// ============================================================
+// OPC – OpuntiaColor v2.5 · Herramienta Profesional de Campo
+// Decorrelation Stretch & pigment enhancement for archaeology
+// NUEVO: CRGB, DS-LAB, Relieve, stacking, presets intensidad
+// ============================================================
+
+// --- Color Conversion Core ---
+
+function rgb2lab(r, g, b) {
+  let rr = r / 255, gg = g / 255, bb = b / 255;
+  rr = rr > 0.04045 ? Math.pow((rr + 0.055) / 1.055, 2.4) : rr / 12.92;
+  gg = gg > 0.04045 ? Math.pow((gg + 0.055) / 1.055, 2.4) : gg / 12.92;
+  bb = bb > 0.04045 ? Math.pow((bb + 0.055) / 1.055, 2.4) : bb / 12.92;
+  let x = (rr * 0.4124564 + gg * 0.3575761 + bb * 0.1804375) / 0.95047;
+  let y = (rr * 0.2126729 + gg * 0.7151522 + bb * 0.0721750);
+  let z = (rr * 0.0193339 + gg * 0.1191920 + bb * 0.9503041) / 1.08883;
+  const f = t => t > 0.008856 ? Math.cbrt(t) : (7.787 * t + 16 / 116);
+  x = f(x); y = f(y); z = f(z);
+  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+}
+
+function lab2rgb(L, a, b) {
+  let y = (L + 16) / 116, x = a / 500 + y, z = y - b / 200;
+  const finv = t => { const t3 = t*t*t; return t3 > 0.008856 ? t3 : (t - 16/116) / 7.787; };
+  x = 0.95047*finv(x); y = 1.0*finv(y); z = 1.08883*finv(z);
+  let rr = x*3.2404542 - y*1.5371385 - z*0.4985314;
+  let gg = -x*0.9692660 + y*1.8760108 + z*0.0415560;
+  let bb = x*0.0556434 - y*0.2040259 + z*1.0572252;
+  const gamma = c => c > 0.0031308 ? 1.055*Math.pow(c, 1/2.4) - 0.055 : 12.92*c;
+  return [Math.max(0,Math.min(255,Math.round(gamma(rr)*255))),Math.max(0,Math.min(255,Math.round(gamma(gg)*255))),Math.max(0,Math.min(255,Math.round(gamma(bb)*255)))];
+}
+
+function rgb2ycbcr(r, g, b) { return [0.299*r+0.587*g+0.114*b, 128-0.168736*r-0.331264*g+0.5*b, 128+0.5*r-0.418688*g-0.081312*b]; }
+function ycbcr2rgb(y, cb, cr) { return [Math.max(0,Math.min(255,Math.round(y+1.402*(cr-128)))),Math.max(0,Math.min(255,Math.round(y-0.344136*(cb-128)-0.714136*(cr-128)))),Math.max(0,Math.min(255,Math.round(y+1.772*(cb-128))))]; }
+
+// ============================================================
+// GENERIC DECORRELATION STRETCH (RGB / LAB / YCbCr)
+// Jacobi eigendecomposition with per-colorspace support
+// ============================================================
+
+function genericDecorStretch(imageData, strength, colorSpace, targetBand) {
+  const data = imageData.data, n = data.length / 4;
+  const CH = [new Float64Array(n), new Float64Array(n), new Float64Array(n)];
+
+  const toFn = colorSpace === 'lab' ? rgb2lab : colorSpace === 'ycbcr' ? rgb2ycbcr : (r,g,b) => [r,g,b];
+
+  for (let i = 0; i < n; i++) {
+    const [c0, c1, c2] = toFn(data[i*4], data[i*4+1], data[i*4+2]);
+    CH[0][i] = c0; CH[1][i] = c1; CH[2][i] = c2;
+  }
+
+  // Means
+  const mean = [0, 0, 0];
+  for (let i = 0; i < n; i++) { mean[0] += CH[0][i]; mean[1] += CH[1][i]; mean[2] += CH[2][i]; }
+  mean[0] /= n; mean[1] /= n; mean[2] /= n;
+
+  // Covariance
+  const cov = [[0,0,0],[0,0,0],[0,0,0]];
+  for (let i = 0; i < n; i++) {
+    const d0 = CH[0][i]-mean[0], d1 = CH[1][i]-mean[1], d2 = CH[2][i]-mean[2];
+    cov[0][0]+=d0*d0; cov[0][1]+=d0*d1; cov[0][2]+=d0*d2;
+    cov[1][1]+=d1*d1; cov[1][2]+=d1*d2; cov[2][2]+=d2*d2;
+  }
+  for (let j=0;j<3;j++) for (let k=j;k<3;k++) { cov[j][k]/=n; cov[k][j]=cov[j][k]; }
+  const eps = 1e-10;
+  cov[0][0]+=eps; cov[1][1]+=eps; cov[2][2]+=eps;
+
+  // Jacobi eigendecomposition
+  let a = cov.map(r=>[...r]);
+  let v = [[1,0,0],[0,1,0],[0,0,1]];
+  for (let iter=0;iter<50;iter++) {
+    let maxVal=0,p=0,q=1;
+    for (let i=0;i<3;i++) for (let j=i+1;j<3;j++) if(Math.abs(a[i][j])>maxVal){maxVal=Math.abs(a[i][j]);p=i;q=j;}
+    if(maxVal<1e-12) break;
+    const theta=0.5*Math.atan2(2*a[p][q],a[p][p]-a[q][q]),c=Math.cos(theta),s=Math.sin(theta);
+    const nA=a.map(r=>[...r]);
+    for(let i=0;i<3;i++){nA[i][p]=c*a[i][p]+s*a[i][q];nA[i][q]=-s*a[i][p]+c*a[i][q];}
+    for(let j=0;j<3;j++){a[p][j]=c*nA[p][j]+s*nA[q][j];a[q][j]=-s*nA[p][j]+c*nA[q][j];}
+    const nV=v.map(r=>[...r]);
+    for(let i=0;i<3;i++){v[i][p]=c*nV[i][p]+s*nV[i][q];v[i][q]=-s*nV[i][p]+c*nV[i][q];}
+  }
+
+  const eigenvalues = [a[0][0],a[1][1],a[2][2]];
+  const output = new Uint8ClampedArray(data.length);
+
+  for (let i = 0; i < n; i++) {
+    const d = [CH[0][i]-mean[0], CH[1][i]-mean[1], CH[2][i]-mean[2]];
+    let pc = [0,0,0];
+    for (let k=0;k<3;k++) pc[k] = v[0][k]*d[0] + v[1][k]*d[1] + v[2][k]*d[2];
+    for (let k=0;k<3;k++) {
+      const std = Math.sqrt(Math.max(eigenvalues[k],eps));
+      let sf = (targetBand !== null && k === targetBand) ? strength * 1.5 : strength;
+      pc[k] = (pc[k] / std) * sf;
+    }
+    let nc = [mean[0], mean[1], mean[2]];
+    for (let k=0;k<3;k++) {
+      const sf = Math.sqrt(Math.max(eigenvalues[k],eps)) / strength;
+      nc[0] += v[0][k]*pc[k]*sf;
+      nc[1] += v[1][k]*pc[k]*sf;
+      nc[2] += v[2][k]*pc[k]*sf;
+    }
+
+    if (colorSpace === 'rgb') {
+      output[i*4] = Math.max(0,Math.min(255,Math.round(nc[0])));
+      output[i*4+1] = Math.max(0,Math.min(255,Math.round(nc[1])));
+      output[i*4+2] = Math.max(0,Math.min(255,Math.round(nc[2])));
+    } else {
+      const fromFn = colorSpace === 'lab' ? lab2rgb : ycbcr2rgb;
+      const [r,g,b] = fromFn(nc[0], nc[1], nc[2]);
+      output[i*4] = Math.max(0,Math.min(255,r));
+      output[i*4+1] = Math.max(0,Math.min(255,g));
+      output[i*4+2] = Math.max(0,Math.min(255,b));
+    }
+    output[i*4+3] = 255;
+  }
+
+  // Normalize RGB output to full range
+  for (let ch=0;ch<3;ch++) {
+    let mn=255,mx=0;
+    for (let i=0;i<n;i++){const val=output[i*4+ch];if(val<mn)mn=val;if(val>mx)mx=val;}
+    const range=mx-mn||1;
+    for (let i=0;i<n;i++) output[i*4+ch]=Math.round(((output[i*4+ch]-mn)/range)*255);
+  }
+
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+// ============================================================
+// FILTER FUNCTIONS
+// ============================================================
+
+// --- Pinturas ---
+
+function enhanceRedPigment(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  for(let i=0;i<n;i++){const r=data[i*4],g=data[i*4+1],b=data[i*4+2];const[L,a,bL]=rgb2lab(r,g,b);const nA=a*intensity,nB=bL*(1+(intensity-1)*0.3),nL=L+(a>0?(intensity-1)*8:-(intensity-1)*5);const[nr,ng,nb]=lab2rgb(Math.max(0,Math.min(100,nL)),Math.max(-128,Math.min(127,nA)),Math.max(-128,Math.min(127,nB)));output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function enhanceWhitePigment(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  let lv=new Float64Array(n),sL=0;for(let i=0;i<n;i++){const[L]=rgb2lab(data[i*4],data[i*4+1],data[i*4+2]);lv[i]=L;sL+=L;}
+  const mL=sL/n;let stdL=0;for(let i=0;i<n;i++)stdL+=(lv[i]-mL)**2;stdL=Math.sqrt(stdL/n);
+  for(let i=0;i<n;i++){const r=data[i*4],g=data[i*4+1],b=data[i*4+2];const[L,a,bL]=rgb2lab(r,g,b);const z=(L-mL)/(stdL||1),boost=z>0?z*intensity*5:z*intensity*2,nL=Math.max(0,Math.min(100,L+boost)),sf=L>mL?1/(1+(intensity-1)*0.5):1;const[nr,ng,nb]=lab2rgb(nL,a*sf,bL*sf);output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function enhanceBichrome(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  let sL=0;const labs=new Array(n);for(let i=0;i<n;i++){labs[i]=rgb2lab(data[i*4],data[i*4+1],data[i*4+2]);sL+=labs[i][0];}const mL=sL/n;
+  for(let i=0;i<n;i++){let[L,a,bL]=labs[i];const rb=a>5?intensity*1.3:(a>0?intensity:1),nA=a*rb,ch=Math.sqrt(a*a+bL*bL),isW=L>mL&&ch<25,wb=isW?(L-mL)*intensity*0.15:0,nL=Math.max(0,Math.min(100,L+wb)),isR=!isW&&a<5&&L<mL,rs=isR?0.7:1;const[nr,ng,nb]=lab2rgb(nL*rs+(1-rs)*(nL*0.6),Math.max(-128,Math.min(127,nA)),Math.max(-128,Math.min(127,bL*(isW?0.5:1))));output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function enhanceBlackPigment(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  const lv=new Float64Array(n);let sL=0;for(let i=0;i<n;i++){const[L]=rgb2lab(data[i*4],data[i*4+1],data[i*4+2]);lv[i]=L;sL+=L;}
+  const mL=sL/n;let stdL=0;for(let i=0;i<n;i++)stdL+=(lv[i]-mL)**2;stdL=Math.sqrt(stdL/n)||1;
+  for(let i=0;i<n;i++){const r=data[i*4],g=data[i*4+1],b=data[i*4+2];const[L,a,bL]=rgb2lab(r,g,b);const ch=Math.sqrt(a*a+bL*bL),z=(L-mL)/stdL,isDLC=L<mL&&ch<20;let nL=L,nA=a,nB=bL;if(isDLC){const df=Math.max(0,(mL-L)/mL);nL=L-df*intensity*18;const cr=1/(1+(intensity-1)*0.8);nA=a*cr;nB=bL*cr;}else{nL=L+Math.max(0,z)*intensity*3;nA=a*(1+(intensity-1)*0.15);nB=bL*(1+(intensity-1)*0.15);}const[nr,ng,nb]=lab2rgb(Math.max(0,Math.min(100,nL)),Math.max(-128,Math.min(127,nA)),Math.max(-128,Math.min(127,nB)));output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+// --- Grabados ---
+
+function enhancePetroglyph(imageData, intensity = 1.5) {
+  const data = imageData.data, w = imageData.width, h = imageData.height, n = w * h;
+  const output = new Uint8ClampedArray(data.length);
+  const Lchan = new Float64Array(n), Achan = new Float64Array(n), Bchan = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const [L, a, b] = rgb2lab(data[i*4], data[i*4+1], data[i*4+2]);
+    Lchan[i] = L; Achan[i] = a; Bchan[i] = b;
+  }
+  const scaleSmall = Math.max(8, Math.floor(Math.min(w,h) / 40));
+  const scaleLarge = Math.max(24, Math.floor(Math.min(w,h) / 10));
+  const localEnhL = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = i % w, y = Math.floor(i / w);
+    let sumS=0,cntS=0,sumL=0,cntL=0;
+    const sx0=Math.max(0,x-scaleSmall),sx1=Math.min(w-1,x+scaleSmall),sy0=Math.max(0,y-scaleSmall),sy1=Math.min(h-1,y+scaleSmall);
+    for(let yy=sy0;yy<=sy1;yy+=2) for(let xx=sx0;xx<=sx1;xx+=2){sumS+=Lchan[yy*w+xx];cntS++;}
+    const lx0=Math.max(0,x-scaleLarge),lx1=Math.min(w-1,x+scaleLarge),ly0=Math.max(0,y-scaleLarge),ly1=Math.min(h-1,y+scaleLarge);
+    for(let yy=ly0;yy<=ly1;yy+=4) for(let xx=lx0;xx<=lx1;xx+=4){sumL+=Lchan[yy*w+xx];cntL++;}
+    const devS=(Lchan[i]-sumS/cntS)*intensity*2.5, devL=(Lchan[i]-sumL/cntL)*intensity*1.2;
+    localEnhL[i]=Lchan[i]+devS*0.6+devL*0.4;
+  }
+  const edges = new Float64Array(n); let maxEdge=0;
+  for (let i=0;i<n;i++){const x=i%w,y=Math.floor(i/w);if(x===0||x===w-1||y===0||y===h-1){edges[i]=0;continue;}const gx=-Lchan[(y-1)*w+(x-1)]+Lchan[(y-1)*w+(x+1)]-2*Lchan[y*w+(x-1)]+2*Lchan[y*w+(x+1)]-Lchan[(y+1)*w+(x-1)]+Lchan[(y+1)*w+(x+1)];const gy=-Lchan[(y-1)*w+(x-1)]-2*Lchan[(y-1)*w+x]-Lchan[(y-1)*w+(x+1)]+Lchan[(y+1)*w+(x-1)]+2*Lchan[(y+1)*w+x]+Lchan[(y+1)*w+(x+1)];edges[i]=Math.sqrt(gx*gx+gy*gy);if(edges[i]>maxEdge)maxEdge=edges[i];}
+  let minA=128,maxA=-128,minB=128,maxB=-128;
+  for(let i=0;i<n;i++){if(Achan[i]<minA)minA=Achan[i];if(Achan[i]>maxA)maxA=Achan[i];if(Bchan[i]<minB)minB=Bchan[i];if(Bchan[i]>maxB)maxB=Bchan[i];}
+  const rangeA=maxA-minA||1,rangeB=maxB-minB||1,chromaBoost=intensity*3;
+  const edgeNorm=maxEdge||1,edgeMix=intensity*0.25;
+  for(let i=0;i<n;i++){let newL=localEnhL[i]+(edges[i]/edgeNorm)*20*edgeMix;newL=Math.max(0,Math.min(100,newL));const midA=(minA+maxA)/2,midB=(minB+maxB)/2;let newA=midA+(Achan[i]-midA)*chromaBoost,newB=midB+(Bchan[i]-midB)*chromaBoost;newA=Math.max(-128,Math.min(127,newA));newB=Math.max(-128,Math.min(127,newB));const[r,g,b]=lab2rgb(newL,newA,newB);output[i*4]=r;output[i*4+1]=g;output[i*4+2]=b;output[i*4+3]=255;}
+  return new ImageData(output, w, h);
+}
+
+// NUEVO: CRGB — Decorrelation Stretch puro en RGB sin sesgo de banda
+// Equivalente al CRGB de DStretch: pre-ecualización por canal + decorrelación agresiva
+function crgbEnhance(imageData, intensity = 1.5) {
+  const data = imageData.data, n = data.length / 4;
+  // Paso 1: Pre-ecualización por canal (stretch cada canal a rango completo 0-255)
+  const preData = new Uint8ClampedArray(data.length);
+  for (let ch = 0; ch < 3; ch++) {
+    let mn = 255, mx = 0;
+    for (let i = 0; i < n; i++) { const v = data[i*4+ch]; if(v<mn)mn=v; if(v>mx)mx=v; }
+    // Recortar extremos (2% cada lado) para mayor contraste
+    const hist = new Uint32Array(256);
+    for (let i = 0; i < n; i++) hist[data[i*4+ch]]++;
+    const clipLow = Math.floor(n * 0.02), clipHigh = Math.floor(n * 0.98);
+    let acc = 0; let lo = 0;
+    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= clipLow) { lo = v; break; } }
+    acc = 0; let hi = 255;
+    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= clipHigh) { hi = v; break; } }
+    const range = hi - lo || 1;
+    for (let i = 0; i < n; i++) {
+      preData[i*4+ch] = Math.max(0, Math.min(255, Math.round(((data[i*4+ch] - lo) / range) * 255)));
+    }
+  }
+  for (let i = 0; i < n; i++) preData[i*4+3] = 255;
+  // Paso 2: Decorrelation stretch agresiva sobre los datos pre-ecualizados
+  const preImg = new ImageData(preData, imageData.width, imageData.height);
+  return genericDecorStretch(preImg, intensity * 2.2, 'rgb', null);
+}
+
+// NUEVO: Mapa de Relieve — Solo detección de bordes multi-escala
+// Genera un "calco digital" ideal para grabados rupestres
+function reliefMap(imageData, intensity = 1.5) {
+  const data = imageData.data, w = imageData.width, h = imageData.height, n = w * h;
+  const output = new Uint8ClampedArray(data.length);
+  const lum = new Float64Array(n);
+  for (let i = 0; i < n; i++) lum[i] = 0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2];
+
+  // Multi-scale Sobel: escala fina (surcos) + gruesa (paneles)
+  const edges = new Float64Array(n);
+  let maxEdge = 0;
+  for (let i = 0; i < n; i++) {
+    const x = i % w, y = Math.floor(i / w);
+    if (x < 2 || x >= w-2 || y < 2 || y >= h-2) { edges[i] = 0; continue; }
+    // 3x3 Sobel
+    const gx1 = -lum[(y-1)*w+(x-1)] + lum[(y-1)*w+(x+1)] -2*lum[y*w+(x-1)] + 2*lum[y*w+(x+1)] -lum[(y+1)*w+(x-1)] + lum[(y+1)*w+(x+1)];
+    const gy1 = -lum[(y-1)*w+(x-1)] -2*lum[(y-1)*w+x] -lum[(y-1)*w+(x+1)] +lum[(y+1)*w+(x-1)] +2*lum[(y+1)*w+x] +lum[(y+1)*w+(x+1)];
+    // 5x5 extended
+    const gx2 = -lum[(y-2)*w+(x-2)] + lum[(y-2)*w+(x+2)] -2*lum[y*w+(x-2)] + 2*lum[y*w+(x+2)] -lum[(y+2)*w+(x-2)] + lum[(y+2)*w+(x+2)];
+    const gy2 = -lum[(y-2)*w+(x-2)] -2*lum[(y-2)*w+x] -lum[(y-2)*w+(x+2)] +lum[(y+2)*w+(x-2)] +2*lum[(y+2)*w+x] +lum[(y+2)*w+(x+2)];
+    edges[i] = Math.sqrt(gx1*gx1+gy1*gy1)*0.65 + Math.sqrt(gx2*gx2+gy2*gy2)*0.35;
+    if (edges[i] > maxEdge) maxEdge = edges[i];
+  }
+  const norm = maxEdge || 1;
+  for (let i = 0; i < n; i++) {
+    const e = Math.pow(Math.min(1, (edges[i] / norm) * intensity * 1.2), 0.7);
+    const v = Math.round(e * 255);
+    // Falso color cálido para mejor lectura: bordes claros sobre fondo oscuro
+    output[i*4] = Math.min(255, Math.round(v * 1.05));
+    output[i*4+1] = Math.min(255, Math.round(v * 0.92));
+    output[i*4+2] = Math.min(255, Math.round(v * 0.78));
+    output[i*4+3] = 255;
+  }
+  return new ImageData(output, w, h);
+}
+
+// --- Técnico ---
+
+function ybkEnhance(imageData, intensity = 1.5) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  for(let i=0;i<n;i++){const[y,cb,cr]=rgb2ycbcr(data[i*4],data[i*4+1],data[i*4+2]);const[nr,ng,nb]=ycbcr2rgb(y,128+(cb-128)*intensity,128+(cr-128)*intensity);output[i*4]=nr;output[i*4+1]=ng;output[i*4+2]=nb;output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+function ldsEnhance(imageData, intensity = 1.5) {
+  return genericDecorStretch(imageData, intensity * 1.2, 'rgb', null);
+}
+
+// NUEVO: DS-LAB — Decorrelation stretch en espacio CIE-LAB
+// Más sensible a diferencias perceptuales de color que RGB
+function dsLabEnhance(imageData, intensity = 1.5) {
+  return genericDecorStretch(imageData, intensity * 1.3, 'lab', null);
+}
+
+function localContrastEnhance(imageData, strength = 1.5) {
+  const data=imageData.data,w=imageData.width,h=imageData.height,n=w*h,output=new Uint8ClampedArray(data.length);
+  const lum=new Float64Array(n);for(let i=0;i<n;i++)lum[i]=0.299*data[i*4]+0.587*data[i*4+1]+0.114*data[i*4+2];
+  const bs=Math.max(16,Math.floor(Math.min(w,h)/16));
+  for(let i=0;i<n;i++){const x=i%w,y=Math.floor(i/w),x0=Math.max(0,x-bs),x1=Math.min(w-1,x+bs),y0=Math.max(0,y-bs),y1=Math.min(h-1,y+bs);let ls=0,lq=0,lc=0;for(let yy=y0;yy<=y1;yy+=4)for(let xx=x0;xx<=x1;xx+=4){const val=lum[yy*w+xx];ls+=val;lq+=val*val;lc++;}const lm=ls/lc,ld=Math.sqrt(Math.max(0,lq/lc-lm*lm))||1;for(let ch=0;ch<3;ch++){const val=data[i*4+ch];output[i*4+ch]=Math.max(0,Math.min(255,Math.round(lm+(val-lm)*(strength*40/ld))));}output[i*4+3]=255;}
+  return new ImageData(output, w, h);
+}
+
+function pigmentMapping(imageData) {
+  const data=imageData.data,n=data.length/4,output=new Uint8ClampedArray(data.length);
+  let sL=0;const labs=new Array(n);for(let i=0;i<n;i++){labs[i]=rgb2lab(data[i*4],data[i*4+1],data[i*4+2]);sL+=labs[i][0];}const mL=sL/n;
+  for(let i=0;i<n;i++){const[L,a,bL]=labs[i];const ch=Math.sqrt(a*a+bL*bL);if(a>8&&ch>12){const ri=Math.min(1,a/40);output[i*4]=Math.round(255*ri);output[i*4+1]=Math.round(80*(1-ri));output[i*4+2]=0;}else if(L<(mL-10)&&ch<15){const bi=Math.min(1,(mL-L)/(mL*0.6));output[i*4]=Math.round(40*(1-bi));output[i*4+1]=Math.round(200+55*bi);output[i*4+2]=Math.round(40*(1-bi));}else if(L>65&&ch<18){const wi=Math.min(1,(L-65)/35);output[i*4]=Math.round(100*(1-wi));output[i*4+1]=Math.round(200+55*wi);output[i*4+2]=Math.round(220+35*wi);}else{const g=Math.min(255,Math.round(L*1.2));output[i*4]=g;output[i*4+1]=g;output[i*4+2]=g;}output[i*4+3]=255;}
+  return new ImageData(output, imageData.width, imageData.height);
+}
+
+// ============================================================
+// EXIF / GPS PARSER
+// ============================================================
+
+function parseExifData(arrayBuffer) {
+  const view = new DataView(arrayBuffer);
+  if (view.getUint16(0) !== 0xFFD8) return null;
+  let offset = 2;
+  while (offset < view.byteLength - 4) {
+    const marker = view.getUint16(offset);
+    if (marker === 0xFFE1) { const length = view.getUint16(offset + 2); return parseExifBlock(arrayBuffer, offset + 4, length - 2); }
+    if ((marker & 0xFF00) !== 0xFF00) break;
+    offset += 2 + view.getUint16(offset + 2);
+  }
+  return null;
+}
+
+function parseExifBlock(buffer, start, length) {
+  const view = new DataView(buffer, start, Math.min(length, buffer.byteLength - start));
+  if (view.getUint32(0) !== 0x45786966 || view.getUint16(4) !== 0x0000) return null;
+  const tiffStart = start + 6, tiffView = new DataView(buffer, tiffStart);
+  const le = tiffView.getUint16(0) === 0x4949;
+  const ifdOff = tiffView.getUint32(4, le);
+  const result = { dateTime: null, gps: null };
+  const ifd0 = parseIFD(buffer, tiffStart, ifdOff, le);
+  if (ifd0[0x0132]) result.dateTime = ifd0[0x0132];
+  if (ifd0[0x8769]) { const exifIFD = parseIFD(buffer, tiffStart, ifd0[0x8769], le); if (exifIFD[0x9003]) result.dateTime = exifIFD[0x9003]; else if (exifIFD[0x9004]) result.dateTime = exifIFD[0x9004]; }
+  if (ifd0[0x8825]) { const gpsIFD = parseIFD(buffer, tiffStart, ifd0[0x8825], le); result.gps = extractGPS(gpsIFD); }
+  return result;
+}
+
+function parseIFD(buffer, tiffStart, ifdOffset, le) {
+  const view = new DataView(buffer, tiffStart); const entries = {};
+  try { const count = view.getUint16(ifdOffset, le);
+    for (let i = 0; i < count; i++) { const eOff = ifdOffset + 2 + i * 12, tag = view.getUint16(eOff, le), type = view.getUint16(eOff + 2, le), numV = view.getUint32(eOff + 4, le), vOff = eOff + 8;
+      const typeSize = { 1:1, 2:1, 3:2, 4:4, 5:8, 7:1, 10:8 }; const totalBytes = (typeSize[type] || 1) * numV;
+      const realOff = totalBytes > 4 ? tiffStart + view.getUint32(vOff, le) : tiffStart + eOff + 8;
+      if (type === 2) { let str = ""; for (let j = 0; j < numV - 1; j++) { const cc = new DataView(buffer).getUint8(realOff + j); if (cc === 0) break; str += String.fromCharCode(cc); } entries[tag] = str;
+      } else if (type === 3) { entries[tag] = view.getUint16(vOff, le);
+      } else if (type === 4) { entries[tag] = view.getUint32(vOff, le);
+      } else if (type === 5) { const rV = new DataView(buffer, realOff); if (numV === 1) { entries[tag] = rV.getUint32(0, le) / (rV.getUint32(4, le) || 1); } else { const rats = []; for (let j = 0; j < numV; j++) rats.push(rV.getUint32(j*8, le) / (rV.getUint32(j*8+4, le) || 1)); entries[tag] = rats; }
+      } else if (type === 1) { entries[tag] = new DataView(buffer).getUint8(realOff); }
+    }
+  } catch (e) {}
+  return entries;
+}
+
+function extractGPS(gpsIFD) {
+  const latRef = gpsIFD[1] || "N", lat = gpsIFD[2], lonRef = gpsIFD[3] || "W", lon = gpsIFD[4], alt = gpsIFD[6];
+  if (!lat || !lon || !Array.isArray(lat) || !Array.isArray(lon)) return null;
+  const toD = (dms, ref) => { const d = dms[0] + dms[1]/60 + (dms[2]||0)/3600; return (ref==="S"||ref==="W") ? -d : d; };
+  return { latitude: toD(lat, latRef), longitude: toD(lon, lonRef), altitude: typeof alt === "number" ? alt : null, latRef, lonRef };
+}
+
+function formatGPSCoord(decimal, isLat) {
+  const abs = Math.abs(decimal), d = Math.floor(abs), m = Math.floor((abs-d)*60), s = ((abs-d-m/60)*3600).toFixed(1);
+  return `${d}\u00B0 ${m}' ${s}" ${isLat ? (decimal>=0?"N":"S") : (decimal>=0?"E":"W")}`;
+}
+
+// ============================================================
+// THEMES
+// ============================================================
+
+const TD = { bg:"#1a1714",text:"#e8e0d4",tm:"#8a7e6e",td:"#6a5e4e",ac:"#c0392b",acBg:"rgba(192,57,43,0.12)",acBd:"rgba(192,57,43,0.35)",cBg:"rgba(232,224,212,0.04)",cBd:"rgba(232,224,212,0.08)",hBd:"rgba(232,224,212,0.08)",ov:"rgba(26,23,20,0.7)",gn:"#6db85d",gnBg:"rgba(109,184,93,0.1)",gnBd:"rgba(109,184,93,0.15)",iBg:"#0e0d0b",fTx:"#5a4e3e",fBd:"rgba(232,224,212,0.06)",bBg:"rgba(232,224,212,0.06)",sT:"rgba(232,224,212,0.15)",tB:"#1a1714" };
+const TS = { bg:"#FFFFFF",text:"#000000",tm:"#333333",td:"#555555",ac:"#B71C1C",acBg:"rgba(183,28,28,0.1)",acBd:"rgba(183,28,28,0.4)",cBg:"#F5F5F5",cBd:"#CCCCCC",hBd:"#BBBBBB",ov:"rgba(255,255,255,0.8)",gn:"#2E7D32",gnBg:"rgba(46,125,50,0.1)",gnBd:"rgba(46,125,50,0.3)",iBg:"#EEEEEE",fTx:"#555555",fBd:"#CCCCCC",bBg:"#EEEEEE",sT:"#BBBBBB",tB:"#FFFFFF" };
+
+// ============================================================
+// PRESETS (con categorías)
+// ============================================================
+
+const PRESETS = [
+  // Pinturas
+  { id:"red", name:"Rojo", desc:"Pigmentos rojos", icon:"\uD83D\uDD34", fn:enhanceRedPigment, cat:"Pinturas" },
+  { id:"white", name:"Blanco", desc:"Pigmentos blancos", icon:"\u26AA", fn:enhanceWhitePigment, cat:"Pinturas" },
+  { id:"bichrome", name:"Bicromo", desc:"Rojo + Blanco", icon:"\u25D1", fn:enhanceBichrome, cat:"Pinturas" },
+  { id:"black", name:"Negro", desc:"Pigmentos negros", icon:"\u26AB", fn:enhanceBlackPigment, cat:"Pinturas" },
+  // Grabados
+  { id:"petro", name:"Micro-relieve", desc:"P\u00E1tina + textura + bordes", icon:"\uD83E\uDEA8", fn:enhancePetroglyph, cat:"Grabados" },
+  { id:"crgb", name:"CRGB", desc:"DS puro RGB (tipo DStretch)", icon:"\uD83C\uDF08", fn:crgbEnhance, cat:"Grabados" },
+  { id:"relief", name:"Relieve", desc:"Mapa de bordes / calco", icon:"\uD83D\uDDFA", fn:reliefMap, cat:"Grabados" },
+  // Técnico
+  { id:"ybk", name:"YBK", desc:"YCbCr crominancia", icon:"\uD83D\uDFE1", fn:ybkEnhance, cat:"T\u00E9cnico" },
+  { id:"lds", name:"LDS", desc:"Decorrelation Stretch RGB", icon:"\uD83D\uDFE3", fn:ldsEnhance, cat:"T\u00E9cnico" },
+  { id:"dslab", name:"DS-LAB", desc:"Decorrelation en CIE-LAB", icon:"\uD83D\uDD35", fn:dsLabEnhance, cat:"T\u00E9cnico" },
+  { id:"clahe", name:"CLAHE", desc:"Contraste local adaptativo", icon:"\u25D0", fn:localContrastEnhance, cat:"T\u00E9cnico" },
+  { id:"map", name:"Mapa", desc:"Falso color pigmentos", icon:"\uD83D\uDDFA\uFE0F", fn:pigmentMapping, cat:"T\u00E9cnico" },
+];
+
+const INTENSITY_PRESETS = [
+  { label:"Sutil", value:0.4 },
+  { label:"Suave", value:1.0 },
+  { label:"Medio", value:1.8 },
+  { label:"Fuerte", value:3.0 },
+  { label:"Extremo", value:4.5 },
+];
+
+const CATEGORIES = ["Pinturas", "Grabados", "T\u00E9cnico"];
+
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
+
+function RockArtEnhancer() {
+  const [image, setImage] = useState(null);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [processedSrc, setProcessedSrc] = useState(null);
+  const [activePreset, setActivePreset] = useState(null);
+  const [intensity, setIntensity] = useState(1.5);
+  const [processing, setProcessing] = useState(false);
+  const [sliderPos, setSliderPos] = useState(50);
+  const [dragging, setDragging] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [imageSize, setImageSize] = useState({ w: 0, h: 0 });
+  const [solar, setSolar] = useState(false);
+  const [exifData, setExifData] = useState(null);
+  // NUEVO: modo acumular (stacking)
+  const [stackMode, setStackMode] = useState(false);
+  // NUEVO: ajustes post-procesamiento
+  const [contrast, setContrast] = useState(0);
+  const [saturation, setSaturation] = useState(0);
+
+  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const compareRef = useRef(null);
+  const T = solar ? TS : TD;
+
+  // CSS filter para contraste y saturación en tiempo real
+  const postFilter = (contrast === 0 && saturation === 0) ? "none"
+    : `contrast(${1 + contrast/100}) saturate(${1 + saturation/100})`;
+
+  const handleFile = useCallback((file) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    setFileName(file.name); setExifData(null);
+    const er = new FileReader();
+    er.onload = (e) => { try { const p = parseExifData(e.target.result); if(p) setExifData(p); } catch(e){} };
+    er.readAsArrayBuffer(file);
+    const dr = new FileReader();
+    dr.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const mx = 2000; let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > mx || h > mx) { const s = mx / Math.max(w,h); w = Math.round(w*s); h = Math.round(h*s); }
+        setImageSize({w,h}); setImage(img); setImageSrc(e.target.result); setProcessedSrc(null); setActivePreset(null); setStackMode(false);
+      };
+      img.src = e.target.result;
+    };
+    dr.readAsDataURL(file);
+  }, []);
+
+  // processImage: soporta stacking (procesar sobre resultado previo)
+  const processImage = useCallback((preset, int) => {
+    if (!image) return; setProcessing(true); setActivePreset(preset.id);
+    requestAnimationFrame(() => { setTimeout(() => {
+      try {
+        const cv = document.createElement("canvas"), ctx = cv.getContext("2d"), {w,h} = imageSize;
+        cv.width=w; cv.height=h;
+
+        // Si stackMode y hay resultado previo, usar ese como fuente
+        if (stackMode && processedSrc) {
+          const tmpImg = new Image();
+          tmpImg.onload = () => {
+            ctx.drawImage(tmpImg,0,0,w,h);
+            const id = ctx.getImageData(0,0,w,h);
+            const result = preset.id==="map" ? preset.fn(id) : preset.fn(id, int);
+            ctx.putImageData(result,0,0); setProcessedSrc(cv.toDataURL("image/png"));
+            setProcessing(false);
+          };
+          tmpImg.src = processedSrc;
+          return; // async path
+        }
+
+        ctx.drawImage(image,0,0,w,h);
+        const id = ctx.getImageData(0,0,w,h);
+        const result = preset.id==="map" ? preset.fn(id) : preset.fn(id, int);
+        ctx.putImageData(result,0,0); setProcessedSrc(cv.toDataURL("image/png"));
+      } catch(e) { console.error(e); }
+      setProcessing(false);
+    }, 50); });
+  }, [image, imageSize, stackMode, processedSrc]);
+
+  useEffect(() => {
+    if (activePreset && image) { const p = PRESETS.find(x=>x.id===activePreset); if(p){ const t=setTimeout(()=>processImage(p,intensity),250); return ()=>clearTimeout(t); }}
+  }, [intensity]);
+
+  const handleSliderMove = useCallback((cx) => { if(!compareRef.current) return; const r=compareRef.current.getBoundingClientRect(); setSliderPos(Math.max(0,Math.min(100,((cx-r.left)/r.width)*100))); }, []);
+  const handlePointerDown = (e) => { setDragging(true); handleSliderMove(e.clientX); };
+  useEffect(() => { if(!dragging) return; const m=(e)=>handleSliderMove(e.clientX), u=()=>setDragging(false); window.addEventListener("pointermove",m); window.addEventListener("pointerup",u); return ()=>{window.removeEventListener("pointermove",m);window.removeEventListener("pointerup",u);}; }, [dragging,handleSliderMove]);
+
+  const handleDownload = () => {
+    if (!processedSrc) return;
+    try {
+      // Aplicar contraste/saturación al descargar
+      const tmpImg = new Image();
+      tmpImg.onload = () => {
+        const cv = document.createElement("canvas");
+        cv.width = tmpImg.naturalWidth; cv.height = tmpImg.naturalHeight;
+        const ctx = cv.getContext("2d");
+        if (contrast !== 0 || saturation !== 0) {
+          ctx.filter = `contrast(${1 + contrast/100}) saturate(${1 + saturation/100})`;
+        }
+        ctx.drawImage(tmpImg, 0, 0);
+        cv.toBlob((blob) => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${(fileName||"opc").replace(/\.[^.]+$/,"")}_OPC_${activePreset}.png`;
+          a.style.display = "none"; document.body.appendChild(a); a.click();
+          setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+        }, "image/png");
+      };
+      tmpImg.src = processedSrc;
+    } catch(e) { const w=window.open(); if(w) w.document.write(`<img src="${processedSrc}" style="max-width:100%"/>`); }
+  };
+
+  const handleDrop = (e) => { e.preventDefault(); const f=e.dataTransfer?.files?.[0]; if(f) handleFile(f); };
+  const handleReset = () => { setImage(null);setImageSrc(null);setProcessedSrc(null);setActivePreset(null);setExifData(null);setFileName("");setStackMode(false);setContrast(0);setSaturation(0); };
+
+  const mono = "'JetBrains Mono', monospace";
+
+  return (
+    <div style={{ fontFamily:"'Crimson Pro','Georgia',serif", background:T.bg, color:T.text, minHeight:"100vh", position:"relative", overflow:"hidden", transition:"background 0.3s,color 0.3s" }}>
+      {!solar && <div style={{ position:"fixed",inset:0,opacity:0.04,pointerEvents:"none",backgroundImage:`url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />}
+      <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+      {/* HEADER */}
+      <header style={{ padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10,borderBottom:`1px solid ${T.hBd}`,position:"relative",zIndex:10 }}>
+        <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+          <div>
+            <h1 style={{ margin:0,fontSize:18,fontWeight:700,color:T.text,display:"flex",alignItems:"baseline",gap:6 }}>
+              <span style={{ color:T.gn,fontFamily:mono,fontSize:11,fontWeight:500,background:T.gnBg,padding:"1px 6px",borderRadius:4,border:`1px solid ${T.gnBd}` }}>OPC</span>
+              Opuntia<span style={{ color:T.ac,fontWeight:700 }}>Color</span>
+              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v2.5</span>
+            </h1>
+            <p style={{ margin:"1px 0 0",fontSize:9.5,color:T.tm,fontFamily:mono,letterSpacing:"1px",textTransform:"uppercase" }}>Herramienta profesional de campo &middot; Arte rupestre</p>
+          </div>
+        </div>
+        <div style={{ display:"flex",gap:6,alignItems:"center",flexWrap:"wrap" }}>
+          <button onClick={()=>setSolar(!solar)} style={{ background:solar?"#000":"#FFD600",border:`1px solid ${solar?"#333":"#FFA000"}`,color:solar?"#FFD600":"#000",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:11,fontFamily:mono,fontWeight:600 }}>
+            {solar ? "\u263E Normal" : "\u2600 Solar"}
+          </button>
+          <button onClick={()=>setShowInfo(!showInfo)} style={{ background:showInfo?T.acBg:T.bBg,border:`1px solid ${showInfo?T.acBd:T.cBd}`,color:showInfo?T.ac:T.tm,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:11,fontFamily:mono }}>
+            {showInfo ? "\u2715 Cerrar" : "\u24D8 Info"}
+          </button>
+        </div>
+      </header>
+
+      {/* INFO PANEL */}
+      {showInfo && (
+        <div style={{ margin:"0 20px",padding:20,background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:10,fontSize:13,lineHeight:1.7,position:"relative",zIndex:10 }}>
+          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v2.5 &mdash; Novedades</h3>
+          <p style={{ margin:"0 0 10px",color:T.tm }}>12 filtros organizados en <strong style={{color:T.text}}>Pinturas</strong>, <strong style={{color:T.text}}>Grabados</strong> y <strong style={{color:T.text}}>T&eacute;cnico</strong>. Nuevos: <strong style={{color:T.text}}>CRGB</strong> (DStretch-style), <strong style={{color:T.text}}>DS-LAB</strong> (decorrelaci&oacute;n perceptual), <strong style={{color:T.text}}>Relieve</strong> (calco digital).</p>
+          <p style={{ margin:"0 0 10px",color:T.tm }}>Intensidad ampliada <strong style={{color:T.text}}>0.2 &ndash; 5.0</strong> con presets r&aacute;pidos. <strong style={{color:T.text}}>Modo Acumular</strong> permite encadenar filtros.</p>
+          <p style={{ margin:0,color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Dr. Emilio A. Villa&ntilde;ez</strong> &middot; <strong style={{color:T.text}}>LATDAA</strong> &middot; <strong style={{color:T.text}}>UNCa</strong> &middot; <strong style={{color:T.text}}>Fund. F&eacute;lix de Azara</strong></p>
+        </div>
+      )}
+
+      {/* MAIN */}
+      <main style={{ padding:"16px 20px",position:"relative",zIndex:5 }}>
+        {/* Upload */}
+        {!image && (
+          <div onDrop={handleDrop} onDragOver={e=>e.preventDefault()} onClick={()=>fileInputRef.current?.click()} style={{ maxWidth:680,margin:"50px auto",borderRadius:14,padding:"50px 36px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",cursor:"pointer",background:solar?"#e8e5e2":"#373334",border:solar?"2px dashed #999":"none",transition:"all 0.3s" }}>
+            <img src={OPC_LOGO} alt="OPC Logo" style={{ width:140,height:140,marginBottom:16,opacity:0.95 }} />
+            <p style={{ fontSize:19,fontWeight:600,margin:"0 0 6px",color:solar?"#000":"#e8e0d4" }}>Arrastr&aacute; tu foto aqu&iacute;</p>
+            <p style={{ fontSize:13,color:solar?"#555":"#8a7e6e",margin:0 }}>o hac&eacute; clic para seleccionar &middot; JPG, PNG, TIFF</p>
+            <p style={{ fontSize:10,color:solar?"#777":"#6a5e4e",margin:"14px 0 0",fontFamily:mono }}>M&aacute;x: 2000&times;2000px &middot; Procesamiento local &middot; GPS autom&aacute;tico</p>
+          </div>
+        )}
+        <input ref={fileInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleFile(e.target.files?.[0])} />
+
+        {/* EDITOR */}
+        {image && (
+          <div style={{ display:"flex",gap:18,flexWrap:"wrap" }}>
+            {/* LEFT PANEL */}
+            <div style={{ width:220,flexShrink:0,display:"flex",flexDirection:"column",gap:4,maxHeight:"85vh",overflowY:"auto" }}>
+
+              {/* Actions — siempre visibles arriba */}
+              <div style={{ display:"flex",gap:5,marginBottom:4 }}>
+                {processedSrc && <button onClick={handleDownload} style={{ flex:1,padding:"8px 8px",background:`linear-gradient(135deg,${T.ac},${solar?"#7f1d1d":"#8e2118"})`,border:"none",borderRadius:8,color:"#fff",fontWeight:600,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"\u2B07"} Descargar</button>}
+                <button onClick={handleReset} style={{ flex:1,padding:"8px 8px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8,color:T.tm,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"\u21BB"} Nueva imagen</button>
+              </div>
+
+              {/* Filter groups */}
+              {CATEGORIES.map(cat => (
+                <div key={cat}>
+                  <div style={{ fontSize:8.5,fontFamily:mono,color:T.ac,letterSpacing:"1.5px",textTransform:"uppercase",margin:"8px 0 3px 4px",fontWeight:600 }}>{cat}</div>
+                  {PRESETS.filter(p=>p.cat===cat).map(p => (
+                    <button key={p.id} onClick={()=>processImage(p,intensity)} disabled={processing} style={{ display:"flex",alignItems:"center",gap:8,padding:"6px 10px",width:"100%",background:activePreset===p.id?T.acBg:T.cBg,border:`1px solid ${activePreset===p.id?T.acBd:T.cBd}`,borderRadius:7,cursor:processing?"wait":"pointer",transition:"all 0.2s",textAlign:"left",color:T.text,opacity:processing?0.6:1,marginBottom:2 }}>
+                      <span style={{fontSize:14,width:22,textAlign:"center"}}>{p.icon}</span>
+                      <div><div style={{fontSize:11,fontWeight:600}}>{p.name}</div><div style={{fontSize:8.5,color:T.tm,fontFamily:mono}}>{p.desc}</div></div>
+                    </button>
+                  ))}
+                </div>
+              ))}
+
+              {/* Stacking toggle */}
+              <button onClick={()=>setStackMode(!stackMode)} style={{ margin:"6px 0 2px",padding:"7px 10px",background:stackMode?"rgba(109,184,93,0.15)":T.cBg,border:`1px solid ${stackMode?"rgba(109,184,93,0.4)":T.cBd}`,borderRadius:7,cursor:"pointer",fontSize:10,fontFamily:mono,color:stackMode?T.gn:T.tm,fontWeight:stackMode?600:400,textAlign:"left" }}>
+                {stackMode ? "\uD83D\uDD17 Acumular: ON" : "\uD83D\uDD17 Acumular: OFF"}{stackMode && <span style={{fontSize:8,display:"block",fontWeight:400,marginTop:1}}>Aplica sobre resultado previo</span>}
+              </button>
+
+              {/* Intensity */}
+              <div style={{ marginTop:6,padding:"10px 12px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8 }}>
+                <div style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:4 }}>Intensidad: {intensity.toFixed(1)}</div>
+                <input type="range" min="0.2" max="5.0" step="0.1" value={intensity} onChange={e=>setIntensity(parseFloat(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
+                <div style={{ display:"flex",justifyContent:"space-between",fontSize:7.5,color:T.td,fontFamily:mono,marginBottom:6 }}><span>0.2</span><span>5.0</span></div>
+                {/* Preset buttons */}
+                <div style={{ display:"flex",gap:3,flexWrap:"wrap" }}>
+                  {INTENSITY_PRESETS.map(ip => (
+                    <button key={ip.label} onClick={()=>setIntensity(ip.value)} style={{ flex:1,minWidth:36,padding:"4px 2px",fontSize:8.5,fontFamily:mono,fontWeight:Math.abs(intensity-ip.value)<0.2?700:400,background:Math.abs(intensity-ip.value)<0.2?T.acBg:T.cBg,border:`1px solid ${Math.abs(intensity-ip.value)<0.2?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:Math.abs(intensity-ip.value)<0.2?T.ac:T.tm }}>{ip.label}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Contraste y Saturación — post-procesamiento */}
+              <div style={{ marginTop:4,padding:"10px 12px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8 }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6 }}>
+                  <span style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase" }}>Ajustes post</span>
+                  {(contrast !== 0 || saturation !== 0) && <button onClick={()=>{setContrast(0);setSaturation(0);}} style={{ fontSize:8,fontFamily:mono,background:"none",border:`1px solid ${T.cBd}`,borderRadius:4,padding:"1px 6px",color:T.tm,cursor:"pointer" }}>Reset</button>}
+                </div>
+                <div style={{ marginBottom:8 }}>
+                  <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>Contraste</span><span style={{color:contrast!==0?T.ac:T.td}}>{contrast > 0 ? "+" : ""}{contrast}</span></div>
+                  <input type="range" min="-80" max="80" step="5" value={contrast} onChange={e=>setContrast(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
+                </div>
+                <div>
+                  <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>Saturaci&oacute;n</span><span style={{color:saturation!==0?T.ac:T.td}}>{saturation > 0 ? "+" : ""}{saturation}</span></div>
+                  <input type="range" min="-100" max="100" step="5" value={saturation} onChange={e=>setSaturation(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
+                </div>
+              </div>
+
+              {/* File info */}
+              <div style={{ marginTop:6,padding:"8px 12px",background:solar?"#f5f5f5":"rgba(232,224,212,0.02)",borderRadius:6,fontSize:9,fontFamily:mono,color:T.td,lineHeight:1.6 }}>
+                <div style={{ wordBreak:"break-all",marginBottom:1,fontWeight:600,color:T.tm }}>{fileName}</div>
+                <div>{imageSize.w} &times; {imageSize.h} px</div>
+              </div>
+
+              {/* EXIF/GPS */}
+              {exifData ? (
+                <div style={{ padding:"8px 12px",background:solar?"#E8F5E9":"rgba(109,184,93,0.06)",border:`1px solid ${solar?"#A5D6A7":"rgba(109,184,93,0.15)"}`,borderRadius:6,fontSize:9,fontFamily:mono,color:T.tm,lineHeight:1.7 }}>
+                  <div style={{ fontWeight:600,color:T.gn,marginBottom:3,fontSize:10 }}>{"\uD83D\uDCCD"} Datos EXIF / GPS</div>
+                  {exifData.dateTime && <div>{"\uD83D\uDCC5"} {exifData.dateTime}</div>}
+                  {exifData.gps ? (<>
+                    <div>Lat: {formatGPSCoord(exifData.gps.latitude, true)}</div>
+                    <div>Lon: {formatGPSCoord(exifData.gps.longitude, false)}</div>
+                    <div style={{fontSize:8,color:T.td,marginTop:1}}>({exifData.gps.latitude.toFixed(6)}, {exifData.gps.longitude.toFixed(6)})</div>
+                    {exifData.gps.altitude!=null && <div>Alt: {exifData.gps.altitude.toFixed(1)} m</div>}
+                  </>) : (!exifData.dateTime && <div style={{fontStyle:"italic"}}>Sin GPS/fecha</div>)}
+                </div>
+              ) : image && (
+                <div style={{ padding:"6px 12px",borderRadius:6,fontSize:9,fontFamily:mono,color:T.td,fontStyle:"italic",background:solar?"#f5f5f5":"rgba(232,224,212,0.02)" }}>{"\uD83D\uDCCD"} Sin datos EXIF</div>
+              )}
+            </div>
+
+            {/* RIGHT: Image viewer */}
+            <div style={{ flex:1,minWidth:0 }}>
+              <div ref={compareRef} style={{ position:"relative",width:"100%",aspectRatio:`${imageSize.w}/${imageSize.h}`,maxHeight:"75vh",borderRadius:10,overflow:"hidden",border:`1px solid ${T.cBd}`,cursor:processedSrc?"col-resize":"default",userSelect:"none",background:T.iBg }} onPointerDown={processedSrc?handlePointerDown:undefined}>
+                <img src={imageSrc} alt="Original" style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain" }} />
+                {processedSrc && <img src={processedSrc} alt="Procesada" style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",clipPath:`inset(0 ${100-sliderPos}% 0 0)`,filter:postFilter }} />}
+                {processedSrc && (<>
+                  <div style={{ position:"absolute",top:0,bottom:0,left:`${sliderPos}%`,width:2,background:"rgba(255,255,255,0.7)",transform:"translateX(-1px)",pointerEvents:"none" }} />
+                  <div style={{ position:"absolute",top:"50%",left:`${sliderPos}%`,transform:"translate(-50%,-50%)",width:32,height:32,borderRadius:"50%",background:solar?"rgba(255,255,255,0.9)":"rgba(30,28,24,0.85)",border:"2px solid rgba(255,255,255,0.7)",display:"flex",alignItems:"center",justifyContent:"center",color:solar?"#000":"#fff",fontSize:13,pointerEvents:"none" }}>{"\u27FA"}</div>
+                </>)}
+                {processedSrc && (<>
+                  <div style={{ position:"absolute",bottom:10,left:10,padding:"3px 8px",borderRadius:5,background:solar?"rgba(183,28,28,0.85)":"rgba(192,57,43,0.65)",fontSize:10,fontFamily:mono,color:"#fff" }}>{PRESETS.find(p=>p.id===activePreset)?.name.toUpperCase()||"PROCESADA"}{stackMode && " \u26A1"}</div>
+                  <div style={{ position:"absolute",bottom:10,right:10,padding:"3px 8px",borderRadius:5,background:"rgba(0,0,0,0.65)",fontSize:10,fontFamily:mono,color:"#aaa" }}>ORIGINAL</div>
+                </>)}
+                {processing && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:T.ov }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.95)":"rgba(26,23,20,0.9)",border:`1px solid ${T.acBd}`,color:T.ac,fontSize:13,fontFamily:mono,animation:"pulse 1.5s ease-in-out infinite" }}>Procesando p&iacute;xeles...</div></div>}
+                {!processedSrc && !processing && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:solar?"rgba(255,255,255,0.3)":"rgba(26,23,20,0.3)",pointerEvents:"none" }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.9)":"rgba(26,23,20,0.8)",border:`1px solid ${T.cBd}`,color:T.tm,fontSize:13,textAlign:"center" }}>{"\u2190"} Seleccion&aacute; un filtro</div></div>}
+              </div>
+              {processedSrc && <p style={{ textAlign:"center",fontSize:10,color:T.td,marginTop:6,fontFamily:mono }}>Arrastr&aacute; el deslizador &middot; Ajust&aacute; intensidad en el panel lateral{stackMode && " \u00B7 \u26A1 Modo acumular activo"}</p>}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* FOOTER */}
+      <footer style={{ padding:"14px 20px",borderTop:`1px solid ${T.fBd}`,textAlign:"center",fontSize:10,color:T.fTx,fontFamily:mono,position:"relative",zIndex:5,lineHeight:1.8 }}>
+        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v2.5 &middot; 12 filtros &middot; Stacking &middot; GPS/EXIF &middot; Modo Solar</div>
+        <div><span style={{color:T.tm}}>Dr. Emilio A. Villafa&ntilde;ez</span> &middot; <span style={{color:T.tm}}>LATDAA</span> &middot; <span style={{color:T.tm}}>UNCa</span> &middot; <span style={{color:T.tm}}>Fund. F&eacute;lix de Azara</span></div>
+      </footer>
+
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        input[type="range"]{-webkit-appearance:none;height:3px;border-radius:2px;background:${T.sT};outline:none}
+        input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:${T.ac};cursor:pointer;border:2px solid ${T.tB};box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+        *{box-sizing:border-box}
+        ::-webkit-scrollbar{width:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:${T.sT};border-radius:2px}
+      `}</style>
+      <canvas ref={canvasRef} style={{display:"none"}} />
+    </div>
+  );
+}
+
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(RockArtEnhancer));
+  </script>
+</body>
+</html>
