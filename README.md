@@ -98,6 +98,10 @@ OPC fue desarrollado en el marco del **Laboratorio de Tecnologías Digitales Apl
 
 La herramienta implementa técnicas de procesamiento digital de imagen ampliamente utilizadas en el estudio de arte rupestre, incluyendo decorrelation stretching (Gillespie et al. 1986), ecualización adaptativa de histograma con límite de contraste (Zuiderveld 1994) y realce selectivo de pigmentos en espacios de color perceptuales.
 
+### Reconocimiento
+
+El decorrelation stretching fue popularizado en el estudio del arte rupestre por **DStretch** (Jon Harman, [dstretch.com](https://www.dstretch.com)), herramienta de referencia en la disciplina desde hace dos décadas. OPC es una **implementación independiente y de código abierto**, escrita desde cero a partir de la bibliografía publicada (Gillespie et al. 1986); no utiliza ni deriva código de DStretch. Los nombres de algunos realces (CRGB, LDS, YBK) siguen la nomenclatura de espacios de color difundida por DStretch —ya incorporada al vocabulario de la disciplina— para facilitar la comparación de resultados entre herramientas.
+
 ---
 
 ## Cita sugerida

@@ -2121,6 +2121,20 @@ function RockArtEnhancer() {
     }
   }, "Exportaci\xF3n con metadatos"), " \u2014 El nombre del archivo registra filtro e intensidad; el JPG conserva el EXIF/GPS original. TIFF v\xE1lido seg\xFAn spec 6.0."), /*#__PURE__*/React.createElement("p", {
     style: {
+      margin: "0 0 8px",
+      color: T.tm,
+      fontSize: 11.5
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Reconocimiento"), " \u2014 El decorrelation stretch (Gillespie et al. 1986) fue popularizado en arte rupestre por ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "DStretch"), " (J. Harman). OPC es una implementaci\xF3n independiente de c\xF3digo abierto, escrita desde cero a partir de la bibliograf\xEDa publicada, sin c\xF3digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci\xF3n entre herramientas."), /*#__PURE__*/React.createElement("p", {
+    style: {
       margin: 0,
       color: T.tm,
       fontSize: 11.5
