@@ -1,5 +1,43 @@
 # Changelog — OPC OpuntiaColor
 
+## v3.2 (2026)
+
+### Procesado por lote para fotogrametría
+- **Botón "Procesar lote"** — Ajustá el filtro (o cadena de filtros con Acumular) en una foto de referencia y aplicalo automáticamente a todas las fotos del lote fotogramétrico.
+- **Matriz congelada** — Las estadísticas de los filtros (matriz de decorrelación, medias, desvíos, rangos de normalización) se capturan de la foto de referencia y se aplican **idénticas** a todo el lote. Sin esto, cada foto recalcularía sus propias estadísticas y la textura del modelo 3D quedaría inconsistente entre fotos. Si había una selección de zona activa, la matriz proviene de esa zona (como la matriz guardada de DStretch).
+- **Mismo nombre de archivo** — Cada foto procesada se guarda con el nombre del original (en la carpeta destino que elijas), para el flujo estándar de reemplazo de texturas: alinear el modelo con los originales y reconstruir la textura con las realzadas.
+- **EXIF por foto** — En formato JPG, cada foto del lote conserva su propio EXIF/GPS (distancia focal para Metashape/Meshroom, coordenadas, fecha).
+- **Carpeta destino** — Con la File System Access API (Chrome/Edge) elegís dónde guardar; en navegadores sin soporte las fotos se descargan una por una. Todo sigue siendo 100% local.
+- **Opciones de lote** — Formato (JPG recomendado / PNG / TIFF), resolución máxima (completa 8192 / 4000 / 2000 px), barra de progreso, cancelación y reporte de errores por archivo.
+- **Ajustes post incluidos** — El contraste y la saturación aplicados a la referencia también se aplican al lote.
+
+---
+
+## v3.1 (2026)
+
+### Corrección científica
+- **Componentes principales ordenados** — La eigendecomposición Jacobi ahora ordena los eigenvectores por eigenvalor descendente. Antes la asignación PC→canal RGB era arbitraria: la misma escena podía dar colores distintos en fotos distintas. Ahora CRGB y DS-LAB son reproducibles y comparables entre imágenes.
+- **Estadísticas por zona de selección** — Con una selección activa, los filtros estadísticos (CRGB, DS-LAB, LDS, YBK, Blanco, Negro, Bicromo, Mapa de pigmentos, Micro-relieve) calculan media/covarianza/decorrelación solo con los píxeles de esa zona, como DStretch. Mejor separación de pigmentos locales.
+- **CLAHE real** — El filtro CLAHE ahora implementa el algoritmo de Zuiderveld (1994): histogramas por tile 8×8 con clip limit e interpolación bilineal. Antes era un realce de contraste local por normalización estadística.
+
+### Rendimiento
+- **Micro-relieve con imagen integral** — Los promedios de vecindario usan summed-area tables (O(1) por píxel). En imágenes grandes pasa de minutos a menos de un segundo.
+- **Máscara de mano alzada rasterizada con canvas** — Reemplaza el point-in-polygon por píxel.
+- **Precompilado** — `app.js` se genera con `node build.js`; el navegador ya no compila JSX en cada arranque (arranque instantáneo, −2.8 MB).
+
+### Correcciones
+- **Modo Acumular + intensidad** — Mover el slider de intensidad con Acumular activo ya no reaplica el filtro sobre sí mismo sin control.
+- **TIFF válido según spec 6.0** — BitsPerSample como array [8,8,8], X/YResolution como RATIONAL, ResolutionUnit agregado.
+- **RAW eliminado de la interfaz** — El navegador no puede decodificar RAW; la promesa era falsa (los archivos se rechazaban en silencio). La UI ahora indica convertir a JPG/PNG antes.
+- **Procesamiento con setTimeout** — requestAnimationFrame se pausaba si la pestaña perdía visibilidad y el filtro quedaba colgado.
+
+### Nuevas funciones
+- **Resolución completa opcional** — Toggle para procesar hasta 8192px en lugar del límite de 2000px (para publicación/archivo).
+- **Exportación reproducible** — El nombre del archivo registra filtro, intensidad y ajustes post (`_OPC_crgb_i1.8_c10.png`); el JPG exportado conserva el EXIF/GPS original.
+- **100% offline** — React, ReactDOM y las fuentes se cargan desde `lib/`; no se necesita internet nunca.
+
+---
+
 ## v3.0 (2025)
 
 ### Filtros
