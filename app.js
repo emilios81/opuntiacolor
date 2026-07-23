@@ -923,6 +923,33 @@ function pigmentMapping(imageData, intensity = 1.5, mask = null, store = null) {
   return new ImageData(output, imageData.width, imageData.height);
 }
 
+// Ajustes post (contraste/saturación) por píxel, equivalentes exactos a los
+// filtros CSS contrast()/saturate() (matriz feColorMatrix "saturate", Rec.709).
+// En el lote NO se usa ctx.filter: con fotos grandes cae al render por
+// software (minutos por foto, parece un cuelgue) y duplica el pico de memoria.
+function applyPostAdjust(imageData, contrast, saturation) {
+  if (!contrast && !saturation) return imageData;
+  const d = imageData.data,
+    n = d.length;
+  const k = 1 + contrast / 100,
+    ko = 127.5 * (1 - k);
+  const s = 1 + saturation / 100;
+  const sr = 0.213 * (1 - s),
+    sg = 0.715 * (1 - s),
+    sb = 0.072 * (1 - s);
+  for (let i = 0; i < n; i += 4) {
+    const r = d[i] * k + ko,
+      g = d[i + 1] * k + ko,
+      b = d[i + 2] * k + ko;
+    const lum = sr * r + sg * g + sb * b;
+    // Uint8ClampedArray recorta y redondea solo
+    d[i] = lum + s * r;
+    d[i + 1] = lum + s * g;
+    d[i + 2] = lum + s * b;
+  }
+  return imageData;
+}
+
 // ============================================================
 // EXIF / GPS PARSER
 // ============================================================
@@ -1706,6 +1733,10 @@ function RockArtEnhancer() {
       errors: []
     });
     const errors = [];
+    // Un ÚNICO canvas reutilizado en todo el lote: crear uno por foto
+    // acumulaba backing stores sin liberar y agotaba la memoria
+    const cv = document.createElement("canvas");
+    const ctx = cv.getContext("2d");
     for (let fi = 0; fi < files.length; fi++) {
       if (batchCancelRef.current) break;
       const file = files[fi];
@@ -1731,10 +1762,8 @@ function RockArtEnhancer() {
           w = Math.round(w * s);
           h = Math.round(h * s);
         }
-        const cv = document.createElement("canvas");
         cv.width = w;
-        cv.height = h;
-        const ctx = cv.getContext("2d");
+        cv.height = h; // redimensionar también limpia el canvas
         ctx.drawImage(bmp, 0, 0, w, h);
         bmp.close();
         let id = ctx.getImageData(0, 0, w, h);
@@ -1748,28 +1777,22 @@ function RockArtEnhancer() {
           } : null);
           await new Promise(r => setTimeout(r, 0));
         }
+        // Ajustes post por píxel (ver applyPostAdjust): mismo resultado que
+        // la descarga individual pero sin segundo canvas ni ctx.filter
+        applyPostAdjust(id, contrast, saturation);
         ctx.putImageData(id, 0, 0);
-        // Ajustes post (contraste/saturación) como en la descarga individual
-        let outCv = cv;
-        if (contrast !== 0 || saturation !== 0) {
-          outCv = document.createElement("canvas");
-          outCv.width = w;
-          outCv.height = h;
-          const octx = outCv.getContext("2d");
-          octx.filter = `contrast(${1 + contrast / 100}) saturate(${1 + saturation / 100})`;
-          octx.drawImage(cv, 0, 0);
-        }
+        id = null;
         // Codificar según formato
         const base = file.name.replace(/\.[^.]+$/, "");
         let blob, ext;
         if (batchFmt === "tiff") {
-          blob = encodeTIFF(outCv);
+          blob = encodeTIFF(cv);
           ext = "tif";
         } else if (batchFmt === "png") {
-          blob = await new Promise(r => outCv.toBlob(r, "image/png"));
+          blob = await new Promise(r => cv.toBlob(r, "image/png"));
           ext = "png";
         } else {
-          blob = await new Promise(r => outCv.toBlob(r, "image/jpeg", 0.95));
+          blob = await new Promise(r => cv.toBlob(r, "image/jpeg", 0.95));
           ext = "jpg";
           if (blob && exifSeg) {
             try {
@@ -1812,6 +1835,9 @@ function RockArtEnhancer() {
         errors: [...errors]
       }));
     }
+    // Liberar el backing store del canvas de trabajo
+    cv.width = 0;
+    cv.height = 0;
     setBatchRunning(false);
   };
   const handleDrop = e => {

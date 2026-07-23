@@ -11,6 +11,10 @@
 - **Opciones de lote** — Formato (JPG recomendado / PNG / TIFF), resolución máxima (completa 8192 / 4000 / 2000 px), barra de progreso, cancelación y reporte de errores por archivo.
 - **Ajustes post incluidos** — El contraste y la saturación aplicados a la referencia también se aplican al lote.
 
+### Correcciones (v3.2.1)
+- **Cuelgue del lote con contraste/saturación** — Con ajustes post activos, el lote creaba un segundo canvas a resolución completa por foto y aplicaba `ctx.filter` (CSS), que con fotos grandes cae al render por software: minutos por foto y el doble de memoria. Ahora el ajuste se aplica por píxel (matriz exacta de los filtros CSS `contrast()`/`saturate()`), sin canvas extra.
+- **Memoria en lotes largos** — Se reutiliza un único canvas de trabajo para todo el lote (antes se creaba uno por foto sin liberar su memoria) y se libera al terminar.
+
 ---
 
 ## v3.1 (2026)
