@@ -1,5 +1,58 @@
 # Changelog — OPC OpuntiaColor
 
+Todas las versiones que cambian resultados están señaladas de forma explícita.
+Las imágenes procesadas con versiones anteriores a un cambio así **no son
+reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
+
+## v3.3.0 (2026)
+
+### Corrección científica — cambia los resultados
+
+- **Rotación de Jacobi corregida** — La eigendecomposición actualizaba las
+  columnas de la matriz en una copia auxiliar, pero solo volcaba de vuelta las
+  filas *p* y *q*. Las filas restantes quedaban con sus columnas *p*,*q* sin
+  actualizar: la matriz perdía la simetría durante la iteración y el resultado
+  convergía a eigenvalores incorrectos. En una covarianza típica de fotografía
+  de panel el error era grande —λ₂ podía salir sobrevaluada varias veces y λ₃
+  colapsaba prácticamente a cero—, justo en las componentes de baja varianza
+  que el decorrelation stretch busca amplificar.
+
+  Los eigenvalores ahora coinciden con los de una implementación de referencia
+  (`numpy.linalg.eigh`) hasta la precisión de máquina, y hay una prueba
+  automática que lo verifica contra valores calculados de forma independiente.
+
+  **Afecta a CRGB, DS-LAB y LDS.** Las imágenes generadas con v3.0 a v3.2.1
+  difieren de las que produce esta versión. Si hay material publicado o en
+  preparación con las versiones anteriores, hay que reprocesarlo.
+
+### Documentación y empaquetado
+
+- `docs/ALGORITMOS.md` — descripción completa de cada filtro, paso a paso.
+- `docs/PARAMETROS.md` — rangos, valores por defecto y efecto de cada parámetro.
+- `docs/INSTALACION.md` — requisitos, formas de uso y compilación.
+- `docs/LIMITACIONES.md` — límites metodológicos, técnicos y de reproducibilidad.
+- `tests/` — pruebas automáticas del núcleo de procesamiento, sin dependencias
+  (`node tests/run-tests.js`): conversiones de color, eigendecomposición contra
+  valores de referencia, determinismo, comportamiento de la máscara de
+  selección, congelado de estadísticas del lote y correspondencia entre
+  `src/app.jsx` y `app.js`.
+- `CITATION.cff` — GitHub muestra cómo citar la herramienta.
+- `LICENSE` — texto completo de la GPL v3 (antes había solo el aviso de
+  copyright) y encabezado de licencia en el código fuente.
+- `THIRD-PARTY-NOTICES.md` — atribución de React, Babel y las tipografías
+  incluidas en `lib/`, como exigen sus licencias.
+- `package.json` y `.zenodo.json` — metadatos de versión, dependencias y
+  depósito.
+
+### Problemas conocidos
+
+- **La intensidad no tiene efecto en LDS.** El factor de amplificación se
+  cancela exactamente con la normalización por mínimo y máximo posterior. Sin
+  resolver: la corrección exige decidir qué debería controlar ese parámetro en
+  un filtro que reproyecta al espacio original. Ver `docs/LIMITACIONES.md` §3.
+
+---
+
 ## v3.2 (2026)
 
 ### Procesado por lote para fotogrametría

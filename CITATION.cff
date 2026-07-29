@@ -1,0 +1,72 @@
+cff-version: 1.2.0
+message: "Si usás OPC – OpuntiaColor en una publicación, por favor citalo como se indica abajo."
+title: "OPC – OpuntiaColor: herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre"
+abstract: >-
+  OPC (OpuntiaColor) es una aplicación web de código abierto para el análisis y la
+  documentación de arte rupestre. Implementa decorrelation stretching en RGB y en
+  CIE-LAB, realce selectivo de pigmentos, ecualización adaptativa de histograma
+  (CLAHE) y detección de micro-relieve para grabados. El procesamiento es
+  íntegramente local en el navegador: las imágenes no se transmiten a ningún
+  servidor. Incluye procesado por lote con estadísticas congeladas para flujos
+  de trabajo fotogramétricos.
+type: software
+authors:
+  - given-names: "Emilio Alejandro"
+    family-names: "Villafañez"
+    email: "emiliovillafanez@unca.edu.ar"
+    orcid: "https://orcid.org/0000-0002-2471-1558"
+    affiliation: >-
+      LATDAA (Laboratorio de Tecnologías Digitales Aplicadas a la Arqueología),
+      Escuela de Arqueología, Universidad Nacional de Catamarca / CONICET
+    city: "San Fernando del Valle de Catamarca"
+    country: AR
+version: "3.3.0"
+date-released: "2026-07-28"
+license: GPL-3.0-or-later
+repository-code: "https://github.com/emilios81/opuntiacolor"
+url: "https://emilios81.github.io/opuntiacolor/"
+# Descomentar y completar después del primer depósito en Zenodo:
+# doi: "10.5281/zenodo.XXXXXXX"
+# identifiers:
+#   - type: doi
+#     value: "10.5281/zenodo.XXXXXXX"
+#     description: "DOI concept: siempre apunta a la última versión"
+keywords:
+  - arte rupestre
+  - rock art
+  - decorrelation stretch
+  - procesamiento digital de imagen
+  - arqueología digital
+  - documentación del patrimonio
+  - CIE-LAB
+  - CLAHE
+  - fotogrametría
+  - Noroeste Argentino
+references:
+  - type: article
+    title: "Color enhancement of highly correlated images. II. Channel ratio and chromaticity transformation techniques"
+    authors:
+      - family-names: "Gillespie"
+        given-names: "Alan R."
+      - family-names: "Kahle"
+        given-names: "Anne B."
+      - family-names: "Walker"
+        given-names: "Richard E."
+    journal: "Remote Sensing of Environment"
+    volume: 20
+    issue: 3
+    start: 209
+    end: 235
+    year: 1986
+    doi: "10.1016/0034-4257(86)90044-1"
+  - type: generic
+    title: "Contrast Limited Adaptive Histogram Equalization"
+    authors:
+      - family-names: "Zuiderveld"
+        given-names: "Karel"
+    collection-title: "Graphics Gems IV"
+    publisher:
+      name: "Academic Press"
+    start: 474
+    end: 485
+    year: 1994

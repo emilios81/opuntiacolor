@@ -1,0 +1,55 @@
+{
+  "name": "opuntiacolor",
+  "version": "3.3.0",
+  "description": "OPC – OpuntiaColor: realce digital de pigmentos y grabados en arte rupestre. Decorrelation stretch (RGB y CIE-LAB), CLAHE, micro-relieve. 100% local en el navegador.",
+  "keywords": [
+    "rock-art",
+    "arte-rupestre",
+    "decorrelation-stretch",
+    "image-processing",
+    "digital-archaeology",
+    "cultural-heritage",
+    "clahe",
+    "cie-lab"
+  ],
+  "homepage": "https://emilios81.github.io/opuntiacolor/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emilios81/opuntiacolor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/emilios81/opuntiacolor/issues"
+  },
+  "author": {
+    "name": "Emilio A. Villafañez",
+    "url": "https://github.com/emilios81"
+  },
+  "license": "GPL-3.0-or-later",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build.js",
+    "test": "node tests/run-tests.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "vendoredDependencies": {
+    "_comment": "Librerías incluidas en lib/ y versionadas dentro del repositorio. No se instalan con npm: la aplicación funciona sin conexión y sin gestor de paquetes. Ver THIRD-PARTY-NOTICES.md.",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "@babel/standalone": "7.23.9",
+    "crimson-pro": "fuente (SIL OFL 1.1)",
+    "jetbrains-mono": "fuente (SIL OFL 1.1)"
+  },
+  "files": [
+    "index.html",
+    "app.js",
+    "src/",
+    "lib/",
+    "build.js",
+    "docs/",
+    "tests/"
+  ]
+}

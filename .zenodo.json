@@ -1,0 +1,42 @@
+{
+  "title": "OPC – OpuntiaColor: herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre",
+  "description": "<p>OPC (OpuntiaColor) es una aplicación web de código abierto para el análisis y la documentación de arte rupestre. Implementa decorrelation stretching en RGB y en CIE-LAB, realce selectivo de pigmentos (rojo, blanco, negro, bicromo), ecualización adaptativa de histograma con límite de contraste (CLAHE) y detección de micro-relieve para grabados.</p><p>El procesamiento se realiza íntegramente en el navegador del usuario: las imágenes no se transmiten a ningún servidor y la herramienta funciona sin conexión a internet. Incluye procesado por lote con estadísticas congeladas desde una fotografía de referencia, pensado para el reemplazo de texturas en flujos de trabajo fotogramétricos.</p><p>Desarrollada en el LATDAA (Laboratorio de Tecnologías Digitales Aplicadas a la Arqueología), Escuela de Arqueología, Universidad Nacional de Catamarca.</p>",
+  "upload_type": "software",
+  "license": "GPL-3.0-or-later",
+  "access_right": "open",
+  "version": "3.3.0",
+  "language": "spa",
+  "creators": [
+    {
+      "name": "Villafañez, Emilio Alejandro",
+      "affiliation": "LATDAA, Escuela de Arqueología, Universidad Nacional de Catamarca / CONICET",
+      "orcid": "0000-0002-2471-1558"
+    }
+  ],
+  "keywords": [
+    "arte rupestre",
+    "rock art",
+    "decorrelation stretch",
+    "arqueología digital",
+    "procesamiento digital de imagen",
+    "documentación del patrimonio",
+    "CIE-LAB",
+    "CLAHE",
+    "fotogrametría",
+    "Noroeste Argentino"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/emilios81/opuntiacolor",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.1016/0034-4257(86)90044-1",
+      "relation": "cites",
+      "resource_type": "publication-article",
+      "scheme": "doi"
+    }
+  ]
+}
