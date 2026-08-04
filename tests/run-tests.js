@@ -1,0 +1,624 @@
+/*
+ * OPC – OpuntiaColor · pruebas automáticas del núcleo de procesamiento
+ *
+ * Copyright (C) 2025-2026  Emilio A. Villafañez
+ * LATDAA – Universidad Nacional de Catamarca (UNCa), Argentina
+ *
+ * Este programa es software libre bajo la GNU General Public License v3.0
+ * o posterior. Ver el archivo LICENSE.
+ *
+ * Uso:  node tests/run-tests.js
+ *
+ * Sin dependencias externas y sin imágenes de entrada: todos los casos son
+ * sintéticos y deterministas. Las funciones no se copian acá: se extraen del
+ * propio src/app.jsx en tiempo de ejecución, de modo que la prueba siempre
+ * corre contra el código que se publica.
+ */
+
+const fs = require("fs");
+const path = require("path");
+const vm = require("vm");
+
+const ROOT = path.join(__dirname, "..");
+const SRC = path.join(ROOT, "src", "app.jsx");
+
+// ============================================================
+// Mini framework
+// ============================================================
+
+let passed = 0, failed = 0, current = "";
+const failures = [];
+
+function suite(name, fn) {
+  console.log("\n\x1b[1m" + name + "\x1b[0m");
+  fn();
+}
+
+function test(name, fn) {
+  current = name;
+  try {
+    fn();
+    passed++;
+    console.log("  \x1b[32m✓\x1b[0m " + name);
+  } catch (e) {
+    failed++;
+    failures.push({ name, message: e.message });
+    console.log("  \x1b[31m✗\x1b[0m " + name);
+    console.log("    \x1b[31m" + e.message.split("\n").join("\n    ") + "\x1b[0m");
+  }
+}
+
+function assert(cond, msg) {
+  if (!cond) throw new Error(msg || "assertion failed");
+}
+
+function assertClose(actual, expected, tol, msg) {
+  const d = Math.abs(actual - expected);
+  const rel = d / Math.max(1, Math.abs(expected));
+  if (rel > tol) {
+    throw new Error(
+      (msg ? msg + ": " : "") +
+      "esperado " + expected + ", obtenido " + actual +
+      " (error relativo " + rel.toExponential(3) + " > " + tol + ")"
+    );
+  }
+}
+
+function assertBytesEqual(a, b, msg) {
+  if (a.length !== b.length) throw new Error((msg || "") + " — longitudes distintas: " + a.length + " vs " + b.length);
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) throw new Error((msg || "") + " — primer byte distinto en " + i + ": " + a[i] + " vs " + b[i]);
+  }
+}
+
+// ============================================================
+// Extracción de funciones desde src/app.jsx
+//
+// src/app.jsx es JSX y en su nivel superior desestructura React, así que no
+// puede requerirse directamente. Se extraen por nombre las funciones puras
+// del núcleo de procesamiento —todas declaradas en el nivel superior, con la
+// llave de cierre en la columna 0— y se evalúan en un contexto aislado.
+// ============================================================
+
+const source = fs.readFileSync(SRC, "utf8").replace(/\r\n/g, "\n");
+
+function extractFunction(name) {
+  const marker = "\nfunction " + name + "(";
+  const start = source.indexOf(marker);
+  if (start === -1) throw new Error("no se encontró la función " + name + " en src/app.jsx");
+  const end = source.indexOf("\n}\n", start);
+  if (end === -1) throw new Error("no se encontró el cierre de la función " + name);
+  return source.slice(start + 1, end + 3);
+}
+
+const CORE = [
+  "rgb2lab", "lab2rgb", "rgb2ycbcr", "ycbcr2rgb",
+  "meanCov3", "meanStd1", "jacobiEigen3",
+  "buildSAT", "satMean",
+  "crgbEnhance", "dsLabEnhance", "ldsEnhance", "ybkEnhance",
+  "claheEnhance", "applyPostAdjust",
+];
+
+// ImageData no existe en Node: se implementa la parte de la API que usa el
+// núcleo (data / width / height), con la misma semántica de recorte que da
+// Uint8ClampedArray en el navegador.
+const sandbox = {
+  Math, Float64Array, Uint8ClampedArray, Uint8Array, Array, Number, Object, JSON, console,
+  ImageData: class ImageData {
+    constructor(data, width, height) {
+      if (typeof data === "number") { height = width; width = data; data = new Uint8ClampedArray(width * height * 4); }
+      this.data = data; this.width = width; this.height = height;
+    }
+  },
+};
+vm.createContext(sandbox);
+vm.runInContext(CORE.map(extractFunction).join("\n"), sandbox);
+
+const {
+  rgb2lab, lab2rgb, rgb2ycbcr, ycbcr2rgb,
+  meanCov3, meanStd1, jacobiEigen3,
+  buildSAT, satMean,
+  crgbEnhance, dsLabEnhance, ldsEnhance,
+  applyPostAdjust,
+} = sandbox;
+const ImageData = sandbox.ImageData;
+
+// ============================================================
+// Utilidades de los casos de prueba
+// ============================================================
+
+// Generador congruencial lineal: imágenes reproducibles sin Math.random()
+function lcg(seed) {
+  let s = seed >>> 0;
+  return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+}
+
+// Imagen sintética con estructura cromática: un fondo de roca con manchas
+// rojizas de bajo contraste, que es el caso al que apunta la herramienta.
+function syntheticImage(w, h, seed) {
+  const rnd = lcg(seed);
+  const data = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const grain = rnd() * 18 - 9;
+      const pigment = ((x - w / 2) ** 2 + (y - h / 2) ** 2) < (Math.min(w, h) / 3) ** 2 ? 1 : 0;
+      data[i] = 148 + grain + pigment * 14;
+      data[i + 1] = 126 + grain + pigment * 3;
+      data[i + 2] = 104 + grain - pigment * 2;
+      data[i + 3] = 255;
+    }
+  }
+  return new ImageData(data, w, h);
+}
+
+function cloneImage(img) {
+  return new ImageData(new Uint8ClampedArray(img.data), img.width, img.height);
+}
+
+// --- Referencia independiente para la eigendescomposición ---
+//
+// Solución analítica de los eigenvalores de una matriz simétrica 3x3 vía las
+// raíces del polinomio característico (método trigonométrico de Viète). No
+// comparte ni una línea con la rotación de Jacobi que se está probando: si
+// ambas coinciden, es porque las dos están bien.
+function eigenvaluesAnalytic(A) {
+  const p1 = A[0][1] ** 2 + A[0][2] ** 2 + A[1][2] ** 2;
+  const q = (A[0][0] + A[1][1] + A[2][2]) / 3;
+  if (p1 === 0) return [A[0][0], A[1][1], A[2][2]].sort((a, b) => b - a);
+  const p2 = (A[0][0] - q) ** 2 + (A[1][1] - q) ** 2 + (A[2][2] - q) ** 2 + 2 * p1;
+  const p = Math.sqrt(p2 / 6);
+  const B = [0, 1, 2].map(i => [0, 1, 2].map(j => (A[i][j] - (i === j ? q : 0)) / p));
+  const detB =
+    B[0][0] * (B[1][1] * B[2][2] - B[1][2] * B[2][1]) -
+    B[0][1] * (B[1][0] * B[2][2] - B[1][2] * B[2][0]) +
+    B[0][2] * (B[1][0] * B[2][1] - B[1][1] * B[2][0]);
+  const r = Math.max(-1, Math.min(1, detB / 2));
+  const phi = Math.acos(r) / 3;
+  const e1 = q + 2 * p * Math.cos(phi);
+  const e3 = q + 2 * p * Math.cos(phi + (2 * Math.PI) / 3);
+  return [e1, 3 * q - e1 - e3, e3];
+}
+
+function matVec(A, v) {
+  return [0, 1, 2].map(i => A[i][0] * v[0] + A[i][1] * v[1] + A[i][2] * v[2]);
+}
+
+// Matriz de covarianza simétrica y definida positiva, construida como CᵀC
+function randomCovariance(rnd) {
+  const C = [0, 1, 2].map(() => [0, 1, 2].map(() => rnd() * 120 - 60));
+  const M = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+    let s = 0;
+    for (let k = 0; k < 3; k++) s += C[k][i] * C[k][j];
+    M[i][j] = s;
+  }
+  return M;
+}
+
+// ============================================================
+// 1. Conversiones de color
+// ============================================================
+
+suite("Conversiones de color", () => {
+  test("rgb2lab: valores de referencia sRGB / D65", () => {
+    // Blanco de referencia: L*=100, a*=b*=0
+    const [Lw, aw, bw] = rgb2lab(255, 255, 255);
+    assertClose(Lw, 100, 1e-4, "L* del blanco");
+    assert(Math.abs(aw) < 0.01 && Math.abs(bw) < 0.01, "el blanco debe ser acromático, dio a*=" + aw + " b*=" + bw);
+
+    // Negro
+    const [Lk] = rgb2lab(0, 0, 0);
+    assertClose(Lk, 0, 1e-6, "L* del negro");
+
+    // Gris medio sRGB (128,128,128): L* ≈ 53.585
+    const [Lg, ag, bg] = rgb2lab(128, 128, 128);
+    assertClose(Lg, 53.5850, 1e-4, "L* del gris 128");
+    assert(Math.abs(ag) < 0.01 && Math.abs(bg) < 0.01, "el gris debe ser acromático");
+
+    // Rojo primario sRGB: L*≈53.24, a*≈80.09, b*≈67.20
+    const [Lr, ar, br] = rgb2lab(255, 0, 0);
+    assertClose(Lr, 53.2408, 1e-3, "L* del rojo");
+    assertClose(ar, 80.0925, 1e-3, "a* del rojo");
+    assertClose(br, 67.2032, 1e-3, "b* del rojo");
+  });
+
+  test("rgb2lab → lab2rgb: ida y vuelta sin deriva", () => {
+    const rnd = lcg(7);
+    let maxErr = 0;
+    for (let i = 0; i < 4000; i++) {
+      const r = Math.floor(rnd() * 256), g = Math.floor(rnd() * 256), b = Math.floor(rnd() * 256);
+      const [L, a, bb] = rgb2lab(r, g, b);
+      const [r2, g2, b2] = lab2rgb(L, a, bb);
+      maxErr = Math.max(maxErr, Math.abs(r - r2), Math.abs(g - g2), Math.abs(b - b2));
+    }
+    // lab2rgb redondea a entero: 1 nivel de 255 es el error máximo admisible
+    assert(maxErr <= 1, "la ida y vuelta RGB→LAB→RGB se desvía hasta " + maxErr + " niveles");
+  });
+
+  test("rgb2ycbcr → ycbcr2rgb: ida y vuelta sin deriva", () => {
+    const rnd = lcg(11);
+    let maxErr = 0;
+    for (let i = 0; i < 4000; i++) {
+      const r = Math.floor(rnd() * 256), g = Math.floor(rnd() * 256), b = Math.floor(rnd() * 256);
+      const [y, cb, cr] = rgb2ycbcr(r, g, b);
+      const [r2, g2, b2] = ycbcr2rgb(y, cb, cr);
+      maxErr = Math.max(maxErr, Math.abs(r - r2), Math.abs(g - g2), Math.abs(b - b2));
+    }
+    assert(maxErr <= 1, "la ida y vuelta RGB→YCbCr→RGB se desvía hasta " + maxErr + " niveles");
+  });
+
+  test("rgb2ycbcr: los grises quedan centrados en 128", () => {
+    for (const v of [0, 64, 128, 200, 255]) {
+      const [y, cb, cr] = rgb2ycbcr(v, v, v);
+      assertClose(y, v, 1e-9, "luma del gris " + v);
+      assertClose(cb, 128, 1e-9, "Cb del gris " + v);
+      assertClose(cr, 128, 1e-9, "Cr del gris " + v);
+    }
+  });
+});
+
+// ============================================================
+// 2. Eigendescomposición  (regresión del error corregido en v3.3.0)
+// ============================================================
+
+suite("Eigendescomposición de Jacobi", () => {
+  test("eigenvalores contra valores conocidos de forma cerrada", () => {
+    // Matriz tridiagonal clásica: eigenvalores exactos 2+√2, 2, 2−√2
+    const A = [[2, -1, 0], [-1, 2, -1], [0, -1, 2]];
+    const { stds } = jacobiEigen3(A);
+    const got = stds.map(s => s * s);
+    const want = [2 + Math.SQRT2, 2, 2 - Math.SQRT2];
+    for (let k = 0; k < 3; k++) assertClose(got[k], want[k], 1e-12, "λ" + (k + 1));
+  });
+
+  test("eigenvalores con multiplicidad (caso degenerado)", () => {
+    // [[4,1,1],[1,4,1],[1,1,4]] → λ = 6, 3, 3
+    const { stds } = jacobiEigen3([[4, 1, 1], [1, 4, 1], [1, 1, 4]]);
+    const got = stds.map(s => s * s);
+    for (let k = 0; k < 3; k++) assertClose(got[k], [6, 3, 3][k], 1e-12, "λ" + (k + 1));
+  });
+
+  test("eigenvalores contra la solución analítica, 500 covarianzas al azar", () => {
+    // Este es el caso que fallaba hasta v3.2.1: la iteración perdía la
+    // simetría de la matriz y convergía a eigenvalores incorrectos.
+    const rnd = lcg(1986);
+    let peor = 0;
+    for (let t = 0; t < 500; t++) {
+      const A = randomCovariance(rnd);
+      const want = eigenvaluesAnalytic(A);
+      const got = jacobiEigen3(A).stds.map(s => s * s);
+      for (let k = 0; k < 3; k++) {
+        const rel = Math.abs(got[k] - want[k]) / Math.max(1, Math.abs(want[k]));
+        peor = Math.max(peor, rel);
+      }
+    }
+    assert(peor < 1e-9, "el peor error relativo contra la solución analítica fue " + peor.toExponential(3));
+  });
+
+  test("la traza se conserva (suma de eigenvalores = traza)", () => {
+    const rnd = lcg(2024);
+    for (let t = 0; t < 200; t++) {
+      const A = randomCovariance(rnd);
+      const traza = A[0][0] + A[1][1] + A[2][2];
+      const suma = jacobiEigen3(A).stds.reduce((s, v) => s + v * v, 0);
+      assertClose(suma, traza, 1e-10, "traza");
+    }
+  });
+
+  test("A·v = λ·v para cada eigenvector", () => {
+    const rnd = lcg(31);
+    for (let t = 0; t < 200; t++) {
+      const A = randomCovariance(rnd);
+      const { ev, stds } = jacobiEigen3(A);
+      for (let k = 0; k < 3; k++) {
+        const v = [ev[0][k], ev[1][k], ev[2][k]];
+        const Av = matVec(A, v);
+        const lv = v.map(c => c * stds[k] * stds[k]);
+        const escala = Math.max(1, ...Av.map(Math.abs));
+        for (let i = 0; i < 3; i++) {
+          assert(Math.abs(Av[i] - lv[i]) / escala < 1e-9,
+            "A·v ≠ λ·v en la componente " + i + " del PC" + (k + 1));
+        }
+      }
+    }
+  });
+
+  test("los eigenvectores son ortonormales", () => {
+    const rnd = lcg(101);
+    for (let t = 0; t < 200; t++) {
+      const { ev } = jacobiEigen3(randomCovariance(rnd));
+      for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) {
+        const dot = ev[0][a] * ev[0][b] + ev[1][a] * ev[1][b] + ev[2][a] * ev[2][b];
+        assertClose(dot, a === b ? 1 : 0, 1e-9, "v" + a + "·v" + b);
+      }
+    }
+  });
+
+  test("las componentes principales salen ordenadas por varianza descendente", () => {
+    // Sin este orden la asignación PC→canal sería arbitraria y los colores
+    // no serían comparables entre fotografías del mismo panel.
+    const rnd = lcg(55);
+    for (let t = 0; t < 300; t++) {
+      const { stds } = jacobiEigen3(randomCovariance(rnd));
+      assert(stds[0] >= stds[1] && stds[1] >= stds[2],
+        "orden incorrecto: " + stds.join(", "));
+    }
+  });
+});
+
+// ============================================================
+// 3. Estadísticas y máscara de selección
+// ============================================================
+
+suite("Estadísticas y máscara de selección", () => {
+  test("meanStd1 sobre la máscara ignora los píxeles no seleccionados", () => {
+    const n = 100;
+    const arr = new Float64Array(n);
+    const mask = new Uint8Array(n);
+    for (let i = 0; i < n; i++) { arr[i] = i < 50 ? 10 : 1000; mask[i] = i < 50 ? 1 : 0; }
+    const { mean, std } = meanStd1(arr, n, mask);
+    assertClose(mean, 10, 1e-12, "media enmascarada");
+    assert(std <= 1, "el desvío debería ser nulo dentro de la zona, dio " + std);
+  });
+
+  test("meanCov3 sobre la máscara equivale a calcular solo esa zona", () => {
+    const rnd = lcg(3);
+    const n = 600;
+    const CH = [new Float64Array(n), new Float64Array(n), new Float64Array(n)];
+    const mask = new Uint8Array(n);
+    for (let i = 0; i < n; i++) {
+      const sel = i % 3 === 0;
+      mask[i] = sel ? 1 : 0;
+      for (let k = 0; k < 3; k++) CH[k][i] = sel ? 40 + rnd() * 30 : 200 + rnd() * 50;
+    }
+    const conMascara = meanCov3(CH, n, mask);
+
+    // Los mismos píxeles seleccionados, pero compactados y sin máscara
+    const sel = [];
+    for (let i = 0; i < n; i++) if (mask[i]) sel.push(i);
+    const SUB = [0, 1, 2].map(k => Float64Array.from(sel.map(i => CH[k][i])));
+    const sinMascara = meanCov3(SUB, sel.length, null);
+
+    for (let k = 0; k < 3; k++) assertClose(conMascara.mean[k], sinMascara.mean[k], 1e-10, "media " + k);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      assertClose(conMascara.cov[i][j], sinMascara.cov[i][j], 1e-9, "cov[" + i + "][" + j + "]");
+    }
+  });
+
+  test("una máscara vacía cae de vuelta a la imagen completa", () => {
+    // Si la selección quedó fuera de la imagen no debe dividirse por cero
+    const n = 120;
+    const CH = [new Float64Array(n), new Float64Array(n), new Float64Array(n)];
+    for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) CH[k][i] = i + k;
+    const vacia = new Uint8Array(n); // todos en 0
+    const conVacia = meanCov3(CH, n, vacia);
+    const completa = meanCov3(CH, n, null);
+    assert(conVacia.mask === null, "la máscara vacía debería descartarse");
+    for (let k = 0; k < 3; k++) assertClose(conVacia.mean[k], completa.mean[k], 1e-12, "media " + k);
+  });
+
+  test("la máscara cambia el resultado del filtro", () => {
+    // Comprobación de que la selección realmente se propaga al pipeline
+    const img = syntheticImage(40, 40, 5);
+    const n = 40 * 40;
+    const mask = new Uint8Array(n);
+    for (let i = 0; i < n; i++) mask[i] = (i % 40) < 12 ? 1 : 0;
+    const sinSel = crgbEnhance(cloneImage(img), 1.5, null, null);
+    const conSel = crgbEnhance(cloneImage(img), 1.5, mask, null);
+    let distintos = 0;
+    for (let i = 0; i < sinSel.data.length; i++) if (sinSel.data[i] !== conSel.data[i]) distintos++;
+    assert(distintos > 0, "la máscara no tuvo ningún efecto sobre el resultado");
+  });
+});
+
+// ============================================================
+// 4. Imagen integral (contraste local)
+// ============================================================
+
+suite("Imagen integral", () => {
+  test("satMean coincide con el promedio calculado a mano", () => {
+    const w = 23, h = 17, rnd = lcg(9);
+    const src = new Float64Array(w * h);
+    for (let i = 0; i < src.length; i++) src[i] = rnd() * 255;
+    const sat = buildSAT(src, w, h);
+    const ventanas = [[0, 0, 0, 0], [0, 0, w - 1, h - 1], [3, 2, 9, 11], [w - 4, h - 5, w - 1, h - 1]];
+    for (const [x0, y0, x1, y1] of ventanas) {
+      let s = 0, c = 0;
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { s += src[y * w + x]; c++; }
+      assertClose(satMean(sat, w, x0, y0, x1, y1), s / c, 1e-9,
+        "ventana " + [x0, y0, x1, y1].join(","));
+    }
+  });
+});
+
+// ============================================================
+// 5. Determinismo
+// ============================================================
+
+suite("Determinismo", () => {
+  const filtros = { CRGB: crgbEnhance, "DS-LAB": dsLabEnhance, LDS: ldsEnhance };
+
+  for (const [nombre, fn] of Object.entries(filtros)) {
+    test(nombre + ": la misma entrada produce siempre la misma salida", () => {
+      const img = syntheticImage(32, 32, 42);
+      const a = fn(cloneImage(img), 1.8, null, null);
+      const b = fn(cloneImage(img), 1.8, null, null);
+      assertBytesEqual(a.data, b.data, nombre + " no es determinista");
+    });
+  }
+
+  test("el canal alfa siempre queda opaco", () => {
+    const out = crgbEnhance(syntheticImage(16, 16, 1), 1.5, null, null);
+    for (let i = 3; i < out.data.length; i += 4) {
+      assert(out.data[i] === 255, "alfa no opaco en el píxel " + ((i - 3) / 4));
+    }
+  });
+
+  test("applyPostAdjust es neutro con contraste y saturación en cero", () => {
+    const img = syntheticImage(16, 16, 2);
+    const original = new Uint8ClampedArray(img.data);
+    applyPostAdjust(img, 0, 0);
+    assertBytesEqual(img.data, original, "el ajuste neutro modificó los píxeles");
+  });
+
+  test("applyPostAdjust: saturación −100 deja la imagen en escala de grises", () => {
+    const img = syntheticImage(16, 16, 3);
+    applyPostAdjust(img, 0, -100);
+    for (let i = 0; i < img.data.length; i += 4) {
+      assert(img.data[i] === img.data[i + 1] && img.data[i + 1] === img.data[i + 2],
+        "el píxel " + (i / 4) + " no quedó gris: " + [img.data[i], img.data[i + 1], img.data[i + 2]]);
+    }
+  });
+});
+
+// ============================================================
+// 6. Congelado de estadísticas del lote
+// ============================================================
+
+suite("Procesado por lote: estadísticas congeladas", () => {
+  const filtros = { CRGB: crgbEnhance, "DS-LAB": dsLabEnhance, LDS: ldsEnhance };
+
+  for (const [nombre, fn] of Object.entries(filtros)) {
+    test(nombre + ": la referencia congela las estadísticas y el lote las reutiliza", () => {
+      const referencia = syntheticImage(28, 28, 100);
+      const otra = syntheticImage(28, 28, 777);
+
+      const store = {};
+      fn(cloneImage(referencia), 1.6, null, store);
+      assert(store.frozen, nombre + " no congeló nada en la primera foto");
+
+      const congeladoAntes = JSON.stringify(store.frozen);
+      fn(cloneImage(otra), 1.6, null, store);
+      assert(JSON.stringify(store.frozen) === congeladoAntes,
+        nombre + " recalculó las estadísticas en la segunda foto del lote");
+    });
+
+    test(nombre + ": la foto del lote se procesa distinto que por separado", () => {
+      // Si el congelado no se estuviera usando, ambos resultados serían iguales
+      const referencia = syntheticImage(28, 28, 100);
+      const otra = syntheticImage(28, 28, 777);
+
+      const store = {};
+      fn(cloneImage(referencia), 1.6, null, store);
+      const enLote = fn(cloneImage(otra), 1.6, null, store);
+      const suelta = fn(cloneImage(otra), 1.6, null, null);
+
+      let distintos = 0;
+      for (let i = 0; i < enLote.data.length; i++) if (enLote.data[i] !== suelta.data[i]) distintos++;
+      assert(distintos > 0,
+        nombre + ": procesar dentro del lote dio exactamente lo mismo que suelta, " +
+        "las estadísticas congeladas no se están aplicando");
+    });
+  }
+
+  test("la foto de referencia da el mismo resultado dentro y fuera del lote", () => {
+    const referencia = syntheticImage(28, 28, 100);
+    const store = {};
+    const enLote = crgbEnhance(cloneImage(referencia), 1.6, null, store);
+    const suelta = crgbEnhance(cloneImage(referencia), 1.6, null, null);
+    assertBytesEqual(enLote.data, suelta.data,
+      "la referencia no debería cambiar por el hecho de abrir un lote");
+  });
+
+  test("todo el lote comparte la misma matriz de decorrelación", () => {
+    const store = {};
+    crgbEnhance(syntheticImage(24, 24, 1), 1.5, null, store);
+    const ev0 = JSON.stringify(store.frozen.ev);
+    for (let k = 2; k <= 5; k++) {
+      crgbEnhance(syntheticImage(24, 24, k * 313), 1.5, null, store);
+      assert(JSON.stringify(store.frozen.ev) === ev0,
+        "la matriz cambió en la foto " + k + " del lote");
+    }
+  });
+});
+
+// ============================================================
+// 7. Problemas conocidos
+//
+// Estas pruebas fijan comportamiento que se sabe incorrecto, para que no
+// pase inadvertido. Si alguna falla, probablemente sea porque se corrigió:
+// en ese caso hay que actualizar docs/LIMITACIONES.md y el CHANGELOG.
+// ============================================================
+
+suite("Problemas conocidos (comportamiento fijado a propósito)", () => {
+  test("LDS: la intensidad no tiene efecto — ver docs/LIMITACIONES.md §3", () => {
+    const img = syntheticImage(24, 24, 8);
+    const suave = ldsEnhance(cloneImage(img), 1.0, null, null);
+    const fuerte = ldsEnhance(cloneImage(img), 3.0, null, null);
+    let distintos = 0;
+    for (let i = 0; i < suave.data.length; i++) if (suave.data[i] !== fuerte.data[i]) distintos++;
+    assert(distintos === 0,
+      "la intensidad ahora SÍ afecta a LDS (" + distintos + " bytes distintos). " +
+      "Si fue una corrección deliberada, actualizar docs/LIMITACIONES.md §3, el " +
+      "CHANGELOG y esta prueba: los resultados de LDS dejan de ser comparables " +
+      "con los de versiones anteriores.");
+  });
+});
+
+// ============================================================
+// 8. Correspondencia entre el código fuente y el compilado
+//
+// Es la prueba que faltaba: en julio de 2026 se publicó un app.js que no
+// correspondía a src/app.jsx (primero el compilado sin la fuente, después la
+// fuente sin compilar), y el sitio quedó en blanco varios días.
+// ============================================================
+
+suite("Correspondencia src/app.jsx ↔ app.js", () => {
+  test("app.js es exactamente el resultado de compilar src/app.jsx", () => {
+    const Babel = require(path.join(ROOT, "lib", "babel.min.js"));
+    const esperado = Babel.transform(source, { presets: ["react"], compact: false }).code;
+    const actual = fs.readFileSync(path.join(ROOT, "app.js"), "utf8")
+      .replace(/^﻿/, "")     // BOM que agregan algunos editores
+      .replace(/\r\n/g, "\n");    // CRLF si git está con autocrlf
+
+    if (esperado.trimEnd() !== actual.trimEnd()) {
+      // Localizar la primera divergencia para que el mensaje sirva de algo
+      const a = esperado.split("\n"), b = actual.split("\n");
+      let linea = 0;
+      while (linea < a.length && linea < b.length && a[linea] === b[linea]) linea++;
+      throw new Error(
+        "app.js no corresponde a src/app.jsx.\n" +
+        "Primera diferencia en la línea " + (linea + 1) + ":\n" +
+        "  esperado: " + JSON.stringify((a[linea] || "«fin de archivo»").slice(0, 120)) + "\n" +
+        "  en disco: " + JSON.stringify((b[linea] || "«fin de archivo»").slice(0, 120)) + "\n" +
+        "Correr `node build.js` y volver a commitear app.js."
+      );
+    }
+  });
+
+  test("app.js no contiene JSX sin compilar", () => {
+    // El navegador carga app.js como script plano, sin Babel: cualquier JSX
+    // que quede es un SyntaxError y la página se muestra en blanco.
+    const compilado = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    const jsx = compilado.match(/<\/[a-zA-Z][\w.]*>|<[a-zA-Z][\w.]*\s+[a-zA-Z-]+=\{/g);
+    assert(!jsx, "quedaron " + (jsx ? jsx.length : 0) + " marcas de JSX en app.js " +
+      "(primera: " + (jsx ? jsx[0] : "") + "). Correr `node build.js`.");
+  });
+
+  test("la versión coincide en src/app.jsx, index.html y package.json", () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+    const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+
+    const enHtml = (html.match(/OpuntiaColor v([\d.]+)/) || [])[1];
+    const enFuente = (source.match(/OPC – OpuntiaColor v([\d.]+)/) || [])[1];
+
+    assert(enFuente === pkg.version,
+      "src/app.jsx dice v" + enFuente + " y package.json dice v" + pkg.version);
+    assert(enHtml === pkg.version,
+      "index.html dice v" + enHtml + " y package.json dice v" + pkg.version);
+  });
+});
+
+// ============================================================
+
+console.log(
+  "\n" + (failed === 0 ? "\x1b[32m" : "\x1b[31m") +
+  passed + " prueba(s) OK, " + failed + " fallida(s)\x1b[0m\n"
+);
+if (failed > 0) {
+  console.log("Fallaron:");
+  for (const f of failures) console.log("  · " + f.name);
+  console.log("");
+}
+process.exit(failed === 0 ? 0 : 1);

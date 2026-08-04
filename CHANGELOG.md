@@ -6,6 +6,22 @@ reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
 ## v3.3.0 (2026)
 
+> **Nota de publicación (4 de agosto de 2026).** La subida original de v3.3.0
+> quedó incompleta y el sitio publicado estuvo en blanco entre el 28 de julio y
+> el 4 de agosto. Se subió `app.js` ya compilado pero no `src/app.jsx`, que
+> siguió en v3.2 sin la corrección de Jacobi; y un commit posterior sobreescribió
+> `app.js` con el código fuente JSX **sin compilar**. Como `index.html` carga
+> `app.js` como script plano y sin Babel, el navegador no podía parsearlo y la
+> página no mostraba nada.
+>
+> Ya está corregido: `src/app.jsx` contiene la fuente de v3.3.0 y `app.js` es su
+> compilado, idéntico byte a byte al que se había publicado el 28 de julio. **La
+> aplicación en sí no cambió: los resultados de v3.3.0 son los mismos.** Se
+> agregaron además los archivos que este changelog ya anunciaba y que no se
+> habían subido (`docs/` y `tests/`), incluida una prueba automática que compara
+> `app.js` con el resultado de compilar `src/app.jsx` para que el desfase no
+> pueda repetirse.
+
 ### Corrección científica — cambia los resultados
 
 - **Rotación de Jacobi corregida** — La eigendecomposición actualizaba las
