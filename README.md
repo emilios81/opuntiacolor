@@ -2,6 +2,7 @@
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21796290.svg)](https://doi.org/10.5281/zenodo.21796290)
 [![Licencia: GPL v3](https://img.shields.io/badge/licencia-GPLv3-blue.svg)](LICENSE)
 
 OPC (OpuntiaColor) es una aplicación web para el análisis y la documentación de
@@ -189,7 +190,12 @@ resultados no son equivalentes.**
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
 para el realce digital de pigmentos y grabados en arte rupestre* (v3.4.0)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
-https://github.com/emilios81/opuntiacolor
+https://doi.org/10.5281/zenodo.21796290
+
+Cada versión queda archivada en Zenodo con su propio DOI. El de arriba es el
+**DOI concepto**: siempre resuelve a la última versión, y es el que conviene
+citar salvo que se quiera referir a una versión concreta. El de v3.4.0 en
+particular es [10.5281/zenodo.21796291](https://doi.org/10.5281/zenodo.21796291).
 
 El archivo [CITATION.cff](CITATION.cff) permite que GitHub genere la cita en
 distintos formatos desde el botón *Cite this repository*.

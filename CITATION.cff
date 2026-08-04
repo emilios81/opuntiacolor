@@ -25,12 +25,14 @@ date-released: "2026-08-04"
 license: GPL-3.0-or-later
 repository-code: "https://github.com/emilios81/opuntiacolor"
 url: "https://emilios81.github.io/opuntiacolor/"
-# Descomentar y completar después del primer depósito en Zenodo:
-# doi: "10.5281/zenodo.XXXXXXX"
-# identifiers:
-#   - type: doi
-#     value: "10.5281/zenodo.XXXXXXX"
-#     description: "DOI concept: siempre apunta a la última versión"
+doi: "10.5281/zenodo.21796290"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21796290"
+    description: "DOI concepto: siempre apunta a la última versión"
+  - type: doi
+    value: "10.5281/zenodo.21796291"
+    description: "DOI de la versión 3.4.0"
 keywords:
   - arte rupestre
   - rock art
