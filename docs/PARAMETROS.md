@@ -28,7 +28,7 @@ cada caso, porque en algunos la respuesta es lineal y en otros no.
 |---|---|---|
 | **CRGB** | Recorte por percentil: `k = max(0.8 , 3.5/intensidad)` desvíos | Inversa y **saturada a partir de 4.4** |
 | **DS-LAB** | Igual que CRGB | Igual que CRGB |
-| **LDS** | Nada — [ver abajo](#lds-la-intensidad-no-hace-nada) | **Ninguna** |
+| **LDS** | Exponente de blanqueo `γ = intensidad/1.5` | Creciente, **topa en intensidad 3.0** |
 | **YBK** | Amplificación de croma (`3 ×`) y contraste de luma (`0.6 ×`) | Lineal |
 | **Rojo** | Factor sobre a*, y sobre b* al 30 % | Lineal |
 | **Blanco** | Amplificación del puntaje z de L* (5 × arriba, 2 × abajo) | Lineal |
@@ -72,15 +72,43 @@ Contra lo que sugiere el nombre del control, **bajar la intensidad en CLAHE
 recorta más y amplifica menos el ruido**. Para una foto ruidosa o de ISO alto,
 probar con 0.5 – 1.0 antes que con 2.0.
 
-### LDS: la intensidad no hace nada
+### LDS: la intensidad es el exponente de blanqueo
 
-Es un problema conocido y sin resolver. El factor de amplificación se cancela
-exactamente con la normalización posterior por mínimo y máximo. Mover el control
-no cambia ni un byte de la salida.
+Desde v3.4.0. En vez de multiplicar las tres componentes principales por un
+factor común —que se cancelaba con la normalización posterior y hacía que el
+control no sirviera para nada—, la intensidad es el **exponente γ** al que se
+eleva la equalización de varianzas:
 
-Está documentado en [LIMITACIONES.md §3](LIMITACIONES.md#3-la-intensidad-no-tiene-efecto-en-lds)
-y hay una prueba automática que fija ese comportamiento para que el día que se
-corrija no pase inadvertido.
+```
+componente_k  ←  componente_k · (σ̄ / σ_k)^γ        con  γ = intensidad / 1.5
+```
+
+| γ | Qué hace |
+|---|---|
+| **0** | Identidad: no hay decorrelación |
+| **1** | Equalización completa de varianzas (blanqueo ZCA) — el comportamiento de v3.0 a v3.3.0 |
+| **> 1** | Sobre-blanqueo: las componentes menores se amplifican más allá de la igualación |
+
+Como γ cambia la *forma* de la transformación y no su escala, no puede
+cancelarse. Y como `γ = intensidad/1.5`, el valor por defecto da γ = 1: **la
+salida por defecto es idéntica byte a byte a la de v3.3.0.**
+
+**Para qué sirve bajarla.** Con γ entre 0.3 y 0.7 (intensidad 0.5 – 1.0) la
+decorrelación es parcial y la roca conserva más su color real. Es la forma de
+**verificar un motivo con menos realce**: si sigue estando ahí con la mitad del
+estiramiento, es pigmento y no un artefacto amplificado. Hasta v3.3.0 esa
+comprobación no se podía hacer.
+
+| γ | Intensidad | Para qué |
+|---|---|---|
+| 0.3 – 0.7 | 0.5 – 1.0 | Verificar que un rasgo no es un artefacto |
+| 1.0 | 1.5 | Trabajo normal (el valor por defecto) |
+| 1.3 – 1.7 | 2.0 – 2.5 | Pigmento muy diluido; empieza a subir el ruido |
+| 2.0 | 3.0 en adelante | Casi siempre demasiado; el control ya no cambia nada |
+
+Salvedades en [LIMITACIONES.md §3](LIMITACIONES.md#3-el-rango-de-intensidad-de-lds-no-llega-a-la-foto-original):
+el extremo bajo no devuelve la foto original, el exponente topea en γ = 2, y la
+decorrelación efectiva deja de crecer por encima de γ ≈ 1.3.
 
 ---
 

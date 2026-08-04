@@ -27,7 +27,7 @@ código que se publica**, no contra una copia que puede quedar desactualizada.
 | **Imagen integral** | Que `satMean` coincida con el promedio calculado a mano en varias ventanas |
 | **Determinismo** | Que CRGB, DS-LAB y LDS den bytes idénticos con la misma entrada; alfa opaco; que el ajuste posterior neutro no toque los píxeles y que saturación −100 deje escala de grises exacta |
 | **Lote** | Que la referencia congele las estadísticas y el resto del lote las reutilice sin recalcular; que la matriz de decorrelación no cambie a lo largo del lote; que una foto en el lote salga distinta que suelta; que la referencia salga igual dentro y fuera del lote |
-| **Problemas conocidos** | Fija el comportamiento de [LIMITACIONES §3](../docs/LIMITACIONES.md#3-la-intensidad-no-tiene-efecto-en-lds) (la intensidad no afecta a LDS) para que no pase inadvertido |
+| **Intensidad de LDS** | Que el control tenga efecto (regresión del problema de v3.3.0); que el valor por defecto reproduzca el checksum exacto de la salida de v3.3.0; que bajar la intensidad decorrele menos; que el exponente topee en γ = 2; que el lote respete la intensidad sin descongelar estadísticas |
 | **Correspondencia fuente ↔ compilado** | Que `app.js` sea exactamente el resultado de compilar `src/app.jsx`; que no quede JSX sin compilar en `app.js`; que la versión coincida en `src/app.jsx`, `index.html` y `package.json` |
 
 ## La prueba de la eigendescomposición

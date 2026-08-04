@@ -15,8 +15,8 @@ todavía no se corrigieron.
 1. [El realce no descubre: redistribuye](#1-el-realce-no-descubre-redistribuye)
 2. [El mapa de pigmentos no identifica pigmentos](#2-el-mapa-de-pigmentos-no-identifica-pigmentos)
 
-**Técnicas sin resolver**
-3. [La intensidad no tiene efecto en LDS](#3-la-intensidad-no-tiene-efecto-en-lds)
+**Técnicas**
+3. [El rango de intensidad de LDS no llega a la foto original](#3-el-rango-de-intensidad-de-lds-no-llega-a-la-foto-original)
 4. [Profundidad de 8 bits](#4-profundidad-de-8-bits)
 5. [Sin gestión de color](#5-sin-gestión-de-color)
 6. [RAW no está soportado](#6-raw-no-está-soportado)
@@ -84,45 +84,49 @@ identificación de materiales.
 
 ---
 
-# Técnicas sin resolver
+# Técnicas
 
-## 3. La intensidad no tiene efecto en LDS
+## 3. El rango de intensidad de LDS no llega a la foto original
 
-**Estado: sin resolver.** Afecta únicamente al filtro LDS.
+Hasta v3.3.0 el control de intensidad **no tenía ningún efecto en LDS**: se
+multiplicaba por un factor común a las tres componentes principales y ese factor
+se cancelaba exactamente contra la normalización posterior por mínimo y máximo.
+No era un error de redondeo sino una identidad algebraica.
 
-El control de intensidad no cambia absolutamente nada en LDS: la salida es
-idéntica byte a byte con intensidad 0.2 y con 5.0.
+Desde **v3.4.0** la intensidad es el exponente γ del blanqueo, que cambia la
+forma de la transformación y por lo tanto no puede cancelarse. Quedan tres
+salvedades.
 
-**Por qué.** LDS amplifica las componentes principales por
-`boost = 2 × intensidad` y después reproyecta y normaliza cada canal por su
-mínimo y máximo. Escribiendo la salida antes de normalizar como
-`s = media + boost · f`, el mínimo y el máximo son `media + boost · min(f)` y
-`media + boost · max(f)`, de modo que
+**El extremo bajo no es la foto original.** Con γ → 0 la transformación tiende a
+la identidad, pero después se sigue aplicando la normalización por mínimo y
+máximo de cada canal. El piso del control es entonces "la original con
+auto-niveles", no la original. Para comparar contra la fotografía sin procesar
+hay que usar el deslizador comparativo, no bajar la intensidad a 0.2.
 
-```
-      s − mín        boost · (f − mín f)        f − mín f
-    ───────────  =  ──────────────────────  =  ───────────
-      máx − mín     boost · (máx f − mín f)    máx f − mín f
-```
+**El exponente topea en γ = 2.** Se alcanza en intensidad 3.0: de ahí en adelante
+el control no cambia nada. Es deliberado —por encima de γ = 2 el sobre-blanqueo
+amplifica el ruido sin agregar información— y es el mismo tipo de saturación que
+ya tienen CRGB y DS-LAB a partir de 4.375.
 
-El factor se cancela exactamente. No es un error de redondeo: es una
-identidad algebraica.
+**El mismo número significa cosas distintas en cada filtro.** "Intensidad 2.0" es
+un exponente de blanqueo en LDS, un recorte por percentil en CRGB y DS-LAB, y un
+factor multiplicativo en los filtros de pigmento. **No son comparables entre
+sí.** Al reportar parámetros en una publicación hay que consignar el filtro junto
+con el valor; el número solo no significa nada.
 
-**Por qué no está corregido.** Arreglarlo exige decidir primero *qué debería
-controlar* ese parámetro en un filtro cuyo propósito es reproyectar al espacio
-original y conservar un aspecto natural. Las opciones razonables —interpolar
-entre la imagen original y la decorrelada, amplificar cada componente por un
-exponente distinto, o recortar por percentil como CRGB— dan resultados muy
-distintos entre sí y ninguna es obviamente la correcta. Es una decisión de diseño
-del filtro, no un bug de una línea, y cambiarla altera resultados ya publicados.
+Un detalle que conviene conocer: la decorrelación efectiva no crece de forma
+monótona con γ en todo el rango. Crece hasta γ ≈ 1.3 y después vuelve a bajar,
+porque el sobre-blanqueo reintroduce correlación entre canales con la estructura
+invertida. El rango con comportamiento limpio es γ ≤ 1.3, es decir intensidad
+hasta 2.0.
 
-Mientras tanto: **para variar la fuerza del realce, usar CRGB o DS-LAB**, donde
-la intensidad sí opera. En LDS, ajustar contraste y saturación después del
-filtro.
-
-Hay una prueba automática (`tests/run-tests.js`, sección "Problemas conocidos")
-que fija este comportamiento. Si algún día se corrige, esa prueba falla y avisa
-que hay que actualizar este documento y el CHANGELOG.
+> **Compatibilidad.** Con el valor por defecto (intensidad 1.5) γ vale
+> exactamente 1, que es la equalización completa de varianzas que hacía v3.3.0.
+> La salida es **idéntica byte a byte** a la de la versión anterior, verificado
+> también en modo lote y con zona seleccionada. Como hasta v3.3.0 el control no
+> hacía nada, toda salida LDS existente *es* la salida por defecto: **v3.4.0 no
+> invalida ninguna imagen ya publicada con LDS.** Hay una prueba automática que
+> fija ese checksum.
 
 ## 4. Profundidad de 8 bits
 

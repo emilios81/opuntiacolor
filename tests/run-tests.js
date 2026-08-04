@@ -534,25 +534,107 @@ suite("Procesado por lote: estadísticas congeladas", () => {
 });
 
 // ============================================================
-// 7. Problemas conocidos
+// 7. LDS: la intensidad como exponente de blanqueo  (v3.4.0)
 //
-// Estas pruebas fijan comportamiento que se sabe incorrecto, para que no
-// pase inadvertido. Si alguna falla, probablemente sea porque se corrigió:
-// en ese caso hay que actualizar docs/LIMITACIONES.md y el CHANGELOG.
+// Hasta v3.3.0 el control de intensidad no tenía ningún efecto en LDS: se
+// multiplicaba por un factor común a las tres componentes principales, y ese
+// factor se cancelaba exactamente contra la normalización por mínimo y máximo
+// del final. Desde v3.4.0 la intensidad es el exponente γ del blanqueo, que
+// cambia la forma de la transformación y por lo tanto no puede cancelarse.
 // ============================================================
 
-suite("Problemas conocidos (comportamiento fijado a propósito)", () => {
-  test("LDS: la intensidad no tiene efecto — ver docs/LIMITACIONES.md §3", () => {
+// Correlación media |r| entre pares de canales de la salida. Es la medida
+// directa de cuánta decorrelación aplicó el filtro: más baja, más separados
+// quedaron los canales.
+function correlacionMedia(data) {
+  const n = data.length / 4;
+  const C = [[], [], []];
+  for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) C[k].push(data[i * 4 + k]);
+  const mu = C.map(a => a.reduce((x, y) => x + y, 0) / n);
+  const sd = C.map((a, k) => Math.sqrt(a.reduce((x, y) => x + (y - mu[k]) ** 2, 0) / n));
+  let suma = 0, pares = 0;
+  for (let a = 0; a < 3; a++) for (let b = a + 1; b < 3; b++) {
+    let cov = 0;
+    for (let i = 0; i < n; i++) cov += (C[a][i] - mu[a]) * (C[b][i] - mu[b]);
+    suma += Math.abs(cov / n / (sd[a] * sd[b] || 1));
+    pares++;
+  }
+  return suma / pares;
+}
+
+// FNV-1a de 32 bits, para fijar una salida exacta sin guardar la imagen
+function fnv1a(bytes) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < bytes.length; i++) { h ^= bytes[i]; h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+
+suite("LDS: intensidad como exponente de blanqueo", () => {
+  test("la intensidad tiene efecto (regresión del problema de v3.3.0)", () => {
     const img = syntheticImage(24, 24, 8);
-    const suave = ldsEnhance(cloneImage(img), 1.0, null, null);
-    const fuerte = ldsEnhance(cloneImage(img), 3.0, null, null);
+    const suave = ldsEnhance(cloneImage(img), 0.5, null, null);
+    const fuerte = ldsEnhance(cloneImage(img), 2.5, null, null);
     let distintos = 0;
     for (let i = 0; i < suave.data.length; i++) if (suave.data[i] !== fuerte.data[i]) distintos++;
-    assert(distintos === 0,
-      "la intensidad ahora SÍ afecta a LDS (" + distintos + " bytes distintos). " +
-      "Si fue una corrección deliberada, actualizar docs/LIMITACIONES.md §3, el " +
-      "CHANGELOG y esta prueba: los resultados de LDS dejan de ser comparables " +
-      "con los de versiones anteriores.");
+    assert(distintos > 0,
+      "la intensidad volvió a no tener efecto en LDS: la salida con 0.5 y con 2.5 " +
+      "es idéntica. Es el problema que se corrigió en v3.4.0 — revisar que el " +
+      "factor por componente siga siendo un exponente y no una escala común.");
+  });
+
+  test("el valor por defecto reproduce exactamente la salida de v3.3.0", () => {
+    // Comprobación de compatibilidad: con intensidad 1.5 el exponente vale
+    // γ = 1, o sea la equalización completa de varianzas que hacía v3.3.0. El
+    // checksum se calculó contra la implementación anterior al cambio. Si esta
+    // prueba falla, la actualización invalida material ya publicado con LDS:
+    // no cambiarlo sin bump de versión y aviso en el CHANGELOG.
+    const salida = ldsEnhance(syntheticImage(48, 48, 3300), 1.5, null, null);
+    assert(fnv1a(salida.data) === 2025766989,
+      "la salida por defecto de LDS cambió (checksum " + fnv1a(salida.data) +
+      ", esperado 2025766989)");
+  });
+
+  test("γ < 1 decorrela parcialmente: menos intensidad, canales más correlacionados", () => {
+    // Es lo que hace útil el control para verificar un motivo con menos realce.
+    const img = syntheticImage(56, 56, 42);
+    let anterior = -1;
+    for (const it of [0.2, 0.5, 1.0, 1.5]) {
+      const r = correlacionMedia(ldsEnhance(cloneImage(img), it, null, null).data);
+      if (anterior >= 0) {
+        assert(r < anterior,
+          "la correlación entre canales no bajó al subir la intensidad a " + it +
+          " (" + anterior.toFixed(4) + " → " + r.toFixed(4) + ")");
+      }
+      anterior = r;
+    }
+  });
+
+  test("el exponente topea en γ = 2: de intensidad 3.0 en adelante no cambia nada", () => {
+    const img = syntheticImage(32, 32, 17);
+    const tope = ldsEnhance(cloneImage(img), 3.0, null, null);
+    for (const it of [4.0, 5.0]) {
+      assertBytesEqual(ldsEnhance(cloneImage(img), it, null, null).data, tope.data,
+        "la intensidad " + it + " debería dar lo mismo que 3.0 (γ topeado en 2)");
+    }
+  });
+
+  test("la intensidad se aplica igual en el lote, sin descongelar estadísticas", () => {
+    // γ es un parámetro, no una estadística: el lote debe respetarlo sin
+    // recalcular la matriz de decorrelación de la referencia.
+    const referencia = syntheticImage(28, 28, 100);
+    const otra = syntheticImage(28, 28, 777);
+    const store = {};
+    ldsEnhance(cloneImage(referencia), 0.6, null, store);
+    const ev0 = JSON.stringify(store.frozen.ev);
+    const a = ldsEnhance(cloneImage(otra), 0.6, null, store);
+    assert(JSON.stringify(store.frozen.ev) === ev0, "el lote recalculó la matriz");
+
+    const store2 = {};
+    ldsEnhance(cloneImage(referencia), 2.4, null, store2);
+    const b = ldsEnhance(cloneImage(otra), 2.4, null, store2);
+    let distintos = 0;
+    for (let i = 0; i < a.data.length; i++) if (a.data[i] !== b.data[i]) distintos++;
+    assert(distintos > 0, "la intensidad no tuvo efecto sobre las fotos del lote");
   });
 });
 

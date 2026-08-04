@@ -4,6 +4,67 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.4.0 (2026)
+
+### La intensidad de LDS pasa a ser el exponente de blanqueo
+
+- **El control de intensidad ahora funciona en LDS.** Hasta v3.3.0 no tenía
+  ningún efecto: las tres componentes principales se multiplicaban por
+  `2 × intensidad`, un factor **común** a las tres, que se cancelaba exactamente
+  contra la normalización por mínimo y máximo del final. No era un error de
+  redondeo sino una identidad algebraica —la salida era idéntica byte a byte con
+  intensidad 0.2 y con 5.0.
+
+  En vez de un factor de escala, la intensidad es ahora el **exponente γ** al que
+  se eleva la equalización de varianzas:
+
+  ```
+  componente_k  ←  componente_k · (σ̄ / σ_k)^γ        con  γ = intensidad / 1.5
+  ```
+
+  γ = 0 deja la transformación en la identidad, γ = 1 ecualiza por completo las
+  varianzas (blanqueo ZCA) y γ > 1 sobre-blanquea. Como el exponente cambia la
+  *forma* de la transformación y no su escala, no puede cancelarse. Topeado en
+  γ = 2, que se alcanza en intensidad 3.0.
+
+  Los pasos de proyección y reproyección juntos equivalen a aplicar `Σ^(−γ/2)` a
+  los datos centrados: es un blanqueo ZCA parcial, con todo el rango intermedio
+  bien definido.
+
+### No cambia ningún resultado ya publicado
+
+- **Con el valor por defecto (intensidad 1.5) γ vale exactamente 1**, que es la
+  equalización completa que hacía v3.3.0. La salida es **idéntica byte a byte**,
+  verificado en cinco imágenes, en modo lote con estadísticas congeladas y con
+  zona seleccionada.
+- Y como hasta v3.3.0 el control no hacía nada, **toda salida LDS existente *es*
+  la salida por defecto**. Ninguna imagen ya publicada con LDS queda invalidada,
+  cualquiera haya sido la intensidad con la que se generó.
+- Hay una prueba automática que fija el checksum exacto de esa salida.
+
+### Para qué sirve
+
+Bajar la intensidad a 0.5 – 1.0 (γ ≈ 0.33 – 0.67) aplica una decorrelación
+parcial: la roca conserva más su color real y el realce es más suave. Es la forma
+de **verificar si un motivo sigue estando con menos estiramiento** — si aparece
+solo a intensidad alta, conviene tratarlo como hipótesis. Hasta v3.3.0 esa
+comprobación no se podía hacer, porque el filtro siempre aplicaba el máximo.
+
+### Salvedades
+
+- El extremo bajo **no devuelve la foto original**: la normalización por mínimo y
+  máximo de cada canal se sigue aplicando, así que el piso es "la original con
+  auto-niveles".
+- La decorrelación efectiva crece hasta γ ≈ 1.3 y después vuelve a bajar: el
+  sobre-blanqueo reintroduce correlación con la estructura invertida.
+- "Intensidad 2.0" significa cosas distintas en cada filtro y **no es comparable
+  entre ellos**. Al reportar parámetros hay que consignar el filtro.
+
+Detalle en [docs/LIMITACIONES.md §3](docs/LIMITACIONES.md#3-el-rango-de-intensidad-de-lds-no-llega-a-la-foto-original)
+y [docs/PARAMETROS.md](docs/PARAMETROS.md#lds-la-intensidad-es-el-exponente-de-blanqueo).
+
+---
+
 ## v3.3.0 (2026)
 
 > **Nota de publicación (4 de agosto de 2026).** La subida original de v3.3.0
@@ -65,7 +126,8 @@ reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 - **La intensidad no tiene efecto en LDS.** El factor de amplificación se
   cancela exactamente con la normalización por mínimo y máximo posterior. Sin
   resolver: la corrección exige decidir qué debería controlar ese parámetro en
-  un filtro que reproyecta al espacio original. Ver `docs/LIMITACIONES.md` §3.
+  un filtro que reproyecta al espacio original.
+  *Resuelto en v3.4.0: la intensidad pasó a ser el exponente de blanqueo.*
 
 ---
 

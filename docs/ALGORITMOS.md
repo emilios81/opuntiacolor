@@ -161,9 +161,15 @@ en LAB**, y sus colores tampoco son colores reales.
 `ldsEnhance`. La variante de aspecto más natural.
 
 1–3. Igual que CRGB, sobre RGB.
-4. Proyectar a componentes, normalizar por el desvío de cada una y reescalar
-   todas al **desvío promedio** de las tres: se ecualizan las varianzas sin
-   destruir la geometría del espacio.
+4. Proyectar a componentes y **ecualizar parcialmente las varianzas**, con la
+   intensidad como exponente:
+
+   ```
+   componente_k  ←  componente_k · (σ̄ / σ_k)^γ      con  γ = intensidad / 1.5
+   ```
+
+   γ = 0 deja la transformación en la identidad, γ = 1 ecualiza por completo las
+   varianzas, γ > 1 sobre-blanquea. Topeado en γ = 2.
 5. **Reproyectar al espacio RGB original** con la traspuesta de la matriz de
    eigenvectores, y volver a sumar la media.
 6. Normalizar cada canal por su mínimo y máximo.
@@ -172,9 +178,20 @@ El resultado conserva la relación aproximada con los colores originales: la roc
 sigue pareciendo roca. Es el más apropiado cuando la imagen va a ilustrar una
 publicación y se necesita que el lector reconozca lo que está mirando.
 
-> ⚠️ **El control de intensidad no tiene efecto en LDS.** El factor de
-> amplificación se cancela exactamente con la normalización por mínimo y máximo
-> del paso 6. Ver [LIMITACIONES.md §3](LIMITACIONES.md#3-la-intensidad-no-tiene-efecto-en-lds).
+Los pasos 4 y 5 juntos son exactamente un **blanqueo ZCA parcial**: como
+`Σ = V diag(σ²) Vᵀ`, la transformación completa equivale a aplicar `Σ^(−γ/2)` a
+los datos centrados. Por eso γ = 0 devuelve la identidad y γ = 1 el blanqueo
+completo, con todo el rango intermedio bien definido.
+
+> **Cambiado en v3.4.0.** Hasta v3.3.0 el paso 4 multiplicaba las tres
+> componentes por `2 × intensidad`, un factor **común** a las tres. Ese factor se
+> cancelaba exactamente contra la normalización por mínimo y máximo del paso 6
+> —es una identidad algebraica, no un redondeo—, así que el control de intensidad
+> no tenía ningún efecto. El exponente cambia la forma de la transformación y no
+> puede cancelarse. Con el valor por defecto (1.5) γ vale 1 y **la salida es
+> idéntica byte a byte a la de v3.3.0**, de modo que ninguna imagen ya publicada
+> con LDS queda invalidada. Salvedades en
+> [LIMITACIONES.md §3](LIMITACIONES.md#3-el-rango-de-intensidad-de-lds-no-llega-a-la-foto-original).
 
 ### YBK — crominancia YCbCr
 

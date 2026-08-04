@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.3.0
+# OPC – OpuntiaColor v3.4.0
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -52,7 +52,8 @@ ocurre en la computadora de quien la usa.
 - **DS-LAB** — Decorrelación en CIE-LAB, sensible a diferencias perceptuales de
   pigmento. El más útil con pigmentos degradados.
 - **LDS** — Decorrelación con reproyección al espacio original: colores más
-  naturales.
+  naturales. La intensidad regula cuánta decorrelación se aplica, de parcial a
+  completa, lo que permite verificar un motivo con menos realce.
 - **YBK** — Amplificación de crominancia YCbCr con ecualización estadística.
 
 **Pigmentos** — Rojo, Blanco, Negro y Bicromo: realce selectivo en CIE-LAB. El
@@ -186,7 +187,7 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.3.0)
+para el realce digital de pigmentos y grabados en arte rupestre* (v3.4.0)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://github.com/emilios81/opuntiacolor
 

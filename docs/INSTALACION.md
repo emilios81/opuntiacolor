@@ -109,10 +109,10 @@ En teléfono, usar 2000 px.
 node tests/run-tests.js
 ```
 
-34 pruebas sin dependencias ni imágenes de entrada. Comprueban las conversiones
+38 pruebas sin dependencias ni imágenes de entrada. Comprueban las conversiones
 de color, la eigendescomposición contra una solución analítica independiente, el
-determinismo, la máscara de selección, el congelado de estadísticas del lote y
-la correspondencia entre `src/app.jsx` y `app.js`. Ver [tests/README.md](../tests/README.md).
+determinismo, la máscara de selección, el congelado de estadísticas del lote, la
+intensidad de LDS y la correspondencia entre `src/app.jsx` y `app.js`. Ver [tests/README.md](../tests/README.md).
 
 ---
 
