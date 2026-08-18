@@ -4,6 +4,167 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.5.0 (2026)
+
+### LDS deja de virar a violeta: normalización robusta con ganancia común
+
+- **El problema.** El último paso de LDS —pasar los valores reproyectados a
+  0–255— tomaba el **mínimo y el máximo absolutos de cada canal**. De ahí salían
+  dos defectos encadenados:
+
+  1. *Un solo píxel extremo definía el rango.* El blanqueo amplifica la
+     componente principal más chica —la cromática, con σ de 1 a 6 frente a 40 o
+     60 de la primera—, así que cualquier valor extremo queda disparado. Con una
+     tarjeta de color, una mano o un brillo especular en el encuadre, esos
+     píxeles fijaban el mínimo y el máximo y **toda la superficie rupestre
+     quedaba comprimida en una fracción de la escala**. En una escena sintética
+     tipo foto de campo, la roca ocupaba el 20% del rango: unos 54 niveles de
+     los 255 disponibles.
+
+  2. *Estirar cada canal por separado destruye el tono.* Cada canal recibía una
+     ganancia y un corrimiento distintos, de modo que la relación entre canales
+     no se conservaba. Una roca marrón (R > G > B) salía **azul violácea**
+     (B > G > R). Es el "todo violeta" que se veía en las fotos de campo, y es
+     exactamente lo contrario de lo que LDS promete: reproyectar al espacio
+     original para conservar un aspecto natural.
+
+  Conviene ser preciso sobre el alcance del defecto: como la normalización es
+  lineal, **la relación contraste/ruido del motivo no cambiaba**. No se perdía
+  información en sentido estricto; se desperdiciaba el rango de 8 bits y se
+  falseaba el color.
+
+- **La corrección.** El rango ahora sale de las **vallas de Tukey**
+  (`Q1 − 3·IQR`, `Q3 + 3·IQR`), que no se mueven por más extremo que sea un
+  objeto del encuadre, y la salida se arma con una ganancia `s` y un
+  desplazamiento `o` **comunes a los tres canales**:
+
+  ```
+  salida_c  =  (componente_c − media_c) · s  +  media_c + o
+  ```
+
+  `s` es la mayor ganancia para la que existe un desplazamiento que meta las
+  vallas dentro de 0–255, y `o` reparte el margen sobrante entre las dos puntas.
+  Al ser comunes, las diferencias entre canales se escalan por igual y **el
+  orden de los canales no puede invertirse**. Los cuartiles se calculan con un
+  histograma de 4096 bins, en una pasada, sin ordenar la imagen.
+
+- **Cambia los resultados de LDS.** Las imágenes procesadas con v3.4.0 o
+  anteriores **no son reproducibles** con esta versión: para compararlas hay que
+  reprocesarlas. Los demás filtros no se tocaron.
+
+- **Qué se ve distinto.** Con la tarjeta de color en el encuadre, la roca
+  conserva su tono y aproximadamente el doble de contraste. En imágenes sin
+  valores extremos, en cambio, el resultado puede verse **algo menos contrastado
+  que antes**: la ganancia común está limitada por el canal más exigente, que es
+  el precio de conservar el tono. Los controles de contraste y saturación
+  compensan lo que haga falta.
+
+- **Lo que esto no arregla.** La media, la covarianza y los eigenvectores se
+  siguen calculando sobre toda la imagen. Una tarjeta de color grande dentro del
+  cuadro sigue inclinando la decorrelación misma, no solo la normalización. Para
+  eso está la **selección de zona**: con una selección activa, las estadísticas
+  se calculan solo ahí. Sigue siendo la mejor práctica encuadrar el panel sin la
+  tarjeta, o seleccionar la zona de roca antes de aplicar el filtro.
+
+### Gotero cromático: realzar o atenuar una familia de color
+
+- Después de aplicar un filtro, se toca un color del resultado y se lo **realza o
+  se lo atenúa**, sin tocar el resto de la escena. Responde a una situación
+  concreta del trabajo con decorrelación: el filtro separa bien, pero el verde o
+  el violeta que aparecen ocupan medio panel y tapan justamente el color en el
+  que se lee el motivo.
+
+- **Cómo funciona.** La muestra se toma promediando un entorno de 5×5 sobre el
+  resultado del filtro, para que el grano de la roca no defina la familia de
+  color. La pertenencia se mide por distancia euclídea en el plano de
+  crominancia Cb-Cr:
+
+  ```
+  peso = 1                        si  d ≤ tolerancia
+       = smoothstep decreciente   si  tolerancia < d < tolerancia·(1+suavizado)
+       = 0                        si  d ≥ tolerancia·(1+suavizado)
+  ```
+
+  y la crominancia se multiplica por `1 + (ganancia/100)·peso`. Con ganancia
+  +100 el color llega a triplicarse; con −100 queda exactamente en gris. El
+  suavizado evita el borde duro que delataría la selección como un recorte.
+
+- **No toca la luminancia.** La operación es solo sobre crominancia, y el realce
+  **se frena en el límite del gamut**: ningún canal se sale de 0–255, así que no
+  hay zonas quemadas y el relieve y la textura de la roca quedan intactos. Hay
+  una prueba automática que lo verifica píxel por píxel.
+
+- **Por qué Cb-Cr y no CIE-LAB.** Por velocidad: la conversión es lineal y corre
+  en unos 30 ms sobre 3 Mpx, contra unos 2800 ms del ida y vuelta a LAB, que
+  volvería inusables los deslizadores. Sobre una imagen ya decorrelacionada
+  —falso color por definición— la uniformidad perceptual de LAB no aporta nada.
+
+- **Se acumula, y es reversible.** Cada ajuste se **fija** como una capa más y el
+  gotero queda libre para el color siguiente, que se muestrea ya sobre el
+  resultado acumulado. Los ajustes fijados se listan numerados en el panel y
+  **cualquiera se puede quitar de a uno**, sin afectar a los demás.
+
+  Esto funciona porque un ajuste fijado se guarda como una **regla** —color,
+  tolerancia, suavizado, ganancia— y no como una imagen: la vista se recalcula
+  siempre desde el resultado original del filtro, aplicando la cadena completa.
+  Quitar un ajuste del medio devuelve exactamente la imagen que habría dado no
+  haberlo aplicado nunca, sin copias intermedias ni pérdida acumulada por
+  redondeo. Hay una prueba automática que lo verifica byte a byte.
+
+  El orden de la cadena importa cuando dos ajustes se superponen —el primero
+  cambia el color que el segundo encuentra—, y por eso la lista se muestra
+  numerada.
+
+- **Dónde se aplica.** En la vista previa, en la descarga y en el lote, siempre
+  después del filtro y antes de los ajustes de contraste y saturación. El nombre
+  del archivo descargado registra la cadena completa
+  (`_gotero_g-80t25_g+60t15`). El panel informa qué porcentaje de la imagen
+  alcanza el ajuste en curso.
+
+- **Salvedad metodológica.** La selección se hace sobre una imagen **ya
+  transformada**: la máscara describe el color que produjo el filtro, no la
+  composición del pigmento. Ver
+  [LIMITACIONES.md §11](docs/LIMITACIONES.md#11-el-gotero-selecciona-color-no-pigmento).
+
+### Zoom y encuadre en el visor
+
+- **Ampliar para mirar de cerca.** El visor pasa a tener zoom hasta 1600 %:
+  rueda del mouse —que amplía sobre el punto donde está el cursor, no sobre el
+  centro—, botones `−` y `+`, y una lupa que muestra el aumento y devuelve la
+  imagen al encuadre completo. La mano (✋) permite correr la imagen
+  arrastrándola; también responde al botón del medio del mouse sin activarla.
+  La imagen no puede despegarse de los bordes del visor.
+
+- **Pasado 300 % se muestran los píxeles reales.** El suavizado con el que el
+  navegador agranda una imagen inventa detalle que no está en la foto, y sobre
+  un panel rupestre eso se confunde con textura o con un trazo fino. A partir de
+  3× el visor pasa a mostrar los píxeles tal cual son.
+
+- **Lo que se toca es lo que se procesa.** El deslizador de comparación, el
+  gotero y las herramientas de selección siguen cayendo exactamente donde uno
+  los pone, con la imagen ampliada o corrida: la línea de comparación queda
+  clavada en la pantalla y las coordenadas se traducen deshaciendo el encuadre.
+  De paso se corrigió un desfase viejo de 1 px —se medía contra el rectángulo
+  externo del visor, que incluye el borde, y no contra la caja de contenido—,
+  que sin zoom pasaba inadvertido pero se multiplicaba por el aumento.
+
+- **No cambia ningún resultado.** Es una herramienta de observación: no toca el
+  procesamiento ni lo que se exporta. Las imágenes procesadas con v3.5.0 son las
+  mismas con o sin esta función.
+
+### Pruebas
+
+- La batería pasa de 42 a 53 pruebas. Nuevas: que una roca marrón no salga
+  violácea, que las vallas de Tukey no se muevan con un 1% de píxeles extremos,
+  que la tarjeta de color en el encuadre no aplaste el contraste de la roca, seis
+  del gotero —incluida la de que la luminancia no cambia— y cinco de la cadena de
+  ajustes acumulados, entre ellas la de que quitar un ajuste del medio equivale a
+  no haberlo aplicado nunca.
+- El checksum que fijaba la salida por defecto de LDS se refijó en el valor de
+  v3.5.0.
+
+---
+
 ## v3.4.0 (2026)
 
 ### La intensidad de LDS pasa a ser el exponente de blanqueo

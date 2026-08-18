@@ -143,6 +143,57 @@ en el propio archivo.
 
 ---
 
+## Gotero cromático
+
+**Tolerancia: 5 a 60, por defecto 20. Suavizado: 0 a 150%, por defecto 50.
+Ganancia: −100 a +100, por defecto +60.** Solo disponible con un filtro ya
+aplicado.
+
+Se toca un color del resultado y se lo realza o se lo atenúa sin tocar el resto
+de la escena. La pertenencia a la familia de color se mide en el plano de
+crominancia Cb-Cr; la luminancia no se toca nunca.
+
+| Control | Qué hace |
+|---|---|
+| **Ganancia** | Positiva realza, negativa atenúa. −100 deja el color exactamente en gris; +100 llega a triplicarlo, con tope en el límite del gamut |
+| **Tolerancia** | Radio en el plano Cb-Cr dentro del cual el efecto es pleno. 20 toma una familia de color; 40 o más empieza a arrastrar colores vecinos |
+| **Suavizado** | Franja adicional, en porcentaje de la tolerancia, donde el efecto decae hasta cero. Con 0 el borde es duro y se nota como recorte; 50% es un buen punto de partida |
+
+**Rangos útiles en la práctica.**
+
+- *Bajar un color que tapa la escena* (el verde o el violeta que ocupan medio
+  panel): ganancia −60 a −100, tolerancia 20 – 30, suavizado 50 – 100%.
+- *Subir el color en el que se lee el motivo*: ganancia +40 a +80, tolerancia
+  12 – 20 —más ajustada, para no arrastrar el soporte—, suavizado 50%.
+- *Aislar visualmente una familia*: atenuar todo lo demás no se puede en un solo
+  paso; conviene atenuar de a un color por vez, con el modo Acumular apagado.
+
+**Ajustes acumulados.** Con **Fijar ajuste** el ajuste en curso pasa a la lista y
+el gotero queda libre para el color siguiente, que se muestrea ya sobre el
+resultado acumulado. Cada ajuste de la lista se puede quitar por separado con la
+✕: como se guardan como reglas y la imagen se recalcula entera desde el resultado
+del filtro, quitar uno del medio revierte solo ese y deja los demás intactos.
+
+El orden importa cuando dos ajustes se superponen —el primero cambia el color que
+el segundo encuentra—, y por eso la lista va numerada. Si dos ajustes se pisan y
+el resultado no es el esperado, conviene quitarlos y rehacerlos en el otro orden.
+
+**Qué informa el panel.** El porcentaje de la imagen que alcanza el ajuste en
+curso. Si está por encima del 40 o 50%, la tolerancia es demasiado ancha y el
+"realce selectivo" está actuando sobre casi toda la escena.
+
+**Reproducibilidad.** El nombre del archivo exportado registra la cadena completa
+de ganancias y tolerancias (`_gotero_g-80t25_g+60t15`). Los colores muestreados,
+en cambio, **no quedan registrados en el nombre**: hay que anotarlos aparte si el
+procedimiento se va a publicar. El gotero se aplica también en el lote, con la
+misma cadena para todas las fotos.
+
+**Advertencia.** La selección se hace sobre una imagen ya transformada: describe
+el color que produjo el filtro, no la composición del pigmento. Ver
+[LIMITACIONES.md §11](LIMITACIONES.md#11-el-gotero-selecciona-color-no-pigmento).
+
+---
+
 ## Resolución de trabajo
 
 **2000 px por defecto; resolución completa hasta 8192 px.**

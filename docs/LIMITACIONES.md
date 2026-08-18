@@ -14,6 +14,7 @@ todavía no se corrigieron.
 **Metodológicas**
 1. [El realce no descubre: redistribuye](#1-el-realce-no-descubre-redistribuye)
 2. [El mapa de pigmentos no identifica pigmentos](#2-el-mapa-de-pigmentos-no-identifica-pigmentos)
+11. [El gotero selecciona color, no pigmento](#11-el-gotero-selecciona-color-no-pigmento)
 
 **Técnicas**
 3. [El rango de intensidad de LDS no llega a la foto original](#3-el-rango-de-intensidad-de-lds-no-llega-a-la-foto-original)
@@ -98,9 +99,9 @@ forma de la transformación y por lo tanto no puede cancelarse. Quedan tres
 salvedades.
 
 **El extremo bajo no es la foto original.** Con γ → 0 la transformación tiende a
-la identidad, pero después se sigue aplicando la normalización por mínimo y
-máximo de cada canal. El piso del control es entonces "la original con
-auto-niveles", no la original. Para comparar contra la fotografía sin procesar
+la identidad, pero después se sigue aplicando la normalización —desde v3.5.0, un
+recorte por vallas de Tukey con ganancia y desplazamiento comunes—. El piso del
+control es entonces "la original con auto-niveles", no la original. Para comparar contra la fotografía sin procesar
 hay que usar el deslizador comparativo, no bajar la intensidad a 0.2.
 
 **El exponente topea en γ = 2.** Se alcanza en intensidad 3.0: de ahí en adelante
@@ -253,6 +254,38 @@ resultados. Conviene revisarlo antes de actualizar en medio de un trabajo en
 curso. Si un proyecto está avanzado, es preferible terminarlo con la versión con
 la que se empezó —el repositorio conserva todas las versiones— y reprocesar
 después, entero, con la nueva.
+
+---
+
+## 11. El gotero selecciona color, no pigmento
+
+El gotero cromático toma un color del resultado y realza o atenúa esa familia de
+color. Es una herramienta de **presentación y de lectura**, y conviene tener
+presente qué no es.
+
+**La selección se hace sobre una imagen ya transformada.** El color que se
+muestrea no es el color del pigmento: es el color que produjo el filtro después
+de rotar, escalar y reproyectar los datos. Dos pigmentos químicamente distintos
+pueden terminar en la misma familia de color tras una decorrelación, y un mismo
+pigmento bajo dos iluminaciones distintas puede terminar en familias separadas.
+**Que dos zonas queden dentro de la misma selección del gotero no es evidencia
+de que compartan composición.**
+
+**Realzar un color aumenta su presencia visual, no su evidencia.** Subir la
+crominancia de la familia en la que se lee un motivo lo hace más legible, y
+también más convincente de lo que los datos justifican. La verificación sigue
+siendo la misma que para cualquier realce (§1): el motivo tiene que seguir
+estando con menos procesamiento, no solo con más.
+
+**Lo que sí se puede afirmar.** Que, en el resultado del filtro X con
+intensidad Y, existe una región cuya crominancia está a menos de Z unidades de
+la de un punto dado. Es una afirmación sobre la imagen procesada, y como tal
+debe reportarse.
+
+**Registrar el color muestreado.** El nombre del archivo guarda la ganancia y la
+tolerancia, pero no el color: si el procedimiento se va a publicar, hay que
+anotar los valores RGB de la muestra junto con los demás parámetros. Es un caso
+particular de §9.
 
 ---
 

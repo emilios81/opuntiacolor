@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.4.0
+# OPC – OpuntiaColor v3.5.0
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -54,7 +54,10 @@ ocurre en la computadora de quien la usa.
   pigmento. El más útil con pigmentos degradados.
 - **LDS** — Decorrelación con reproyección al espacio original: colores más
   naturales. La intensidad regula cuánta decorrelación se aplica, de parcial a
-  completa, lo que permite verificar un motivo con menos realce.
+  completa, lo que permite verificar un motivo con menos realce. Desde v3.5.0 la
+  normalización usa vallas de Tukey y una ganancia común a los tres canales, de
+  modo que el tono de la roca se conserva aunque haya una tarjeta de color o un
+  brillo en el encuadre.
 - **YBK** — Amplificación de crominancia YCbCr con ecualización estadística.
 
 **Pigmentos** — Rojo, Blanco, Negro y Bicromo: realce selectivo en CIE-LAB. El
@@ -73,8 +76,17 @@ falso color; ver las limitaciones antes de usarlo).
 - **Selección de zona** — rectángulo, círculo o mano alzada. Las estadísticas del
   filtro se calculan solo con los píxeles seleccionados y se aplican a toda la
   imagen, como en DStretch.
+- **Gotero cromático** — tocar un color del resultado y realzarlo o atenuarlo sin
+  tocar el resto de la escena. Actúa solo sobre la crominancia: el relieve y la
+  textura quedan intactos. Sirve para bajar el color que tapa el panel y para
+  subir aquel en el que se lee el motivo.
 - **Modo Acumular** — encadenar filtros sobre el resultado anterior.
 - **Slider comparativo** — original / procesada.
+- **Zoom y encuadre** — rueda del mouse para ampliar sobre el cursor, botones
+  `−` / `+`, lupa para volver a ajustar a la ventana y mano para correr el
+  encuadre. Llega a 1600 %; pasado 300 % se muestran los píxeles reales, sin
+  interpolar. El deslizador de comparación, el gotero y la selección siguen
+  cayendo donde uno los pone, con la imagen ampliada o corrida.
 - **Modo Solar** — interfaz de alto contraste para trabajo de campo bajo luz directa.
 - **Resolución completa** — hasta 8192 px para publicación y archivo (2000 px por
   defecto, más rápido).
@@ -101,7 +113,8 @@ originales y reconstruir la textura con las realzadas.
 | **Salida** | PNG, JPG (conserva EXIF/GPS), TIFF sin comprimir (spec 6.0) |
 
 El nombre del archivo exportado registra el filtro, la intensidad y los ajustes
-aplicados (`IMG_0421_OPC_crgb_i1.8_c10.png`).
+aplicados (`IMG_0421_OPC_crgb_i1.8_c10.png`); si se usó el gotero, también su
+ganancia y su tolerancia (`_gotero+60t20`).
 
 ---
 
@@ -188,14 +201,15 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.4.0)
+para el realce digital de pigmentos y grabados en arte rupestre* (v3.5.0)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://doi.org/10.5281/zenodo.21796290
 
 Cada versión queda archivada en Zenodo con su propio DOI. El de arriba es el
 **DOI concepto**: siempre resuelve a la última versión, y es el que conviene
 citar salvo que se quiera referir a una versión concreta. El de v3.4.0 en
-particular es [10.5281/zenodo.21796291](https://doi.org/10.5281/zenodo.21796291).
+particular es [10.5281/zenodo.21796291](https://doi.org/10.5281/zenodo.21796291);
+el de v3.5.0 lo asigna Zenodo al publicar la versión.
 
 El archivo [CITATION.cff](CITATION.cff) permite que GitHub genere la cita en
 distintos formatos desde el botón *Cite this repository*.

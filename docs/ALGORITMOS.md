@@ -19,7 +19,7 @@ Los nombres de archivo y de función remiten a `src/app.jsx`.
 - [Pigmentos](#pigmentos) — Rojo, Blanco, Negro, Bicromo
 - [Grabados](#grabados) — Micro-relieve, Relieve
 - [Técnico](#técnico) — CLAHE, Mapa de pigmentos
-- [Ajustes posteriores](#ajustes-posteriores)
+- [Ajustes posteriores](#ajustes-posteriores) — contraste, saturación, gotero cromático
 - [Procesado por lote](#procesado-por-lote-estadísticas-congeladas)
 
 ---
@@ -172,7 +172,7 @@ en LAB**, y sus colores tampoco son colores reales.
    varianzas, γ > 1 sobre-blanquea. Topeado en γ = 2.
 5. **Reproyectar al espacio RGB original** con la traspuesta de la matriz de
    eigenvectores, y volver a sumar la media.
-6. Normalizar cada canal por su mínimo y máximo.
+6. Normalizar con **vallas de Tukey y ganancia común** (ver abajo).
 
 El resultado conserva la relación aproximada con los colores originales: la roca
 sigue pareciendo roca. Es el más apropiado cuando la imagen va a ilustrar una
@@ -182,6 +182,54 @@ Los pasos 4 y 5 juntos son exactamente un **blanqueo ZCA parcial**: como
 `Σ = V diag(σ²) Vᵀ`, la transformación completa equivale a aplicar `Σ^(−γ/2)` a
 los datos centrados. Por eso γ = 0 devuelve la identidad y γ = 1 el blanqueo
 completo, con todo el rango intermedio bien definido.
+
+#### La normalización del paso 6
+
+Hasta v3.4.0 el paso 6 era, literalmente, estirar cada canal entre su mínimo y su
+máximo absolutos. Desde v3.5.0:
+
+1. Para cada canal se calculan las **vallas de Tukey** sobre los valores
+   reproyectados:
+
+   ```
+   valla_baja = Q1 − 3·IQR        valla_alta = Q3 + 3·IQR
+   ```
+
+   Los cuartiles salen de un histograma de 4096 bins, en una sola pasada. A
+   diferencia del mínimo y el máximo, **no se mueven** aunque una parte del
+   encuadre sea un valor extremo: una tarjeta de color, una mano, un brillo
+   especular.
+
+2. La salida se arma con una ganancia `s` y un desplazamiento `o` **comunes a los
+   tres canales**:
+
+   ```
+   salida_c  =  (componente_c − media_c) · s  +  media_c + o
+   ```
+
+   `s` es la mayor ganancia para la que existe un `o` que meta las vallas de los
+   tres canales dentro de 0–255 —se resuelve por bisección, 60 iteraciones—, y
+   `o` reparte el margen sobrante entre las dos puntas. Lo que queda fuera de las
+   vallas se recorta.
+
+Que la ganancia y el desplazamiento sean **comunes** es lo que conserva el tono:
+las diferencias entre canales se escalan por igual, así que el orden de los
+canales no puede invertirse. Con normalización por canal, una roca marrón
+(R > G > B) podía salir azul violácea (B > G > R), que es exactamente lo que
+pasaba en fotos de campo con la tarjeta de color en el cuadro.
+
+Lo que esta corrección **no** arregla: la media, la covarianza y los
+eigenvectores se siguen calculando sobre toda la imagen (o sobre la zona
+seleccionada, si la hay). Un objeto saturado grande dentro del cuadro inclina la
+decorrelación misma, no solo la normalización. La respuesta a eso es la selección
+de zona, no la normalización.
+
+> **Cambiado en v3.5.0.** El paso 6 pasó de mínimo/máximo por canal a vallas de
+> Tukey con ganancia y desplazamiento comunes. **Los resultados de LDS cambian**
+> respecto de v3.4.0 y anteriores: para comparar con material ya procesado hay
+> que reprocesarlo. En imágenes sin valores extremos el resultado puede verse
+> algo menos contrastado que antes —la ganancia común está limitada por el canal
+> más exigente—, que es el precio de conservar el tono.
 
 > **Cambiado en v3.4.0.** Hasta v3.3.0 el paso 4 multiplicaba las tres
 > componentes por `2 × intensidad`, un factor **común** a las tres. Ese factor se
@@ -352,6 +400,73 @@ s  = 1 + saturación/100         salida = luma·(1−s) + s · canal'
 En el lote **no** se usa `ctx.filter` para esto. Con fotos grandes el navegador
 cae al render por software: minutos por foto —parece un cuelgue— y el pico de
 memoria se duplica. Fue el motivo del arreglo de v3.2.1.
+
+### Gotero cromático — `chromaTarget`
+
+`chromaTarget(imageData, muestra, tolerancia, suavizado, ganancia)`. Realza o
+atenúa una familia de color del resultado, sin tocar el resto de la escena. Se
+aplica **después del filtro y antes** del contraste y la saturación.
+
+1. La muestra se toma promediando un entorno de 5×5 sobre el resultado del
+   filtro, para que el grano de la roca no defina la familia de color.
+2. Cada píxel se pasa a YCbCr y se mide su distancia euclídea a la crominancia
+   muestreada:
+
+   ```
+   d = √((Cb − Cb₀)² + (Cr − Cr₀)²)
+
+   peso = 1                        si  d ≤ tolerancia
+        = 1 − u²(3 − 2u)           si  tolerancia < d < tolerancia·(1+suavizado)
+        = 0                        si  d ≥ tolerancia·(1+suavizado)
+
+   con u = (d − tolerancia) / (tolerancia·suavizado)
+   ```
+
+3. La crominancia se multiplica por `f = 1 + (ganancia/100)·peso`, con la
+   ganancia positiva escalada ×2: +100 llega a triplicar el color, −100 lo deja
+   exactamente en gris.
+4. **Tope de gamut.** Si `f > 1`, se recorta al mayor valor que mantiene los tres
+   canales dentro de 0–255. Como el color original ya está en gamut, el tope
+   nunca baja de 1 y la atenuación no se ve afectada.
+5. Se vuelve a RGB con la luminancia original.
+
+La luminancia queda intacta por construcción, y el tope de gamut evita que el
+recorte a 0–255 la mueva por la puerta de atrás. El relieve y la textura de la
+roca no se alteran: solo cambia cuánto color tiene cada píxel.
+
+Se eligió el plano Cb-Cr y no CIE-LAB por velocidad: la conversión es lineal y
+corre en unos 30 ms sobre 3 Mpx, contra unos 2800 ms del ida y vuelta a LAB, que
+volvería inusables los deslizadores. Sobre una imagen ya decorrelacionada —falso
+color por definición— la uniformidad perceptual de LAB no aporta nada.
+
+La función devuelve además la **cobertura**: la suma de los pesos dividida por la
+cantidad de píxeles, o sea qué porción de la imagen alcanza la selección. Se
+muestra en el panel para que quede registrada junto con los demás parámetros.
+
+#### Cadena de ajustes — `applyPickChain`
+
+`applyPickChain(imageData, fijados, enCurso)`. Los ajustes se acumulan: se fija
+uno, se muestrea el color siguiente sobre el resultado acumulado, y así.
+
+Cada ajuste fijado se guarda como una **regla** `{r, g, b, tolerancia,
+suavizado, ganancia}`, no como una imagen. La vista se recalcula siempre desde el
+resultado del filtro aplicando la cadena entera, en orden, con el ajuste en curso
+—el que se está regulando con los deslizadores— al final.
+
+De ahí salen dos propiedades:
+
+- **Quitar un ajuste del medio revierte exactamente su efecto.** No hay copias
+  intermedias que deshacer ni pérdida acumulada por redondeo: la cadena sin ese
+  ajuste da byte a byte lo mismo que si nunca se hubiera aplicado.
+- **El orden importa cuando dos ajustes se superponen**, porque el primero cambia
+  el color que el segundo encuentra. Por eso la lista del panel va numerada.
+
+El muestreo del color siguiente se hace sobre la imagen con los ajustes fijados
+ya aplicados —lo que el usuario está viendo—, no sobre el resultado crudo del
+filtro.
+
+Salvedad metodológica en
+[LIMITACIONES.md §11](LIMITACIONES.md#11-el-gotero-selecciona-color-no-pigmento).
 
 ---
 

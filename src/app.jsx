@@ -24,7 +24,7 @@ const { useState, useRef, useCallback, useEffect } = React;
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.4.0
+// OPC – OpuntiaColor v3.5.0
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -105,6 +105,31 @@ function meanStd1(arr, n, mask) {
 // eigenvalor descendente: PC1 es siempre la componente de mayor varianza.
 // Sin esto, la asignación PC→canal era aleatoria y los resultados no
 // eran comparables entre fotos.
+// Vallas robustas de Tukey (Q1 - k·IQR, Q3 + k·IQR) de un canal, calculadas
+// con un histograma de 4096 bins: es O(n) y evita ordenar varios millones de
+// valores. A diferencia del mínimo y el máximo, los cuartiles no se mueven
+// aunque una parte de la imagen sea un valor extremo —la tarjeta de color, la
+// mano, un brillo especular—, así que el rango de salida lo fija la escena y
+// no el objeto más saturado del encuadre.
+function tukeyFences(arr, n, mask, k) {
+  let mn = Infinity, mx = -Infinity, cnt = 0;
+  for (let i = 0; i < n; i++) { if (mask && !mask[i]) continue; const v = arr[i]; if (v < mn) mn = v; if (v > mx) mx = v; cnt++; }
+  if (cnt === 0) { mask = null; cnt = n; for (let i = 0; i < n; i++) { const v = arr[i]; if (v < mn) mn = v; if (v > mx) mx = v; } }
+  const rng = mx - mn;
+  if (!(rng > 0)) return { lo: mn, hi: mx };
+  const B = 4096, hist = new Int32Array(B), sc = (B - 1) / rng;
+  for (let i = 0; i < n; i++) { if (mask && !mask[i]) continue; hist[((arr[i] - mn) * sc) | 0]++; }
+  const oq1 = 0.25 * cnt, oq3 = 0.75 * cnt;
+  let acc = 0, q1 = mn, q3 = mx, got1 = false;
+  for (let b = 0; b < B; b++) {
+    acc += hist[b];
+    if (!got1 && acc >= oq1) { q1 = mn + b / sc; got1 = true; }
+    if (acc >= oq3) { q3 = mn + (b + 1) / sc; break; }
+  }
+  const iqr = q3 - q1;
+  return { lo: q1 - k * iqr, hi: q3 + k * iqr };
+}
+
 function jacobiEigen3(cov) {
   let a=cov.map(r=>[...r]);const ev=[[1,0,0],[0,1,0],[0,0,1]];
   for(let it=0;it<100;it++){
@@ -361,6 +386,11 @@ function ybkEnhance(imageData, intensity = 1.5, mask = null, store = null) {
 
 // LDS — Decorrelation Stretch en RGB con reproyección ecualizada
 // Amplifica componentes menores manteniendo aspecto más natural que CRGB
+// Factor de las vallas de Tukey en la normalización de LDS. k = 3 es la valla
+// "far out" clásica: sobre datos normales recorta menos del 1% de los píxeles,
+// y sobre una foto con tarjeta de color recorta la tarjeta sin tocar la roca.
+const LDS_TUKEY_K = 3;
+
 function ldsEnhance(imageData, intensity = 1.5, mask = null, store = null) {
   const data = imageData.data, w = imageData.width, h = imageData.height, n = w * h;
   const CH = [new Float64Array(n), new Float64Array(n), new Float64Array(n)];
@@ -399,23 +429,55 @@ function ldsEnhance(imageData, intensity = 1.5, mask = null, store = null) {
     out[1][i]=mean[1]+ev[1][0]*pc0+ev[1][1]*pc1+ev[1][2]*pc2;
     out[2][i]=mean[2]+ev[2][0]*pc0+ev[2][1]*pc1+ev[2][2]*pc2;
   }
-  // Normalización con rango tomado de la zona seleccionada (o toda la
-  // imagen); en modo lote los rangos van congelados de la referencia
-  const ranges = frozen ? frozen.ranges : [];
-  for(let ch=0;ch<3;ch++){
-    let mn,mx;
-    if (frozen) {
-      ({ mn, mx } = ranges[ch]);
-    } else {
-      mn=Infinity;mx=-Infinity;
-      for(let i=0;i<n;i++){if(mask&&!mask[i])continue;if(out[ch][i]<mn)mn=out[ch][i];if(out[ch][i]>mx)mx=out[ch][i];}
-      if(mn===Infinity){for(let i=0;i<n;i++){if(out[ch][i]<mn)mn=out[ch][i];if(out[ch][i]>mx)mx=out[ch][i];}}
-      ranges.push({ mn, mx });
+  // Normalización robusta con ganancia y desplazamiento COMUNES (v3.5.0)
+  //
+  // Hasta v3.4.0 cada canal se estiraba entre su mínimo y su máximo absolutos.
+  // Eso arrastraba dos problemas encadenados:
+  //
+  //  1. El blanqueo amplifica la componente principal más chica —la cromática,
+  //     con σ típico de 1 a 6 frente a 40 o 60 de la primera—, así que cualquier
+  //     píxel extremo queda disparado. En una foto de campo con tarjeta de color,
+  //     mano o brillo especular en el encuadre, ese píxel fijaba el mínimo y el
+  //     máximo y toda la superficie rupestre quedaba comprimida en un quinto de
+  //     la escala: la imagen salía plana y solo la tarjeta conservaba color.
+  //
+  //  2. Estirar cada canal por separado corre la media de cada uno a un lugar
+  //     distinto y rompe la relación de tonos. La roca marrón viraba a violeta,
+  //     justo lo contrario de lo que LDS promete —reproyectar al espacio original
+  //     para conservar un aspecto natural—.
+  //
+  // Ahora el rango se toma de las vallas de Tukey (Q1 - 3·IQR, Q3 + 3·IQR), que
+  // no se mueven por más extremo que sea un objeto del encuadre, y la salida se
+  // arma con una ganancia s y un desplazamiento o COMUNES a los tres canales:
+  //
+  //     salida_c  =  (componente_c − media_c) · s  +  media_c + o
+  //
+  // Al ser comunes, las diferencias entre canales se escalan por igual y el tono
+  // se conserva. s es la mayor ganancia para la que existe un desplazamiento que
+  // meta las vallas dentro de 0–255, y o reparte el margen sobrante entre las dos
+  // puntas. Lo que queda fuera de las vallas se recorta: son los extremos, no la
+  // escena. En modo lote van congelados de la referencia, igual que la matriz.
+  let gain, offset;
+  if (frozen && frozen.gain !== undefined) {
+    gain = frozen.gain; offset = frozen.offset;
+  } else {
+    const hi = [0,0,0], lo = [0,0,0];
+    for (let ch = 0; ch < 3; ch++) {
+      const f = tukeyFences(out[ch], n, mask, LDS_TUKEY_K);
+      hi[ch] = f.hi - mean[ch]; lo[ch] = f.lo - mean[ch];
     }
-    const rng=mx-mn||1;
-    for(let i=0;i<n;i++)output[i*4+ch]=Math.max(0,Math.min(255,Math.round(((out[ch][i]-mn)/rng)*255)));
+    const alto = (s) => Math.max(mean[0]+s*hi[0], mean[1]+s*hi[1], mean[2]+s*hi[2]);
+    const bajo = (s) => Math.min(mean[0]+s*lo[0], mean[1]+s*lo[1], mean[2]+s*lo[2]);
+    // s = 0 siempre es factible (el ancho es la dispersión de las medias, < 255)
+    let a = 0, b = 1000;
+    for (let it = 0; it < 60; it++) { const m = (a+b)/2; if (alto(m)-bajo(m) <= 255) a = m; else b = m; }
+    gain = a; offset = ((255 - alto(gain)) + (0 - bajo(gain))) / 2;
   }
-  if (store && !store.frozen) store.frozen = { mean, ev, stds, ranges };
+  for(let ch=0;ch<3;ch++){
+    const base = mean[ch] + offset;
+    for(let i=0;i<n;i++)output[i*4+ch]=Math.max(0,Math.min(255,Math.round((out[ch][i]-mean[ch])*gain+base)));
+  }
+  if (store && !store.frozen) store.frozen = { mean, ev, stds, gain, offset };
   for(let i=0;i<n;i++)output[i*4+3]=255;
   return new ImageData(output, w, h);
 }
@@ -538,6 +600,92 @@ function applyPostAdjust(imageData, contrast, saturation) {
   return imageData;
 }
 
+// Gotero cromático — realce o atenuación selectiva de una familia de color
+//
+// Trabaja sobre el plano de crominancia Cb-Cr de YCbCr: la luminancia queda
+// intacta, así que el relieve y la textura de la roca no se tocan; solo cambia
+// cuánto color tiene cada píxel. La familia de color se define por la distancia
+// euclídea a la crominancia muestreada:
+//
+//   peso = 1                      si  d ≤ tolerancia
+//        = smoothstep decreciente si  tolerancia < d < tolerancia·(1+suavizado)
+//        = 0                      si  d ≥ tolerancia·(1+suavizado)
+//
+// y la crominancia se multiplica por 1 + (ganancia/100)·peso, con la ganancia
+// positiva escalada ×2 para que +100 llegue a triplicar el color y −100 lo deje
+// exactamente en gris. El realce se frena en el límite del gamut, así que la
+// luminancia se conserva exactamente: no hay zonas quemadas y la textura de la
+// roca no se altera. El suavizado evita el borde duro que delataría la
+// selección como un recorte artificial.
+//
+// Se eligió Cb-Cr y no CIE-LAB por velocidad: la conversión es lineal y corre
+// en ~30 ms sobre 3 Mpx, contra ~2800 ms del ida y vuelta a LAB, que haría
+// inusables los deslizadores. Sobre una imagen ya decorrelacionada —falso color
+// por definición— la uniformidad perceptual de LAB no aporta nada.
+//
+// ADVERTENCIA METODOLÓGICA: la selección se hace sobre una imagen YA
+// transformada. La máscara describe el color que produjo el filtro, no la
+// composición del pigmento. Ver docs/LIMITACIONES.md.
+function chromaTarget(imageData, pick, tol, feather, gain) {
+  if (!pick || !gain) return { data: imageData, coverage: 0 };
+  const d = imageData.data, n = d.length;
+  const cb0 = -0.168736*pick.r - 0.331264*pick.g + 0.5*pick.b;
+  const cr0 = 0.5*pick.r - 0.418688*pick.g - 0.081312*pick.b;
+  const tolOut = tol * (1 + feather/100);
+  const amp = gain > 0 ? gain/50 : gain/100;   // +100 → ×3 ; −100 → gris
+  let alcanzados = 0;
+  for (let i = 0; i < n; i += 4) {
+    const r = d[i], g = d[i+1], b = d[i+2];
+    const y  = 0.299*r + 0.587*g + 0.114*b;
+    const cb = -0.168736*r - 0.331264*g + 0.5*b;
+    const cr = 0.5*r - 0.418688*g - 0.081312*b;
+    const dx = cb - cb0, dy = cr - cr0;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist >= tolOut) continue;
+    let peso = 1;
+    if (dist > tol) { const u = (dist - tol) / (tolOut - tol); peso = 1 - u*u*(3 - 2*u); }
+    alcanzados += peso;
+    let f = 1 + amp * peso;
+    // Tope de gamut: el realce se frena justo antes de que algún canal se salga
+    // de 0-255. Sin este tope, el recorte de Uint8ClampedArray movería la
+    // luminancia —el color se "quemaría" y con él el relieve de la roca—. Como
+    // el color original ya está dentro del gamut, el tope nunca baja de 1 y la
+    // atenuación (f < 1) no se ve afectada.
+    if (f > 1) {
+      const kr = 1.402*cr, kg = -0.344136*cb - 0.714136*cr, kb = 1.772*cb;
+      let fMax = f;
+      for (const k of [kr, kg, kb]) {
+        if (k > 1e-9) fMax = Math.min(fMax, (255 - y) / k);
+        else if (k < -1e-9) fMax = Math.min(fMax, -y / k);
+      }
+      f = Math.max(1, fMax);
+    }
+    const ncb = cb * f, ncr = cr * f;
+    // Uint8ClampedArray recorta y redondea solo
+    d[i]   = y + 1.402*ncr;
+    d[i+1] = y - 0.344136*ncb - 0.714136*ncr;
+    d[i+2] = y + 1.772*ncb;
+  }
+  return { data: imageData, coverage: alcanzados / (n/4) };
+}
+
+// Cadena de ajustes del gotero: se aplican en orden sobre el resultado del
+// filtro. Cada ajuste fijado es una regla —color, tolerancia, suavizado,
+// ganancia—, no una imagen: la vista se recalcula siempre desde el resultado
+// original del filtro, así que quitar un ajuste del medio revierte exactamente
+// su efecto y deja intactos los demás. Es lo que hace que el gotero sea
+// reversible sin guardar copias intermedias.
+//
+// `enCurso` es el ajuste que se está regulando con los deslizadores y todavía
+// no se fijó; va último, sobre todos los ya fijados.
+function applyPickChain(imageData, fijados, enCurso) {
+  if (fijados) for (const a of fijados) chromaTarget(imageData, a, a.tol, a.feather, a.gain);
+  const cob = (enCurso && enCurso.gain)
+    ? chromaTarget(imageData, enCurso, enCurso.tol, enCurso.feather, enCurso.gain).coverage
+    : 0;
+  return { data: imageData, coverage: cob };
+}
+
 // ============================================================
 // EXIF / GPS PARSER
 // ============================================================
@@ -620,6 +768,18 @@ const TD = { bg:"#1a1714",text:"#e8e0d4",tm:"#8a7e6e",td:"#6a5e4e",ac:"#c0392b",
 const TS = { bg:"#FFFFFF",text:"#000000",tm:"#333333",td:"#555555",ac:"#B71C1C",acBg:"rgba(183,28,28,0.1)",acBd:"rgba(183,28,28,0.4)",cBg:"#F5F5F5",cBd:"#CCCCCC",hBd:"#BBBBBB",ov:"rgba(255,255,255,0.8)",gn:"#2E7D32",gnBg:"rgba(46,125,50,0.1)",gnBd:"rgba(46,125,50,0.3)",iBg:"#EEEEEE",fTx:"#555555",fBd:"#CCCCCC",bBg:"#EEEEEE",sT:"#BBBBBB",tB:"#FFFFFF" };
 
 // ============================================================
+// VISOR: ENCUADRE (zoom + desplazamiento)
+// ============================================================
+// tx/ty van en fracciones del ancho y alto del visor, no en pixeles: asi el
+// encuadre sobrevive a que la ventana cambie de tamano sin recalcular nada.
+// El recorte impide que la imagen se despegue de los bordes del visor.
+const ZOOM_MAX = 16;
+function clampView(v) {
+  const z = Math.max(1, Math.min(ZOOM_MAX, v.z));
+  return { z, tx: Math.max(1 - z, Math.min(0, v.tx)), ty: Math.max(1 - z, Math.min(0, v.ty)) };
+}
+
+// ============================================================
 // PRESETS (con categorías)
 // ============================================================
 
@@ -660,6 +820,10 @@ function RockArtEnhancer() {
   const [processing, setProcessing] = useState(false);
   const [sliderPos, setSliderPos] = useState(50);
   const [dragging, setDragging] = useState(false);
+  const [view, setView] = useState({ z: 1, tx: 0, ty: 0 });
+  const [panTool, setPanTool] = useState(false);
+  const [panning, setPanning] = useState(false);
+  const panRef = useRef({ active:false, id:null, sx:0, sy:0, tx:0, ty:0 });
   const [showInfo, setShowInfo] = useState(false);
   const [fileName, setFileName] = useState("");
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 });
@@ -677,6 +841,18 @@ function RockArtEnhancer() {
   // NUEVO: formato de exportación
   const [exportFmt, setExportFmt] = useState("png"); // png|jpg|tiff
   // NUEVO: herramientas de selección — solo 2 estados React
+  // Gotero cromático: color muestreado sobre el resultado + parámetros
+  const [picking, setPicking] = useState(false);
+  const [pickColor, setPickColor] = useState(null);   // {r,g,b}
+  const [pickTol, setPickTol] = useState(20);         // radio en el plano Cb-Cr
+  const [pickFeather, setPickFeather] = useState(50); // % de transición
+  const [pickGain, setPickGain] = useState(60);       // −100 atenuar … +100 realzar
+  const [pickSteps, setPickSteps] = useState([]);     // ajustes ya fijados, en orden
+  const [pickSrc, setPickSrc] = useState(null);       // vista previa con el gotero
+  const [pickCoverage, setPickCoverage] = useState(0);
+  const processedDataRef = useRef(null);              // resultado del filtro, sin gotero
+  const pickBaseRef = useRef(null);                   // + ajustes fijados: de acá se muestrea
+
   const [selTool, setSelTool] = useState("none"); // none|rect|circle|free
   const [selData, setSelData] = useState(null); // {type,x1,y1,x2,y2} or {type,points:[]}
   const drawRef = useRef({ active: false, tool: "", start: null, pts: [] });
@@ -701,8 +877,14 @@ function RockArtEnhancer() {
   // Calcular el área real de la imagen dentro del contenedor (objectFit contain)
   const getImageBounds = useCallback(() => {
     if (!compareRef.current || !imageSize.w || !imageSize.h) return null;
-    const rect = compareRef.current.getBoundingClientRect();
-    const cw = rect.width, ch = rect.height;
+    const el = compareRef.current;
+    const rect = el.getBoundingClientRect();
+    // Caja de contenido, no el rectángulo externo: las capas absolutas de
+    // adentro se posicionan contra ella y el visor tiene un borde de 1 px.
+    // Sin descontarlo, el punto que se toca y el que se procesa se separan, y
+    // con el visor ampliado esa diferencia se multiplica por el aumento.
+    const cw = el.clientWidth, ch = el.clientHeight;
+    const ox = rect.left + (rect.width - cw) / 2, oy = rect.top + (rect.height - ch) / 2;
     const imgAspect = imageSize.w / imageSize.h;
     const cntAspect = cw / ch;
     let iw, ih, ix, iy;
@@ -715,18 +897,66 @@ function RockArtEnhancer() {
       ih = ch; iw = ch * imgAspect;
       ix = (cw - iw) / 2; iy = 0;
     }
-    return { ix, iy, iw, ih, rect };
+    return { ix, iy, iw, ih, cw, ch, ox, oy };
   }, [imageSize]);
 
   // Convertir coordenadas de pantalla a proporción de imagen (0-1)
   const clientToImageNorm = useCallback((clientX, clientY) => {
     const bounds = getImageBounds();
     if (!bounds) return null;
-    const { ix, iy, iw, ih, rect } = bounds;
-    const lx = clientX - rect.left - ix;
-    const ly = clientY - rect.top - iy;
+    const { ix, iy, iw, ih, cw, ch, ox, oy } = bounds;
+    // Deshacer el encuadre antes de mapear: el gotero y la selección trabajan
+    // sobre la imagen, no sobre lo que se ve en pantalla.
+    const lx = (clientX - ox - view.tx * cw) / view.z - ix;
+    const ly = (clientY - oy - view.ty * ch) / view.z - iy;
     return { x: Math.max(0, Math.min(1, lx / iw)), y: Math.max(0, Math.min(1, ly / ih)) };
-  }, [getImageBounds]);
+  }, [getImageBounds, view]);
+  // Amplia o reduce dejando fijo el punto (fx,fy) del visor, en fracciones de
+  // su ancho y alto: con la rueda ese punto es el cursor; con los botones, el centro.
+  const zoomAt = useCallback((factor, fx, fy) => {
+    setView(v => {
+      const z = Math.max(1, Math.min(ZOOM_MAX, v.z * factor));
+      const k = z / v.z;
+      return clampView({ z, tx: fx - k*(fx - v.tx), ty: fy - k*(fy - v.ty) });
+    });
+  }, []);
+  const resetView = useCallback(() => setView({ z:1, tx:0, ty:0 }), []);
+
+  // La rueda del mouse amplia sobre el cursor. El listener se registra a mano y
+  // con passive:false porque React declara "wheel" como pasivo y ahi
+  // preventDefault no llega a frenar el desplazamiento de la pagina.
+  useEffect(() => {
+    const el = compareRef.current;
+    if (!el) return;
+    const onWheel = (e) => {
+      e.preventDefault();
+      const b = getImageBounds(); if (!b) return;
+      zoomAt(e.deltaY < 0 ? 1.18 : 1/1.18, (e.clientX-b.ox)/b.cw, (e.clientY-b.oy)/b.ch);
+    };
+    el.addEventListener("wheel", onWheel, { passive:false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [imageSrc, zoomAt, getImageBounds]);
+
+  // Mano: arrastrar mueve el encuadre. Tambien responde al boton del medio,
+  // sin necesidad de activar la herramienta.
+  const startPan = (e) => {
+    const el = compareRef.current; if (!el) return;
+    e.preventDefault();
+    try { el.setPointerCapture(e.pointerId); } catch(ex){}
+    panRef.current = { active:true, id:e.pointerId, sx:e.clientX, sy:e.clientY, tx:view.tx, ty:view.ty };
+    setPanning(true);
+  };
+  const movePan = (e) => {
+    const p = panRef.current; if (!p.active) return;   // antes de medir: esto corre en cada movimiento del puntero
+    const b = getImageBounds(); if (!b) return;
+    setView(v => clampView({ z:v.z, tx: p.tx + (e.clientX-p.sx)/b.cw, ty: p.ty + (e.clientY-p.sy)/b.ch }));
+  };
+  const endPan = () => {
+    if (!panRef.current.active) return;
+    try { if(compareRef.current) compareRef.current.releasePointerCapture(panRef.current.id); } catch(ex){}
+    panRef.current.active = false; setPanning(false);
+  };
+
   const generateMask = useCallback((sel, w, h) => {
     if (!sel) return null;
     const mask = new Uint8Array(w * h);
@@ -759,6 +989,15 @@ function RockArtEnhancer() {
   const postFilter = (contrast === 0 && saturation === 0) ? "none"
     : `contrast(${1 + contrast/100}) saturate(${1 + saturation/100})`;
 
+  const viewTransform = `translate(${view.tx*100}%,${view.ty*100}%) scale(${view.z})`;
+  // El deslizador de comparacion vive en coordenadas de pantalla: la linea queda
+  // clavada en sliderPos% del visor aunque la imagen este ampliada o corrida, asi
+  // que el corte de la procesada se traduce al sistema de la capa ampliada.
+  const clipPct = Math.max(0, Math.min(100, (sliderPos - view.tx*100) / view.z));
+  // Pasado cierto aumento se muestran los pixeles reales: el suavizado del
+  // navegador inventa detalle y en un panel rupestre eso se confunde con textura.
+  const zoomPx = view.z >= 3 ? "pixelated" : "auto";
+
   // Tamaño de trabajo: 2000px por defecto (rápido), resolución completa opcional
   const computeSize = (img, full) => {
     const mx = full ? 8192 : 2000;
@@ -777,7 +1016,7 @@ function RockArtEnhancer() {
     dr.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        setImageSize(computeSize(img, fullRes)); setImage(img); setImageSrc(e.target.result); setProcessedSrc(null); setActivePreset(null); setStackMode(false); setSelData(null); setSelTool("none"); setContrast(0); setSaturation(0); drawRef.current={active:false,tool:"",start:null,pts:[]}; pipelineRef.current=[];
+        setImageSize(computeSize(img, fullRes)); setImage(img); setImageSrc(e.target.result); setProcessedSrc(null); setActivePreset(null); setStackMode(false); setSelData(null); setSelTool("none"); setContrast(0); setSaturation(0); setPickColor(null); setPickSteps([]); setPicking(false); setPickSrc(null); processedDataRef.current=null; pickBaseRef.current=null; drawRef.current={active:false,tool:"",start:null,pts:[]}; pipelineRef.current=[]; setView({z:1,tx:0,ty:0}); setPanTool(false);
       };
       img.src = e.target.result;
     };
@@ -831,6 +1070,7 @@ function RockArtEnhancer() {
               const store = {};
               const result = preset.fn(id, int, mask, store);
               const final = applyWithMask(sourceData, result, mask);
+              processedDataRef.current = final;   // fuente del gotero: el filtro sin ajustes post
               ctx.putImageData(final,0,0); setProcessedSrc(cv.toDataURL("image/png"));
               // Registrar el paso acumulado en el pipeline del lote
               pipelineRef.current.push({ presetId: preset.id, intensity: int, frozen: store.frozen || null });
@@ -850,7 +1090,8 @@ function RockArtEnhancer() {
         const store = {};
         const result = preset.fn(id, int, mask, store);
         const final = applyWithMask(sourceData, result, mask);
-        ctx.putImageData(final,0,0); setProcessedSrc(cv.toDataURL("image/png"));
+        processedDataRef.current = final;   // fuente del gotero: el filtro sin ajustes post
+              ctx.putImageData(final,0,0); setProcessedSrc(cv.toDataURL("image/png"));
         // Aplicación fresca → el pipeline arranca de cero con este paso
         pipelineRef.current = [{ presetId: preset.id, intensity: int, frozen: store.frozen || null }];
       } catch(e) { console.error(e); }
@@ -866,7 +1107,7 @@ function RockArtEnhancer() {
     if (activePreset && image) { const p = PRESETS.find(x=>x.id===activePreset); if(p){ const t=setTimeout(()=>processImage(p,intensity),250); return ()=>clearTimeout(t); }}
   }, [intensity]);
 
-  const handleSliderMove = useCallback((cx) => { if(!compareRef.current) return; const r=compareRef.current.getBoundingClientRect(); setSliderPos(Math.max(0,Math.min(100,((cx-r.left)/r.width)*100))); }, []);
+  const handleSliderMove = useCallback((cx) => { const b=getImageBounds(); if(!b) return; setSliderPos(Math.max(0,Math.min(100,((cx-b.ox)/b.cw)*100))); }, [getImageBounds]);
   const handlePointerDown = (e) => { setDragging(true); handleSliderMove(e.clientX); };
   useEffect(() => { if(!dragging) return; const m=(e)=>handleSliderMove(e.clientX), u=()=>setDragging(false); window.addEventListener("pointermove",m); window.addEventListener("pointerup",u); return ()=>{window.removeEventListener("pointermove",m);window.removeEventListener("pointerup",u);}; }, [dragging,handleSliderMove]);
 
@@ -943,7 +1184,9 @@ function RockArtEnhancer() {
         }
         ctx.drawImage(tmpImg, 0, 0);
         // Nombre reproducible: filtro + intensidad + ajustes post aplicados
-        const params = `_i${intensity.toFixed(1)}${contrast!==0?`_c${contrast}`:""}${saturation!==0?`_s${saturation}`:""}`;
+        const gPasos = [...pickSteps, ...((pickColor && pickGain) ? [{ tol:pickTol, gain:pickGain }] : [])];
+        const gt = gPasos.length ? "_gotero" + gPasos.map(a => `_g${a.gain>0?"+":""}${a.gain}t${a.tol}`).join("") : "";
+        const params = `_i${intensity.toFixed(1)}${gt}${contrast!==0?`_c${contrast}`:""}${saturation!==0?`_s${saturation}`:""}`;
         const base = `${(fileName||"opc").replace(/\.[^.]+$/,"")}_OPC_${activePreset}${params}`;
         const doDownload = (blob, ext) => {
           const url = URL.createObjectURL(blob);
@@ -973,7 +1216,7 @@ function RockArtEnhancer() {
           cv.toBlob((blob) => { if(blob) doDownload(blob, "png"); }, "image/png");
         }
       };
-      tmpImg.src = processedSrc;
+      tmpImg.src = pickSrc || processedSrc;
     } catch(e) { const w=window.open(); if(w) w.document.write(`<img src="${processedSrc}" style="max-width:100%"/>`); }
   };
 
@@ -1029,6 +1272,8 @@ function RockArtEnhancer() {
         }
         // Ajustes post por píxel (ver applyPostAdjust): mismo resultado que
         // la descarga individual pero sin segundo canvas ni ctx.filter
+        // El gotero va antes de los ajustes post, igual que en la vista previa
+        applyPickChain(id, pickSteps, (pickColor && pickGain) ? { ...pickColor, tol:pickTol, feather:pickFeather, gain:pickGain } : null);
         applyPostAdjust(id, contrast, saturation);
         ctx.putImageData(id, 0, 0);
         id = null;
@@ -1072,17 +1317,105 @@ function RockArtEnhancer() {
   };
 
   const handleDrop = (e) => { e.preventDefault(); const f=e.dataTransfer?.files?.[0]; if(f) handleFile(f); };
-  const handleReset = () => { setImage(null);setImageSrc(null);setProcessedSrc(null);setActivePreset(null);setExifData(null);setExifRaw(null);setFileName("");setStackMode(false);setContrast(0);setSaturation(0);setSelTool("none");setSelData(null);drawRef.current={active:false,tool:"",start:null,pts:[]};pipelineRef.current=[];setShowBatch(false);setBatchFiles([]);if(fileInputRef.current)fileInputRef.current.value=""; };
+  // --- Gotero cromático ---------------------------------------------------
+  // Muestra el color de un punto del RESULTADO del filtro (no de la vista con
+  // ajustes post): promedia un entorno de 5×5 para que el grano de la roca o un
+  // píxel de ruido no definan la familia de color.
+  // Se muestrea sobre la imagen ACUMULADA (filtro + ajustes ya fijados), que es
+  // la que el usuario está viendo: si ya atenuó el verde, el color que toca
+  // ahora es el verde atenuado, no el original.
+  const handlePick = (e) => {
+    const pt = clientToImageNorm(e.clientX, e.clientY);
+    const pd = pickBaseRef.current || processedDataRef.current;
+    if (!pt || !pd) return;
+    const x = Math.max(0, Math.min(pd.width-1, Math.round(pt.x*pd.width)));
+    const y = Math.max(0, Math.min(pd.height-1, Math.round(pt.y*pd.height)));
+    let r=0,g=0,b=0,c=0;
+    for (let dy=-2; dy<=2; dy++) for (let dx=-2; dx<=2; dx++) {
+      const xx=x+dx, yy=y+dy;
+      if (xx<0||yy<0||xx>=pd.width||yy>=pd.height) continue;
+      const i=(yy*pd.width+xx)*4; r+=pd.data[i]; g+=pd.data[i+1]; b+=pd.data[i+2]; c++;
+    }
+    let muestra = { r: Math.round(r/c), g: Math.round(g/c), b: Math.round(b/c) };
+    // Si había un ajuste en curso sin fijar, se fija antes de tomar el color
+    // nuevo: es el flujo natural —trabajo un color, paso al siguiente—.
+    if (pickColor && pickGain) {
+      const enCurso = { ...pickColor, tol:pickTol, feather:pickFeather, gain:pickGain };
+      setPickSteps(prev => [...prev, enCurso]);
+      // La base de muestreo se recalcula con un retardo corto, así que todavía
+      // no incluye este ajuste. En vez de esperarla, se le aplica al color
+      // muestreado: el resultado es exactamente el mismo y no depende del
+      // tiempo que pase entre fijar un ajuste y tocar el color siguiente.
+      const px = new ImageData(new Uint8ClampedArray([muestra.r, muestra.g, muestra.b, 255]), 1, 1);
+      chromaTarget(px, enCurso, enCurso.tol, enCurso.feather, enCurso.gain);
+      muestra = { r: px.data[0], g: px.data[1], b: px.data[2] };
+    }
+    setPickColor(muestra);
+    setPicking(false);
+  };
+
+  // Fijar el ajuste en curso como una capa más y dejar el gotero libre
+  const fixPick = () => {
+    if (!pickColor || !pickGain) return;
+    setPickSteps(prev => [...prev, { ...pickColor, tol:pickTol, feather:pickFeather, gain:pickGain }]);
+    setPickColor(null);
+  };
+
+  // Quitar un ajuste fijado. Como la vista se recalcula desde el resultado del
+  // filtro, se revierte solo ese ajuste y los demás quedan como estaban.
+  const removePickStep = (idx) => setPickSteps(prev => prev.filter((_, i) => i !== idx));
+
+  const clearPick = () => { setPickColor(null); setPickSteps([]); setPicking(false); setPickSrc(null); setPickCoverage(0); };
+
+  // La vista previa del gotero se recalcula sobre el resultado del filtro cada
+  // vez que cambia la muestra o un parámetro. El retardo corto evita rehacer la
+  // imagen entera en cada paso del deslizador.
+  useEffect(() => {
+    const pd = processedDataRef.current;
+    const enCurso = (pickColor && pickGain) ? { ...pickColor, tol:pickTol, feather:pickFeather, gain:pickGain } : null;
+    if (!processedSrc || !pd || (!pickSteps.length && !enCurso)) {
+      pickBaseRef.current = null; setPickSrc(null); setPickCoverage(0); return;
+    }
+    const t = setTimeout(() => {
+      try {
+        const cv = document.createElement("canvas");
+        cv.width = pd.width; cv.height = pd.height;
+        // 1. resultado del filtro + ajustes fijados → base de muestreo
+        const base = new ImageData(new Uint8ClampedArray(pd.data), pd.width, pd.height);
+        applyPickChain(base, pickSteps, null);
+        pickBaseRef.current = base;
+        // 2. + el ajuste en curso → lo que se muestra
+        const vista = enCurso
+          ? new ImageData(new Uint8ClampedArray(base.data), pd.width, pd.height)
+          : base;
+        const { coverage } = applyPickChain(vista, null, enCurso);
+        cv.getContext("2d").putImageData(vista, 0, 0);
+        setPickSrc(cv.toDataURL("image/png")); setPickCoverage(coverage);
+      } catch (err) { console.error(err); }
+    }, 120);
+    return () => clearTimeout(t);
+  }, [processedSrc, pickSteps, pickColor, pickTol, pickFeather, pickGain]);
+
+  const handleReset = () => { setImage(null);setImageSrc(null);setProcessedSrc(null);setActivePreset(null);setExifData(null);setExifRaw(null);setFileName("");setStackMode(false);setContrast(0);setSaturation(0);setPickColor(null);setPickSteps([]);setPicking(false);setPickSrc(null);processedDataRef.current=null;pickBaseRef.current=null;setSelTool("none");setSelData(null);drawRef.current={active:false,tool:"",start:null,pts:[]};pipelineRef.current=[];setShowBatch(false);setBatchFiles([]);setView({z:1,tx:0,ty:0});setPanTool(false);if(fileInputRef.current)fileInputRef.current.value=""; };
 
   // --- Herramientas de selección ---
   const clearSelection = () => { setSelData(null); setSelTool("none"); setProcessedSrc(null); drawRef.current={active:false,tool:"",start:null,pts:[]}; pipelineRef.current=[]; };
+
+  // Un unico reparto del pointerdown del visor: la mano tiene prioridad
+  // mientras esta activa; si no, gotero, seleccion y deslizador como antes.
+  const handleViewerDown = (e) => {
+    if (panTool || e.button === 1) return startPan(e);
+    if (picking) return handlePick(e);
+    if (selTool !== "none") return handleSelDown(e);
+    if (processedSrc) return handlePointerDown(e);
+  };
 
   const handleSelDown = (e) => {
     if (selTool === "none") return;
     e.preventDefault(); e.stopPropagation();
     const pt = clientToImageNorm(e.clientX, e.clientY);
     if (!pt) return;
-    if (compareRef.current) compareRef.current.setPointerCapture(e.pointerId);
+    try { if(compareRef.current) compareRef.current.setPointerCapture(e.pointerId); } catch(ex){}
     drawRef.current = { active: true, tool: selTool, start: pt, pts: [pt] };
     setSelData(null);
   };
@@ -1117,16 +1450,17 @@ function RockArtEnhancer() {
   const imgToSvg = useCallback((nx, ny) => {
     const bounds = getImageBounds();
     if (!bounds) return { x: nx * 100, y: ny * 100 };
-    const { ix, iy, iw, ih, rect } = bounds;
-    return { x: (ix + nx * iw) / rect.width * 100, y: (iy + ny * ih) / rect.height * 100 };
+    const { ix, iy, iw, ih, cw, ch } = bounds;
+    return { x: (ix + nx * iw) / cw * 100, y: (iy + ny * ih) / ch * 100 };
   }, [getImageBounds]);
   const imgToSvgW = useCallback((nw, nh) => {
     const bounds = getImageBounds();
     if (!bounds) return { w: nw * 100, h: nh * 100 };
-    return { w: nw * bounds.iw / bounds.rect.width * 100, h: nh * bounds.ih / bounds.rect.height * 100 };
+    return { w: nw * bounds.iw / bounds.cw * 100, h: nh * bounds.ih / bounds.ch * 100 };
   }, [getImageBounds]);
 
   const mono = "'JetBrains Mono', monospace";
+  const zoomBtn = { minWidth:30,height:28,padding:0,display:"flex",alignItems:"center",justifyContent:"center",background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:6,color:T.tm,fontSize:14,lineHeight:1,cursor:"pointer",transition:"all 0.2s" };
 
   return (
     <div style={{ fontFamily:"'Crimson Pro','Georgia',serif", background:T.bg, color:T.text, minHeight:"100vh", position:"relative", overflow:"hidden", transition:"background 0.3s,color 0.3s" }}>
@@ -1139,7 +1473,7 @@ function RockArtEnhancer() {
             <h1 style={{ margin:0,fontSize:18,fontWeight:700,color:T.text,display:"flex",alignItems:"baseline",gap:6 }}>
               <span style={{ color:T.gn,fontFamily:mono,fontSize:11,fontWeight:500,background:T.gnBg,padding:"1px 6px",borderRadius:4,border:`1px solid ${T.gnBd}` }}>OPC</span>
               Opuntia<span style={{ color:T.ac,fontWeight:700 }}>Color</span>
-              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v3.4.0</span>
+              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v3.5.0</span>
             </h1>
           </div>
         </div>
@@ -1156,7 +1490,9 @@ function RockArtEnhancer() {
       {/* INFO PANEL */}
       {showInfo && (
         <div style={{ margin:"0 20px",padding:20,background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:10,fontSize:13,lineHeight:1.7,position:"relative",zIndex:10 }}>
-          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v3.4.0 &mdash; Novedades</h3>
+          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v3.5.0 &mdash; Novedades</h3>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>LDS deja de virar a violeta (v3.5.0)</strong> &mdash; La normalizaci&oacute;n tomaba el m&iacute;nimo y el m&aacute;ximo absolutos de cada canal por separado. Con una tarjeta de color, una mano o un brillo en el encuadre, esos p&iacute;xeles fijaban el rango y aplastaban toda la roca; y estirar cada canal por su lado romp&iacute;a la relaci&oacute;n de tonos. Ahora el rango sale de las <strong style={{color:T.text}}>vallas de Tukey</strong> y la ganancia es <strong style={{color:T.text}}>com&uacute;n a los tres canales</strong>: la roca conserva su color real. <strong style={{color:T.text}}>Cambia el resultado de LDS</strong> &mdash; para comparar con material anterior hay que reprocesarlo.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Gotero crom&aacute;tico (v3.5.0)</strong> &mdash; Despu&eacute;s de aplicar un filtro, se toca un color del resultado y se lo <strong style={{color:T.text}}>realza o se lo aten&uacute;a</strong> sin tocar el resto de la escena. Sirve para bajar el verde o el violeta que tapan el panel y para subir el color en el que se lee el motivo. Cada ajuste se <strong style={{color:T.text}}>fija</strong> y el gotero queda libre para el color siguiente, que se muestrea ya sobre el resultado acumulado; los ajustes se listan numerados y <strong style={{color:T.text}}>cualquiera se puede quitar de a uno</strong>, porque la imagen se recalcula entera desde el resultado del filtro. Act&uacute;a solo sobre la crominancia: la luminancia, y con ella el relieve y la textura, quedan intactos. <strong style={{color:T.text}}>La m&aacute;scara describe el color que produjo el filtro, no la composici&oacute;n del pigmento.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>La intensidad ya funciona en LDS (v3.4.0)</strong> &mdash; Hasta v3.3.0 el control no ten&iacute;a ning&uacute;n efecto en LDS: el factor se cancelaba con la normalizaci&oacute;n posterior. Ahora la intensidad es el <strong style={{color:T.text}}>exponente de blanqueo</strong>: por debajo de 1.5 la decorrelaci&oacute;n es parcial y la roca conserva m&aacute;s su color real &mdash; &uacute;til para <strong style={{color:T.text}}>verificar si un motivo sigue estando</strong> con menos realce&mdash;; por encima, se amplifican de m&aacute;s las componentes menores. <strong style={{color:T.text}}>El valor por defecto (1.5) da exactamente el mismo resultado que v3.3.0</strong>, as&iacute; que no hay nada que reprocesar.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Correcci&oacute;n importante (v3.3.0)</strong> &mdash; Se corrigi&oacute; un error en la eigendescomposici&oacute;n que hac&iacute;a que los eigenvalores fueran incorrectos. <strong style={{color:T.text}}>Los resultados de CRGB, DS-LAB y LDS cambian respecto de las versiones 3.0 a 3.2</strong>: las im&aacute;genes procesadas con versiones anteriores deben reprocesarse para poder compararlas.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}>12 filtros para pinturas, grabados y an&aacute;lisis t&eacute;cnico. Funciona 100% offline: procesamiento local sin conexi&oacute;n.</p>
@@ -1231,9 +1567,9 @@ function RockArtEnhancer() {
                     { id:"circle", icon:"\u25CB", tip:"C\u00EDrculo" },
                     { id:"free", icon:"\u270E", tip:"Mano alzada" },
                   ].map(t => (
-                    <button key={t.id} onClick={()=>{setSelData(null);setProcessedSrc(null);setSelTool(selTool===t.id?"none":t.id);drawRef.current={active:false,tool:"",start:null,pts:[]};pipelineRef.current=[];}} title={t.tip} style={{ flex:1,padding:"5px 4px",fontSize:13,background:selTool===t.id?T.acBg:T.bBg,border:`1px solid ${selTool===t.id?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:selTool===t.id?T.ac:T.tm,fontWeight:selTool===t.id?700:400,transition:"all 0.2s" }}>{t.icon}</button>
+                    <button key={t.id} onClick={()=>{setSelData(null);setProcessedSrc(null);setPanTool(false);setSelTool(selTool===t.id?"none":t.id);drawRef.current={active:false,tool:"",start:null,pts:[]};pipelineRef.current=[];}} title={t.tip} style={{ flex:1,padding:"5px 4px",fontSize:13,background:selTool===t.id?T.acBg:T.bBg,border:`1px solid ${selTool===t.id?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:selTool===t.id?T.ac:T.tm,fontWeight:selTool===t.id?700:400,transition:"all 0.2s" }}>{t.icon}</button>
                   ))}
-                  {selData && <button onClick={clearSelection} title="Limpiar selecci\u00F3n" style={{ flex:1,padding:"5px 4px",fontSize:10,background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5,cursor:"pointer",color:T.tm,fontFamily:mono }}>{"\u2715"}</button>}
+                  {selData && <button onClick={clearSelection} title="Limpiar selecci&oacute;n" style={{ flex:1,padding:"5px 4px",fontSize:10,background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5,cursor:"pointer",color:T.tm,fontFamily:mono }}>{"\u2715"}</button>}
                 </div>
                 <div style={{ fontSize:8,fontFamily:mono,color:T.td,marginTop:4,lineHeight:1.4 }}>
                   {selTool !== "none" ? `Dibuj\u00E1 sobre la imagen \u2192 ${selTool==="rect"?"rect\u00E1ngulo":selTool==="circle"?"c\u00EDrculo":"forma libre"}`
@@ -1271,6 +1607,68 @@ function RockArtEnhancer() {
                 </div>
               </div>
 
+              {/* Gotero crom\u00E1tico \u2014 ajustes de color acumulables y reversibles */}
+              {processedSrc && (
+              <div style={{ marginTop:4,padding:"10px 12px",background:T.cBg,border:`1px solid ${(pickSteps.length||(pickColor&&pickGain))?T.acBd:T.cBd}`,borderRadius:8 }}>
+                <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6 }}>
+                  <span style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase" }}>Gotero crom&aacute;tico</span>
+                  {(pickColor || pickSteps.length > 0) && <button onClick={clearPick} title="Descarta todos los ajustes del gotero" style={{ fontSize:8,fontFamily:mono,background:"none",border:`1px solid ${T.cBd}`,borderRadius:4,padding:"1px 6px",color:T.tm,cursor:"pointer" }}>Limpiar</button>}
+                </div>
+
+                {/* Ajustes ya fijados: se pueden quitar de a uno */}
+                {pickSteps.length > 0 && (
+                  <div style={{ marginBottom:8,display:"flex",flexDirection:"column",gap:3 }}>
+                    {pickSteps.map((a,i) => (
+                      <div key={i} style={{ display:"flex",alignItems:"center",gap:6,padding:"3px 5px",background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5 }}>
+                        <span style={{ fontSize:8,fontFamily:mono,color:T.td,width:12 }}>{i+1}</span>
+                        <div style={{ width:16,height:16,flexShrink:0,borderRadius:3,border:`1px solid ${T.hBd}`,background:`rgb(${a.r},${a.g},${a.b})` }} />
+                        <span style={{ flex:1,fontSize:8.5,fontFamily:mono,color:T.tm }}>{a.gain > 0 ? "realza +" : "aten\u00FAa "}{a.gain} &middot; tol {a.tol}</span>
+                        <button onClick={()=>removePickStep(i)} title="Quitar este ajuste" style={{ fontSize:10,lineHeight:1,background:"none",border:"none",color:T.td,cursor:"pointer",padding:"0 2px" }}>{"\u2715"}</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ display:"flex",gap:6,alignItems:"center",marginBottom:pickColor?8:0 }}>
+                  <button onClick={()=>{setPicking(!picking);setPanTool(false);}} title="Toc&aacute; sobre la imagen el color que quer&eacute;s trabajar"
+                    style={{ flex:1,padding:"6px 8px",fontSize:10,fontFamily:mono,background:picking?T.acBg:T.bBg,border:`1px solid ${picking?T.acBd:T.cBd}`,borderRadius:5,color:picking?T.ac:T.tm,cursor:"pointer",fontWeight:picking?700:400 }}>
+                    {picking ? "Toc\u00E1 la imagen\u2026" : (pickSteps.length || pickColor ? "\uD83D\uDD0D Otro color" : "\uD83D\uDD0D Muestrear color")}
+                  </button>
+                  {pickColor && <div title={`rgb(${pickColor.r}, ${pickColor.g}, ${pickColor.b})`} style={{ width:28,height:28,flexShrink:0,borderRadius:5,border:`1px solid ${T.hBd}`,background:`rgb(${pickColor.r},${pickColor.g},${pickColor.b})` }} />}
+                </div>
+
+                {pickColor && (<>
+                  <div style={{ marginBottom:8 }}>
+                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>{pickGain < 0 ? "Atenuar" : "Realzar"}</span><span style={{color:pickGain!==0?T.ac:T.td}}>{pickGain > 0 ? "+" : ""}{pickGain}</span></div>
+                    <input type="range" min="-100" max="100" step="5" value={pickGain} onChange={e=>setPickGain(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
+                  </div>
+                  <div style={{ marginBottom:8 }}>
+                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>Tolerancia</span><span style={{color:T.td}}>{pickTol}</span></div>
+                    <input type="range" min="5" max="60" step="1" value={pickTol} onChange={e=>setPickTol(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
+                  </div>
+                  <div style={{ marginBottom:8 }}>
+                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>Suavizado</span><span style={{color:T.td}}>{pickFeather}%</span></div>
+                    <input type="range" min="0" max="150" step="5" value={pickFeather} onChange={e=>setPickFeather(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
+                  </div>
+                  <div style={{ display:"flex",gap:6 }}>
+                    <button onClick={fixPick} disabled={!pickGain} title="Deja este ajuste aplicado y libera el gotero para el color siguiente"
+                      style={{ flex:1,padding:"6px 8px",fontSize:10,fontFamily:mono,background:pickGain?T.acBg:T.bBg,border:`1px solid ${pickGain?T.acBd:T.cBd}`,borderRadius:5,color:pickGain?T.ac:T.td,cursor:pickGain?"pointer":"default",fontWeight:600 }}>
+                      {"\u2713"} Fijar ajuste
+                    </button>
+                    <button onClick={()=>setPickColor(null)} title="Descarta el ajuste en curso" style={{ padding:"6px 8px",fontSize:9,fontFamily:mono,background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5,color:T.tm,cursor:"pointer" }}>Descartar</button>
+                  </div>
+                  <p style={{ margin:"7px 0 0",fontSize:8.5,fontFamily:mono,color:T.td,lineHeight:1.5 }}>
+                    Alcanza el <span style={{color:T.tm}}>{(pickCoverage*100).toFixed(1)}%</span> de la imagen &middot; act&uacute;a sobre el color, no sobre el pigmento
+                  </p>
+                </>)}
+
+                {!pickColor && pickSteps.length > 0 && (
+                  <p style={{ margin:"7px 0 0",fontSize:8.5,fontFamily:mono,color:T.td,lineHeight:1.5 }}>
+                    {pickSteps.length} ajuste{pickSteps.length>1?"s":""} aplicado{pickSteps.length>1?"s":""} &middot; se pueden quitar de a uno sin perder los dem&aacute;s
+                  </p>
+                )}
+              </div>)}
+
               {/* File info */}
               <div style={{ marginTop:6,padding:"8px 12px",background:solar?"#f5f5f5":"rgba(232,224,212,0.02)",borderRadius:6,fontSize:9,fontFamily:mono,color:T.td,lineHeight:1.6 }}>
                 <div style={{ wordBreak:"break-all",marginBottom:1,fontWeight:600,color:T.tm }}>{fileName}</div>
@@ -1301,12 +1699,17 @@ function RockArtEnhancer() {
 
             {/* RIGHT: Image viewer */}
             <div style={{ flex:1,minWidth:0 }}>
-              <div ref={compareRef} style={{ position:"relative",width:"100%",aspectRatio:`${imageSize.w}/${imageSize.h}`,maxHeight:"75vh",borderRadius:10,overflow:"hidden",border:`1px solid ${selTool!=="none"?T.acBd:T.cBd}`,cursor:selTool!=="none"?"crosshair":processedSrc?"col-resize":"default",userSelect:"none",background:T.iBg,transition:"border 0.2s",touchAction:"none" }}
-                onPointerDown={selTool!=="none" ? handleSelDown : (processedSrc?handlePointerDown:undefined)}
-                onPointerMove={handleSelMoveEvt}
-                onPointerUp={handleSelUpEvt}>
-                <img src={imageSrc} alt="Original" draggable={false} style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",pointerEvents:"none" }} />
-                {processedSrc && <img src={processedSrc} alt="Procesada" draggable={false} style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",clipPath:`inset(0 ${100-sliderPos}% 0 0)`,filter:postFilter,pointerEvents:"none" }} />}
+              <div ref={compareRef} style={{ position:"relative",width:"100%",aspectRatio:`${imageSize.w}/${imageSize.h}`,maxHeight:"75vh",borderRadius:10,overflow:"hidden",border:`1px solid ${selTool!=="none"?T.acBd:T.cBd}`,cursor:panTool?(panning?"grabbing":"grab"):(picking||selTool!=="none")?"crosshair":processedSrc?"col-resize":"default",userSelect:"none",background:T.iBg,transition:"border 0.2s",touchAction:"none" }}
+                onMouseDown={e=>{ if(e.button===1) e.preventDefault(); }}
+                onPointerDown={handleViewerDown}
+                onPointerMove={e=>{movePan(e);handleSelMoveEvt(e);}}
+                onPointerUp={e=>{endPan();handleSelUpEvt(e);}}
+                onPointerCancel={endPan}>
+                {/* Capa ampliable. El deslizador, las etiquetas y los controles quedan afuera, en coordenadas de pantalla. */}
+                <div style={{ position:"absolute",inset:0,transformOrigin:"0 0",transform:viewTransform,willChange:"transform" }}>
+                  <img src={imageSrc} alt="Original" draggable={false} style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",pointerEvents:"none",imageRendering:zoomPx }} />
+                  {processedSrc && <img src={pickSrc || processedSrc} alt="Procesada" draggable={false} style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",clipPath:`inset(0 ${100-clipPct}% 0 0)`,filter:postFilter,pointerEvents:"none",imageRendering:zoomPx }} />}
+                </div>
                 {processedSrc && selTool==="none" && (<>
                   <div style={{ position:"absolute",top:0,bottom:0,left:`${sliderPos}%`,width:2,background:"rgba(255,255,255,0.7)",transform:"translateX(-1px)",pointerEvents:"none" }} />
                   <div style={{ position:"absolute",top:"50%",left:`${sliderPos}%`,transform:"translate(-50%,-50%)",width:32,height:32,borderRadius:"50%",background:solar?"rgba(255,255,255,0.9)":"rgba(30,28,24,0.85)",border:"2px solid rgba(255,255,255,0.7)",display:"flex",alignItems:"center",justifyContent:"center",color:solar?"#000":"#fff",fontSize:13,pointerEvents:"none" }}>{"\u27FA"}</div>
@@ -1319,7 +1722,7 @@ function RockArtEnhancer() {
                   const scx = (s1.x+s2.x)/2, scy = (s1.y+s2.y)/2, srx = sw/2, sry = sh/2;
                   const fpts = selData.points ? selData.points.map(p => imgToSvg(p.x, p.y)) : [];
                   return (
-                  <svg style={{ position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:5 }} viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <svg style={{ position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:5,transformOrigin:"0 0",transform:viewTransform }} viewBox="0 0 100 100" preserveAspectRatio="none">
                     <defs>
                       <mask id="sm">
                         <rect x="0" y="0" width="100" height="100" fill="white" />
@@ -1329,9 +1732,9 @@ function RockArtEnhancer() {
                       </mask>
                     </defs>
                     <rect x="0" y="0" width="100" height="100" fill="rgba(0,0,0,0.45)" mask="url(#sm)" />
-                    {selData.type==="rect" && <rect x={s1.x} y={s1.y} width={sw} height={sh} fill="none" stroke="rgba(192,57,43,0.8)" strokeWidth="0.3" strokeDasharray="1" />}
-                    {selData.type==="circle" && <ellipse cx={scx} cy={scy} rx={srx} ry={sry} fill="none" stroke="rgba(192,57,43,0.8)" strokeWidth="0.3" strokeDasharray="1" />}
-                    {selData.type==="free" && fpts.length>2 && <polygon points={fpts.map(p=>`${p.x},${p.y}`).join(" ")} fill="none" stroke="rgba(192,57,43,0.8)" strokeWidth="0.3" strokeDasharray="1" />}
+                    {selData.type==="rect" && <rect x={s1.x} y={s1.y} width={sw} height={sh} fill="none" stroke="rgba(192,57,43,0.8)" strokeWidth={0.3/view.z} strokeDasharray={1/view.z} />}
+                    {selData.type==="circle" && <ellipse cx={scx} cy={scy} rx={srx} ry={sry} fill="none" stroke="rgba(192,57,43,0.8)" strokeWidth={0.3/view.z} strokeDasharray={1/view.z} />}
+                    {selData.type==="free" && fpts.length>2 && <polygon points={fpts.map(p=>`${p.x},${p.y}`).join(" ")} fill="none" stroke="rgba(192,57,43,0.8)" strokeWidth={0.3/view.z} strokeDasharray={1/view.z} />}
                   </svg>
                   );
                 })()}
@@ -1339,11 +1742,19 @@ function RockArtEnhancer() {
                   <div style={{ position:"absolute",bottom:10,left:10,padding:"3px 8px",borderRadius:5,background:solar?"rgba(183,28,28,0.85)":"rgba(192,57,43,0.65)",fontSize:10,fontFamily:mono,color:"#fff" }}>{PRESETS.find(p=>p.id===activePreset)?.name.toUpperCase()||"PROCESADA"}{stackMode && " \u26A1"}{selData && " \u2702"}</div>
                   <div style={{ position:"absolute",bottom:10,right:10,padding:"3px 8px",borderRadius:5,background:"rgba(0,0,0,0.65)",fontSize:10,fontFamily:mono,color:"#aaa" }}>ORIGINAL</div>
                 </>)}
+                {/* Encuadre: mano, alejar, lupa (ajustar a la ventana), acercar */}
+                <div onPointerDown={e=>e.stopPropagation()} style={{ position:"absolute",top:10,right:10,zIndex:6,display:"flex",gap:3,padding:3,borderRadius:9,background:solar?"rgba(255,255,255,0.92)":"rgba(26,23,20,0.85)",border:`1px solid ${T.cBd}` }}>
+                  <button onClick={()=>{setPanTool(!panTool);setPicking(false);}} title="Mover &mdash; arrastr&aacute; la imagen para correr el encuadre" style={{ ...zoomBtn,background:panTool?T.acBg:T.bBg,border:`1px solid ${panTool?T.acBd:T.cBd}`,color:panTool?T.ac:T.tm,fontWeight:panTool?700:400 }}>{"\u270B"}</button>
+                  <button onClick={()=>zoomAt(1/1.5,0.5,0.5)} disabled={view.z<=1} title="Alejar" style={{ ...zoomBtn,opacity:view.z<=1?0.35:1,cursor:view.z<=1?"default":"pointer" }}>{"\u2212"}</button>
+                  <button onClick={resetView} title="Ajustar a la ventana" style={{ ...zoomBtn,padding:"0 8px",fontSize:9.5,fontFamily:mono,gap:4,color:view.z>1?T.ac:T.tm }}>{"\uD83D\uDD0D"} {Math.round(view.z*100)}%</button>
+                  <button onClick={()=>zoomAt(1.5,0.5,0.5)} disabled={view.z>=ZOOM_MAX} title="Acercar" style={{ ...zoomBtn,opacity:view.z>=ZOOM_MAX?0.35:1,cursor:view.z>=ZOOM_MAX?"default":"pointer",fontSize:15 }}>{"+"}</button>
+                </div>
+                {picking && <div style={{ position:"absolute",top:10,left:"50%",transform:"translateX(-50%)",padding:"4px 12px",borderRadius:6,background:"rgba(192,57,43,0.85)",fontSize:10,fontFamily:mono,color:"#fff",pointerEvents:"none" }}>{"\uD83D\uDD0D"} Toc&aacute; el color que quer&eacute;s realzar o atenuar</div>}
                 {selTool!=="none" && <div style={{ position:"absolute",top:10,left:"50%",transform:"translateX(-50%)",padding:"4px 12px",borderRadius:6,background:"rgba(192,57,43,0.85)",fontSize:10,fontFamily:mono,color:"#fff",pointerEvents:"none" }}>Dibuj&aacute; la zona &middot; {selTool==="rect"?"\u25A1 Rect\u00E1ngulo":selTool==="circle"?"\u25CB C\u00EDrculo":"\u270E Mano alzada"}</div>}
                 {processing && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:T.ov }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.95)":"rgba(26,23,20,0.9)",border:`1px solid ${T.acBd}`,color:T.ac,fontSize:13,fontFamily:mono,animation:"pulse 1.5s ease-in-out infinite" }}>Procesando p&iacute;xeles...</div></div>}
                 {!processedSrc && !processing && selTool==="none" && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:solar?"rgba(255,255,255,0.3)":"rgba(26,23,20,0.3)",pointerEvents:"none" }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.9)":"rgba(26,23,20,0.8)",border:`1px solid ${T.cBd}`,color:T.tm,fontSize:13,textAlign:"center" }}>{"\u2190"} Seleccion&aacute; un filtro</div></div>}
               </div>
-              {processedSrc && <p style={{ textAlign:"center",fontSize:10,color:T.td,marginTop:6,fontFamily:mono }}>Arrastr&aacute; el deslizador &middot; Ajust&aacute; intensidad en el panel lateral{stackMode && " \u00B7 \u26A1 Modo acumular activo"}{selData && " \u00B7 \u2702 Selecci\u00F3n activa"}</p>}
+              <p style={{ textAlign:"center",fontSize:10,color:T.td,marginTop:6,fontFamily:mono }}>{processedSrc ? "Arrastr\u00E1 el deslizador \u00B7 " : ""}Rueda del mouse: zoom{"\u00A0"}&middot; {"\u270B"} mano: mover{view.z > 1 ? " \u00B7 " + Math.round(view.z*100) + "%" : ""}{stackMode && " \u00B7 \u26A1 Modo acumular activo"}{selData && " \u00B7 \u2702 Selecci\u00F3n activa"}</p>
             </div>
           </div>
         )}
@@ -1438,7 +1849,7 @@ function RockArtEnhancer() {
 
       {/* FOOTER */}
       <footer style={{ padding:"14px 20px",borderTop:`1px solid ${T.fBd}`,textAlign:"center",fontSize:10,color:T.fTx,fontFamily:mono,position:"relative",zIndex:5,lineHeight:1.8 }}>
-        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v3.4.0 &middot; 12 filtros &middot; Lote fotogram&eacute;trico &middot; Estad&iacute;sticas por zona &middot; Stacking &middot; GPS/EXIF &middot; 100% offline</div>
+        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v3.5.0 &middot; 12 filtros &middot; Gotero crom&aacute;tico &middot; Zoom y encuadre &middot; Lote fotogram&eacute;trico &middot; Estad&iacute;sticas por zona &middot; Stacking &middot; GPS/EXIF &middot; 100% offline</div>
         <div><span style={{color:T.tm}}>Dr. Emilio A. Villafa&ntilde;ez</span> &middot; <span style={{color:T.tm}}>LATDAA</span> &middot; <span style={{color:T.tm}}>Fund. F&eacute;lix de Azara</span> &middot; <span style={{color:T.tm}}>Universidad Nacional de Catamarca (UNCA), Argentina</span></div>
       </footer>
 

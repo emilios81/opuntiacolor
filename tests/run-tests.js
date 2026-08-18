@@ -93,10 +93,10 @@ function extractFunction(name) {
 
 const CORE = [
   "rgb2lab", "lab2rgb", "rgb2ycbcr", "ycbcr2rgb",
-  "meanCov3", "meanStd1", "jacobiEigen3",
+  "meanCov3", "meanStd1", "jacobiEigen3", "tukeyFences",
   "buildSAT", "satMean",
   "crgbEnhance", "dsLabEnhance", "ldsEnhance", "ybkEnhance",
-  "claheEnhance", "applyPostAdjust",
+  "claheEnhance", "applyPostAdjust", "chromaTarget", "applyPickChain",
 ];
 
 // ImageData no existe en Node: se implementa la parte de la API que usa el
@@ -112,14 +112,21 @@ const sandbox = {
   },
 };
 vm.createContext(sandbox);
-vm.runInContext(CORE.map(extractFunction).join("\n"), sandbox);
+// Constantes sueltas que usa el núcleo: se leen del fuente para que la prueba
+// siga al valor real y no a una copia que se pueda desactualizar.
+const CONSTANTES = ["LDS_TUKEY_K"].map(nombre => {
+  const m = source.match(new RegExp("^const " + nombre + " = .+;$", "m"));
+  if (!m) throw new Error("no se encontró la constante " + nombre + " en src/app.jsx");
+  return m[0];
+}).join("\n");
+vm.runInContext(CONSTANTES + "\n" + CORE.map(extractFunction).join("\n"), sandbox);
 
 const {
   rgb2lab, lab2rgb, rgb2ycbcr, ycbcr2rgb,
-  meanCov3, meanStd1, jacobiEigen3,
+  meanCov3, meanStd1, jacobiEigen3, tukeyFences,
   buildSAT, satMean,
   crgbEnhance, dsLabEnhance, ldsEnhance,
-  applyPostAdjust,
+  applyPostAdjust, chromaTarget, applyPickChain,
 } = sandbox;
 const ImageData = sandbox.ImageData;
 
@@ -582,16 +589,16 @@ suite("LDS: intensidad como exponente de blanqueo", () => {
       "factor por componente siga siendo un exponente y no una escala común.");
   });
 
-  test("el valor por defecto reproduce exactamente la salida de v3.3.0", () => {
-    // Comprobación de compatibilidad: con intensidad 1.5 el exponente vale
-    // γ = 1, o sea la equalización completa de varianzas que hacía v3.3.0. El
-    // checksum se calculó contra la implementación anterior al cambio. Si esta
-    // prueba falla, la actualización invalida material ya publicado con LDS:
-    // no cambiarlo sin bump de versión y aviso en el CHANGELOG.
+  test("la salida por defecto queda fijada (v3.5.0)", () => {
+    // El checksum se refijó en v3.5.0, cuando cambió la normalización de LDS
+    // (de mínimo/máximo por canal a vallas de Tukey con ganancia y
+    // desplazamiento comunes). Si esta prueba falla, la salida de LDS cambió
+    // otra vez: no actualizar el número sin bump de versión y aviso en el
+    // CHANGELOG, porque invalida el material ya publicado con esta versión.
     const salida = ldsEnhance(syntheticImage(48, 48, 3300), 1.5, null, null);
-    assert(fnv1a(salida.data) === 2025766989,
+    assert(fnv1a(salida.data) === 268033351,
       "la salida por defecto de LDS cambió (checksum " + fnv1a(salida.data) +
-      ", esperado 2025766989)");
+      ", esperado 268033351)");
   });
 
   test("γ < 1 decorrela parcialmente: menos intensidad, canales más correlacionados", () => {
@@ -639,7 +646,273 @@ suite("LDS: intensidad como exponente de blanqueo", () => {
 });
 
 // ============================================================
-// 8. Correspondencia entre el código fuente y el compilado
+// 8. LDS: la normalización conserva el tono  (v3.5.0)
+//
+// Hasta v3.4.0 cada canal se estiraba entre su mínimo y su máximo absolutos.
+// Como cada canal recibía una ganancia y un corrimiento distintos, la relación
+// entre canales se rompía: una roca marrón (R > G > B) salía azul violácea
+// (B > G > R). Era el "todo violeta" que se veía en fotos de campo. Desde
+// v3.5.0 la ganancia y el desplazamiento son comunes a los tres canales, así
+// que el orden de los canales no puede invertirse.
+// ============================================================
+
+// Media de cada canal de una ImageData, opcionalmente solo de las primeras
+// filas (para medir la roca sin incluir la tarjeta de color).
+function mediasCanal(img, filas) {
+  const n = (filas || img.height) * img.width, d = img.data, m = [0, 0, 0];
+  for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) m[k] += d[i * 4 + k];
+  return m.map(v => v / n);
+}
+
+// Escena tipo foto de campo: roca marrón con un motivo tenue y una franja
+// saturada abajo que imita la tarjeta de color y la mano sosteniéndola.
+function escenaConTarjeta(w, h, seed, filasTarjeta) {
+  const img = syntheticImage(w, h, seed);
+  const d = img.data;
+  for (let y = h - filasTarjeta; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4;
+    const c = x < w / 3 ? [210, 20, 30] : x < 2 * w / 3 ? [20, 150, 60] : [245, 245, 240];
+    d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+  }
+  return img;
+}
+
+// Desvío estándar medio de los tres canales en las primeras filas: cuánto
+// contraste conserva la roca después del filtro.
+function contrasteMedio(img, filas) {
+  const n = filas * img.width, d = img.data, m = mediasCanal(img, filas);
+  let suma = 0;
+  for (let k = 0; k < 3; k++) {
+    let acc = 0;
+    for (let i = 0; i < n; i++) acc += (d[i * 4 + k] - m[k]) ** 2;
+    suma += Math.sqrt(acc / n);
+  }
+  return suma / 3;
+}
+
+suite("LDS: la normalización conserva el tono", () => {
+  test("una roca marrón no sale violácea (regresión del problema de v3.4.0)", () => {
+    // La entrada tiene R > G > B. Con la normalización por canal de v3.4.0
+    // esta prueba fallaba: la salida quedaba con B > G > R.
+    const img = syntheticImage(48, 48, 4242);
+    const ent = mediasCanal(img);
+    assert(ent[0] > ent[1] && ent[1] > ent[2], "la imagen de prueba ya no es marrón");
+    const sal = mediasCanal(ldsEnhance(cloneImage(img), 1.5, null, null));
+    assert(sal[0] > sal[1] && sal[1] > sal[2],
+      "LDS invirtió el orden de los canales: entrada R,G,B = " +
+      ent.map(v => v.toFixed(0)).join(",") + " → salida " +
+      sal.map(v => v.toFixed(0)).join(",") + ". Es el viraje a violeta que se " +
+      "corrigió en v3.5.0: revisar que la ganancia y el desplazamiento sigan " +
+      "siendo comunes a los tres canales.");
+  });
+
+  test("la ganancia y el desplazamiento son comunes: las diferencias entre canales se escalan por igual", () => {
+    // Propiedad estructural de una transformación afín común: si todos los
+    // canales comparten s y o, el cociente entre dos diferencias de canal se
+    // mantiene. Con normalización por canal, no.
+    const img = syntheticImage(40, 40, 99);
+    const store = {};
+    ldsEnhance(cloneImage(img), 1.5, null, store);
+    assert(typeof store.frozen.gain === "number" && typeof store.frozen.offset === "number",
+      "la normalización dejó de exponer una ganancia y un desplazamiento únicos");
+    assert(store.frozen.gain > 0, "la ganancia quedó en cero: la salida sería plana");
+  });
+
+  test("las vallas de Tukey no se mueven por un objeto extremo en el encuadre", () => {
+    // Es lo que hacía que la tarjeta de color aplastara toda la escena: con
+    // mínimo y máximo absolutos, un puñado de píxeles fijaba el rango.
+    const n = 4000, base = new Float64Array(n);
+    for (let i = 0; i < n; i++) base[i] = 100 + (i % 40) - 20;
+    const conExtremos = new Float64Array(base);
+    for (let i = 0; i < 40; i++) conExtremos[i] = 5000;   // 1% de píxeles disparados
+    const a = tukeyFences(base, n, null, 3);
+    const b = tukeyFences(conExtremos, n, null, 3);
+    assert(Math.abs(a.hi - b.hi) < 5 && Math.abs(a.lo - b.lo) < 5,
+      "las vallas se movieron con el 1% de píxeles extremos: " +
+      a.lo.toFixed(1) + ".." + a.hi.toFixed(1) + " → " + b.lo.toFixed(1) + ".." + b.hi.toFixed(1));
+    let mn = Infinity, mx = -Infinity;
+    for (let i = 0; i < n; i++) { if (conExtremos[i] < mn) mn = conExtremos[i]; if (conExtremos[i] > mx) mx = conExtremos[i]; }
+    assert(mx - mn > 10 * (b.hi - b.lo),
+      "el caso de prueba no es representativo: el rango absoluto debería ser " +
+      "mucho más ancho que el de las vallas");
+  });
+
+  test("con la tarjeta de color en el encuadre, la roca no se aplasta", () => {
+    // El caso que motivó el cambio: una franja saturada —tarjeta de color y
+    // mano— dentro del encuadre. Con mínimo y máximo absolutos, esa franja
+    // fijaba el rango de salida y comprimía toda la roca.
+    const w = 64, h = 64, filas = 4;          // la franja ocupa el 6% del cuadro
+    const roca = h - filas - 1;
+    const sinT = ldsEnhance(syntheticImage(w, h, 4242), 1.5, null, null);
+    const conT = ldsEnhance(escenaConTarjeta(w, h, 4242, filas), 1.5, null, null);
+    const b = mediasCanal(conT, roca);
+    assert(b[0] > b[1] && b[1] > b[2],
+      "con la tarjeta en el encuadre la roca perdió el orden de canales: " +
+      b.map(v => v.toFixed(0)).join(","));
+    const cSin = contrasteMedio(sinT, roca), cCon = contrasteMedio(conT, roca);
+    assert(cCon > 0.5 * cSin,
+      "la tarjeta redujo el contraste de la roca de " + cSin.toFixed(1) + " a " +
+      cCon.toFixed(1) + " (más de la mitad): la normalización volvió a depender " +
+      "de los píxeles extremos");
+  });
+});
+
+// ============================================================
+// 9. Gotero cromático  (v3.5.0)
+//
+// Realce o atenuación selectiva de una familia de color sobre el resultado del
+// filtro. Las propiedades que tienen que sostenerse: no toca la luminancia, no
+// toca los colores fuera de la tolerancia, y con ganancia −100 deja el color
+// muestreado exactamente en gris.
+// ============================================================
+
+// Imagen de 4 franjas verticales de color plano, para verificar qué se toca
+// y qué no.
+function franjas(colores) {
+  const w = colores.length * 4, h = 4;
+  const d = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const c = colores[Math.floor(x / 4)], i = (y * w + x) * 4;
+    d[i] = c[0]; d[i+1] = c[1]; d[i+2] = c[2]; d[i+3] = 255;
+  }
+  return new ImageData(d, w, h);
+}
+
+function luma(r, g, b) { return 0.299 * r + 0.587 * g + 0.114 * b; }
+
+const ROJO = [190, 60, 45], VERDE = [60, 170, 70], GRIS = [128, 128, 128];
+
+suite("Gotero cromático", () => {
+  test("sin muestra o con ganancia cero no cambia nada", () => {
+    const img = franjas([ROJO, VERDE, GRIS]);
+    const copia = cloneImage(img);
+    chromaTarget(img, null, 20, 50, 80);
+    assertBytesEqual(img.data, copia.data, "cambió la imagen sin color muestreado");
+    chromaTarget(img, { r:190, g:60, b:45 }, 20, 50, 0);
+    assertBytesEqual(img.data, copia.data, "cambió la imagen con ganancia 0");
+  });
+
+  test("atenuar al máximo deja el color muestreado en gris neutro", () => {
+    const img = franjas([ROJO, VERDE, GRIS]);
+    chromaTarget(img, { r:ROJO[0], g:ROJO[1], b:ROJO[2] }, 20, 0, -100);
+    const d = img.data;   // primer píxel = franja roja
+    assert(Math.abs(d[0]-d[1]) <= 1 && Math.abs(d[1]-d[2]) <= 1,
+      "el rojo no quedó neutro: rgb(" + d[0] + "," + d[1] + "," + d[2] + ")");
+  });
+
+  test("no toca los colores fuera de la tolerancia", () => {
+    const img = franjas([ROJO, VERDE, GRIS]);
+    const antes = cloneImage(img);
+    chromaTarget(img, { r:ROJO[0], g:ROJO[1], b:ROJO[2] }, 15, 0, 100);
+    const w = img.width;
+    for (const col of [4, 8]) {   // franjas verde y gris
+      const i = col * 4 + 4;      // segundo píxel de la franja
+      for (let k = 0; k < 3; k++) {
+        assert(img.data[i+k] === antes.data[i+k],
+          "se modificó una franja fuera de la tolerancia (columna " + col + ", canal " + k + ")");
+      }
+    }
+  });
+
+  test("la luminancia no cambia: el relieve y la textura quedan intactos", () => {
+    const img = franjas([ROJO, VERDE, GRIS]);
+    const antes = cloneImage(img);
+    chromaTarget(img, { r:ROJO[0], g:ROJO[1], b:ROJO[2] }, 40, 100, 100);
+    const n = img.width * img.height;
+    for (let i = 0; i < n; i++) {
+      const a = luma(antes.data[i*4], antes.data[i*4+1], antes.data[i*4+2]);
+      const b = luma(img.data[i*4], img.data[i*4+1], img.data[i*4+2]);
+      assert(Math.abs(a - b) <= 1.5,
+        "la luminancia del píxel " + i + " cambió de " + a.toFixed(1) + " a " + b.toFixed(1));
+    }
+  });
+
+  test("realzar aumenta la crominancia del color muestreado", () => {
+    const img = franjas([ROJO, VERDE, GRIS]);
+    const antes = cloneImage(img);
+    chromaTarget(img, { r:ROJO[0], g:ROJO[1], b:ROJO[2] }, 20, 0, 100);
+    const croma = (d, i) => {
+      const cb = -0.168736*d[i] - 0.331264*d[i+1] + 0.5*d[i+2];
+      const cr = 0.5*d[i] - 0.418688*d[i+1] - 0.081312*d[i+2];
+      return Math.sqrt(cb*cb + cr*cr);
+    };
+    assert(croma(img.data, 0) > croma(antes.data, 0) * 1.5,
+      "la crominancia del color muestreado no subió lo esperado");
+  });
+
+  test("la cobertura informada está entre 0 y 1 y crece con la tolerancia", () => {
+    const img1 = franjas([ROJO, VERDE, GRIS]), img2 = franjas([ROJO, VERDE, GRIS]);
+    const pick = { r:ROJO[0], g:ROJO[1], b:ROJO[2] };
+    const a = chromaTarget(img1, pick, 10, 0, 50).coverage;
+    const b = chromaTarget(img2, pick, 200, 0, 50).coverage;
+    assert(a >= 0 && a <= 1 && b >= 0 && b <= 1, "cobertura fuera de rango");
+    assert(b > a, "la cobertura no creció al ampliar la tolerancia (" + a.toFixed(3) + " → " + b.toFixed(3) + ")");
+  });
+});
+
+// La cadena del gotero: los ajustes fijados se guardan como reglas y la imagen
+// se recalcula siempre desde el resultado del filtro. De ahí sale la propiedad
+// que hace reversible la herramienta: quitar un ajuste del medio devuelve
+// exactamente la imagen que habría dado no haberlo aplicado nunca.
+suite("Gotero: cadena de ajustes acumulables", () => {
+  const A = { r:190, g:60,  b:45,  tol:20, feather:0, gain:-100 };  // apaga el rojo
+  const B = { r:60,  g:170, b:70,  tol:20, feather:0, gain:-80  };  // atenúa el verde
+  const C = { r:70,  g:90,  b:200, tol:20, feather:0, gain:60 };   // realza el azul
+
+  function base() { return franjas([ROJO, VERDE, [70,90,200], GRIS]); }
+
+  test("una cadena vacía no cambia nada", () => {
+    const img = base(), copia = cloneImage(img);
+    applyPickChain(img, [], null);
+    assertBytesEqual(img.data, copia.data, "la cadena vacía modificó la imagen");
+  });
+
+  test("quitar un ajuste equivale a no haberlo aplicado nunca", () => {
+    const conB = base(); applyPickChain(conB, [A, B, C], null);
+    const sinB = base(); applyPickChain(sinB, [A, C], null);
+    // La app no guarda imágenes intermedias: al quitar B recalcula [A, C]
+    // desde el resultado del filtro. Esta es esa segunda pasada.
+    const recalculado = base(); applyPickChain(recalculado, [A, C], null);
+    assertBytesEqual(recalculado.data, sinB.data,
+      "recalcular la cadena sin B no dio el mismo resultado que la cadena [A, C]");
+    let distintos = 0;
+    for (let i = 0; i < conB.data.length; i++) if (conB.data[i] !== sinB.data[i]) distintos++;
+    assert(distintos > 0, "el ajuste B no hacía nada: la prueba no verifica nada");
+  });
+
+  test("el orden importa cuando dos ajustes se superponen", () => {
+    // Dos ajustes sobre familias cercanas: aplicar uno cambia el color que el
+    // otro encuentra. Que el orden importe es esperable, y por eso la lista de
+    // ajustes se muestra numerada.
+    const D = { r:190, g:60, b:45, tol:45, feather:0, gain:-60 };
+    const E = { r:170, g:90, b:60, tol:45, feather:0, gain:80 };
+    const uno = base(); applyPickChain(uno, [D, E], null);
+    const otro = base(); applyPickChain(otro, [E, D], null);
+    let distintos = 0;
+    for (let i = 0; i < uno.data.length; i++) if (uno.data[i] !== otro.data[i]) distintos++;
+    assert(distintos > 0, "invertir el orden de dos ajustes superpuestos dio lo mismo");
+  });
+
+  test("el ajuste en curso se aplica último", () => {
+    const conCurso = base(); applyPickChain(conCurso, [A], B);
+    const comoFijado = base(); applyPickChain(comoFijado, [A, B], null);
+    assertBytesEqual(conCurso.data, comoFijado.data,
+      "fijar un ajuste cambió el resultado respecto de tenerlo en curso");
+  });
+
+  test("la cobertura informada es la del ajuste en curso", () => {
+    const img = base();
+    const { coverage } = applyPickChain(img, [A, B], C);
+    assert(coverage > 0 && coverage < 0.5,
+      "la cobertura debería ser la del ajuste en curso solo (fue " + coverage.toFixed(3) + ")");
+    const img2 = base();
+    assert(applyPickChain(img2, [A, B], null).coverage === 0,
+      "sin ajuste en curso la cobertura informada debería ser 0");
+  });
+});
+
+// ============================================================
+// 11. Correspondencia entre el código fuente y el compilado
 //
 // Es la prueba que faltaba: en julio de 2026 se publicó un app.js que no
 // correspondía a src/app.jsx (primero el compilado sin la fuente, después la
