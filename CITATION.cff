@@ -21,7 +21,7 @@ authors:
     city: "San Fernando del Valle de Catamarca"
     country: AR
 version: "3.5.0"
-date-released: "2026-08-17"
+date-released: "2026-08-28"
 license: GPL-3.0-or-later
 repository-code: "https://github.com/emilios81/opuntiacolor"
 url: "https://emilios81.github.io/opuntiacolor/"
@@ -33,7 +33,9 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.21796291"
     description: "DOI de la versión 3.4.0"
-# Al publicar la 3.5.0 en Zenodo, agregar acá el DOI de versión que asigne.
+  - type: doi
+    value: "10.5281/zenodo.22145678"
+    description: "DOI de la versión 3.5.0"
 keywords:
   - arte rupestre
   - rock art
