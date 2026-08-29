@@ -24,7 +24,7 @@ const { useState, useRef, useCallback, useEffect } = React;
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.5.0
+// OPC – OpuntiaColor v3.6.0
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -784,26 +784,26 @@ function clampView(v) {
 // ============================================================
 
 const PRESETS = [
-  { id:"red", name:"Rojo", desc:"Pinturas y pigmentos rojos / ocres", icon:"\uD83D\uDD34", fn:enhanceRedPigment },
-  { id:"white", name:"Blanco", desc:"Pinturas y pigmentos blancos / claros", icon:"\u26AA", fn:enhanceWhitePigment },
-  { id:"black", name:"Negro", desc:"Pigmentos oscuros / negros / carbones", icon:"\u26AB", fn:enhanceBlackPigment },
-  { id:"bichrome", name:"Bicromo", desc:"Combina realce rojo + blanco", icon:"\u25D1", fn:enhanceBichrome },
-  { id:"crgb", name:"CRGB", desc:"Decorrelaci\u00F3n pura RGB / variabilidad espectral", icon:"\uD83C\uDF08", fn:crgbEnhance },
-  { id:"dslab", name:"DS-LAB", desc:"Decorrelaci\u00F3n perceptual CIE-LAB / pigmentos sutiles", icon:"\uD83D\uDD35", fn:dsLabEnhance },
-  { id:"lds", name:"LDS", desc:"Decorrelation Stretch RGB / an\u00E1lisis general", icon:"\uD83D\uDFE3", fn:ldsEnhance },
-  { id:"petro", name:"Micro-relieve", desc:"P\u00E1tina + textura + bordes / grabados y surcos", icon:"\uD83E\uDEA8", fn:enhancePetroglyph },
-  { id:"relief", name:"Relieve", desc:"Mapa de bordes multi-escala / calco digital", icon:"\uD83D\uDDFA", fn:reliefMap },
-  { id:"ybk", name:"YBK", desc:"Crominancia YCbCr / separaci\u00F3n crom\u00E1tica", icon:"\uD83D\uDFE1", fn:ybkEnhance },
-  { id:"clahe", name:"CLAHE", desc:"Ecualizaci\u00F3n adaptativa de histograma / sombras", icon:"\u25D0", fn:claheEnhance },
-  { id:"map", name:"Mapa pigmentos", desc:"Falso color por tipo de pigmento detectado", icon:"\uD83D\uDDFA\uFE0F", fn:pigmentMapping },
+  { id:"red", name:"Rojo", nameEn:"Red", desc:"Pinturas y pigmentos rojos / ocres", descEn:"Red paints and pigments / ochres", icon:"\uD83D\uDD34", fn:enhanceRedPigment },
+  { id:"white", name:"Blanco", nameEn:"White", desc:"Pinturas y pigmentos blancos / claros", descEn:"White and light paints / pigments", icon:"\u26AA", fn:enhanceWhitePigment },
+  { id:"black", name:"Negro", nameEn:"Black", desc:"Pigmentos oscuros / negros / carbones", descEn:"Dark pigments / blacks / charcoal", icon:"\u26AB", fn:enhanceBlackPigment },
+  { id:"bichrome", name:"Bicromo", nameEn:"Bichrome", desc:"Combina realce rojo + blanco", descEn:"Combines red + white enhancement", icon:"\u25D1", fn:enhanceBichrome },
+  { id:"crgb", name:"CRGB", nameEn:"CRGB", desc:"Decorrelaci\u00F3n pura RGB / variabilidad espectral", descEn:"Pure RGB decorrelation / spectral variability", icon:"\uD83C\uDF08", fn:crgbEnhance },
+  { id:"dslab", name:"DS-LAB", nameEn:"DS-LAB", desc:"Decorrelaci\u00F3n perceptual CIE-LAB / pigmentos sutiles", descEn:"Perceptual CIE-LAB decorrelation / subtle pigments", icon:"\uD83D\uDD35", fn:dsLabEnhance },
+  { id:"lds", name:"LDS", nameEn:"LDS", desc:"Decorrelation Stretch RGB / an\u00E1lisis general", descEn:"RGB Decorrelation Stretch / general analysis", icon:"\uD83D\uDFE3", fn:ldsEnhance },
+  { id:"petro", name:"Micro-relieve", nameEn:"Micro-relief", desc:"P\u00E1tina + textura + bordes / grabados y surcos", descEn:"Patina + texture + edges / engravings and grooves", icon:"\uD83E\uDEA8", fn:enhancePetroglyph },
+  { id:"relief", name:"Relieve", nameEn:"Relief", desc:"Mapa de bordes multi-escala / calco digital", descEn:"Multi-scale edge map / digital tracing", icon:"\uD83D\uDDFA", fn:reliefMap },
+  { id:"ybk", name:"YBK", nameEn:"YBK", desc:"Crominancia YCbCr / separaci\u00F3n crom\u00E1tica", descEn:"YCbCr chrominance / chromatic separation", icon:"\uD83D\uDFE1", fn:ybkEnhance },
+  { id:"clahe", name:"CLAHE", nameEn:"CLAHE", desc:"Ecualizaci\u00F3n adaptativa de histograma / sombras", descEn:"Adaptive histogram equalization / shadows", icon:"\u25D0", fn:claheEnhance },
+  { id:"map", name:"Mapa pigmentos", nameEn:"Pigment map", desc:"Falso color por tipo de pigmento detectado", descEn:"False color by detected pigment type", icon:"\uD83D\uDDFA\uFE0F", fn:pigmentMapping },
 ];
 
 const INTENSITY_PRESETS = [
-  { label:"Sutil", value:0.4 },
-  { label:"Suave", value:1.0 },
-  { label:"Medio", value:1.8 },
-  { label:"Fuerte", value:3.0 },
-  { label:"Extremo", value:4.5 },
+  { label:"Sutil", labelEn:"Subtle", value:0.4 },
+  { label:"Suave", labelEn:"Mild", value:1.0 },
+  { label:"Medio", labelEn:"Medium", value:1.8 },
+  { label:"Fuerte", labelEn:"Strong", value:3.0 },
+  { label:"Extremo", labelEn:"Extreme", value:4.5 },
 ];
 
 
@@ -828,11 +828,29 @@ function RockArtEnhancer() {
   const [fileName, setFileName] = useState("");
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 });
   const [solar, setSolar] = useState(false);
+  // Idioma de la interfaz. El español es el original; el inglés se agregó porque
+  // colegas de habla inglesa no llegaban a saber para qué servía cada filtro.
+  // En la primera visita se toma del navegador; después manda lo que se eligió.
+  const [lang, setLang] = useState(() => {
+    try { const v = localStorage.getItem("opc_lang"); if (v === "es" || v === "en") return v; } catch (e) {}
+    try { return /^es/i.test(navigator.language || "") ? "es" : "en"; } catch (e) {}
+    return "es";
+  });
+  // tr(es, en): el primer argumento es el español, que es la fuente; el segundo
+  // es su traducción. Si falta la traducción se muestra el español, así que
+  // agregar un texto nuevo nunca deja un hueco en blanco en la interfaz.
+  const tr = (es, en) => (lang === "en" && en != null ? en : es);
+  const presetLabel = (id) => { const pr = PRESETS.find(x => x.id === id); return pr ? tr(pr.name, pr.nameEn) : null; };
+  const pickLang = (v) => { setLang(v); try { localStorage.setItem("opc_lang", v); } catch (e) {} };
+  useEffect(() => { try { document.documentElement.lang = lang; } catch (e) {} }, [lang]);
+
   const [exifData, setExifData] = useState(null);
   // Segmento EXIF crudo (APP1) para reinyectar en el JPG exportado
   const [exifRaw, setExifRaw] = useState(null);
-  // Resolución de trabajo: 2000px (rápido) o completa (hasta 8192px)
-  const [fullRes, setFullRes] = useState(false);
+  // Resolución de trabajo: completa por defecto (hasta 8192px). Se puede bajar
+  // a 2000px desde el panel si la máquina no da abasto; la elección persiste
+  // mientras dure la sesión, y el botón queda marcado para que no pase inadvertida.
+  const [fullRes, setFullRes] = useState(true);
   // NUEVO: modo acumular (stacking)
   const [stackMode, setStackMode] = useState(false);
   // NUEVO: ajustes post-procesamiento
@@ -998,7 +1016,7 @@ function RockArtEnhancer() {
   // navegador inventa detalle y en un panel rupestre eso se confunde con textura.
   const zoomPx = view.z >= 3 ? "pixelated" : "auto";
 
-  // Tamaño de trabajo: 2000px por defecto (rápido), resolución completa opcional
+  // Tamaño de trabajo: resolución completa por defecto (hasta 8192px), 2000px opcional
   const computeSize = (img, full) => {
     const mx = full ? 8192 : 2000;
     let w = img.naturalWidth, h = img.naturalHeight;
@@ -1023,8 +1041,8 @@ function RockArtEnhancer() {
     dr.readAsDataURL(file);
   }, [fullRes]);
 
-  const toggleFullRes = () => {
-    const nv = !fullRes;
+  const setWorkingRes = (nv) => {
+    if (nv === fullRes) return;
     setFullRes(nv);
     if (image) {
       setImageSize(computeSize(image, nv));
@@ -1293,7 +1311,7 @@ function RockArtEnhancer() {
             } catch (e) {}
           }
         }
-        if (!blob) throw new Error("No se pudo codificar la imagen");
+        if (!blob) throw new Error(tr("No se pudo codificar la imagen","Could not encode the image"));
         // MISMO nombre que el original (workflow de reemplazo de texturas):
         // guardar siempre en una carpeta DISTINTA a la de los originales
         const outName = `${base}.${ext}`;
@@ -1473,16 +1491,19 @@ function RockArtEnhancer() {
             <h1 style={{ margin:0,fontSize:18,fontWeight:700,color:T.text,display:"flex",alignItems:"baseline",gap:6 }}>
               <span style={{ color:T.gn,fontFamily:mono,fontSize:11,fontWeight:500,background:T.gnBg,padding:"1px 6px",borderRadius:4,border:`1px solid ${T.gnBd}` }}>OPC</span>
               Opuntia<span style={{ color:T.ac,fontWeight:700 }}>Color</span>
-              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v3.5.0</span>
+              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v3.6.0</span>
             </h1>
           </div>
         </div>
         <div style={{ display:"flex",gap:6,alignItems:"center",flexWrap:"wrap" }}>
-          <button onClick={()=>setSolar(!solar)} style={{ background:solar?"#000":"#FFD600",border:`1px solid ${solar?"#333":"#FFA000"}`,color:solar?"#FFD600":"#000",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:11,fontFamily:mono,fontWeight:600 }}>
+          <button onClick={()=>pickLang(lang==="es"?"en":"es")} title={lang==="es"?"Switch the interface to English":"Cambiar la interfaz al español"} style={{ background:T.bBg,border:`1px solid ${T.cBd}`,color:T.tm,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:11,fontFamily:mono,fontWeight:600 }}>
+            {"🌐"} {lang==="es" ? "English" : "Español"}
+          </button>
+          <button onClick={()=>setSolar(!solar)} title={tr("Modo solar: alto contraste para trabajar al sol en el campo","Solar mode: high contrast for fieldwork in direct sunlight")} style={{ background:solar?"#000":"#FFD600",border:`1px solid ${solar?"#333":"#FFA000"}`,color:solar?"#FFD600":"#000",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:11,fontFamily:mono,fontWeight:600 }}>
             {solar ? "\u263E Normal" : "\u2600 Solar"}
           </button>
           <button onClick={()=>setShowInfo(!showInfo)} style={{ background:showInfo?T.acBg:T.bBg,border:`1px solid ${showInfo?T.acBd:T.cBd}`,color:showInfo?T.ac:T.tm,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:11,fontFamily:mono }}>
-            {showInfo ? "\u2715 Cerrar" : "\u24D8 Info"}
+            {showInfo ? "\u2715 " + tr("Cerrar","Close") : "\u24D8 Info"}
           </button>
         </div>
       </header>
@@ -1490,7 +1511,10 @@ function RockArtEnhancer() {
       {/* INFO PANEL */}
       {showInfo && (
         <div style={{ margin:"0 20px",padding:20,background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:10,fontSize:13,lineHeight:1.7,position:"relative",zIndex:10 }}>
-          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v3.5.0 &mdash; Novedades</h3>
+          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v3.6.0 &mdash; {tr("Novedades","What\u2019s new")}</h3>
+          {lang === "es" ? (<>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Se trabaja a resoluci&oacute;n completa (v3.6.0)</strong> &mdash; Hasta v3.5.0 cada foto se abr&iacute;a reducida a 2000 px y la resoluci&oacute;n completa hab&iacute;a que pedirla a mano: era f&aacute;cil analizar y exportar en baja resoluci&oacute;n sin darse cuenta. Ahora se abre con <strong style={{color:T.text}}>la resoluci&oacute;n real de la foto</strong> (hasta 8192 px), y el control de resoluci&oacute;n subi&oacute; <strong style={{color:T.text}}>arriba de todo en el panel, antes de la lista de filtros</strong>: muestra las dos opciones juntas &mdash;completa o 2000 px&mdash; y debajo el tama&ntilde;o en p&iacute;xeles que se va a procesar. Mientras se trabaja reducido, el recuadro y esa cifra quedan en rojo. <strong style={{color:T.text}}>Cambia el resultado por defecto</strong> &mdash; Micro-relieve, Relieve y CLAHE dependen de la escala, as&iacute; que lo procesado con v3.5.0 en el modo por defecto no es comparable sin reprocesar.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Interfaz biling&uuml;e (v3.6.0)</strong> &mdash; Toda la interfaz est&aacute; en <strong style={{color:T.text}}>espa&ntilde;ol e ingl&eacute;s</strong>: filtros, controles, ayudas y este panel. El bot&oacute;n de la esquina superior cambia de idioma en cualquier momento y la elecci&oacute;n queda guardada; en la primera visita se toma el idioma del navegador. <strong style={{color:T.text}}>No cambia ning&uacute;n resultado</strong>: el nombre del archivo exportado se arma con el identificador interno del filtro, as&iacute; que sale id&eacute;ntico en los dos idiomas.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>LDS deja de virar a violeta (v3.5.0)</strong> &mdash; La normalizaci&oacute;n tomaba el m&iacute;nimo y el m&aacute;ximo absolutos de cada canal por separado. Con una tarjeta de color, una mano o un brillo en el encuadre, esos p&iacute;xeles fijaban el rango y aplastaban toda la roca; y estirar cada canal por su lado romp&iacute;a la relaci&oacute;n de tonos. Ahora el rango sale de las <strong style={{color:T.text}}>vallas de Tukey</strong> y la ganancia es <strong style={{color:T.text}}>com&uacute;n a los tres canales</strong>: la roca conserva su color real. <strong style={{color:T.text}}>Cambia el resultado de LDS</strong> &mdash; para comparar con material anterior hay que reprocesarlo.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Gotero crom&aacute;tico (v3.5.0)</strong> &mdash; Despu&eacute;s de aplicar un filtro, se toca un color del resultado y se lo <strong style={{color:T.text}}>realza o se lo aten&uacute;a</strong> sin tocar el resto de la escena. Sirve para bajar el verde o el violeta que tapan el panel y para subir el color en el que se lee el motivo. Cada ajuste se <strong style={{color:T.text}}>fija</strong> y el gotero queda libre para el color siguiente, que se muestrea ya sobre el resultado acumulado; los ajustes se listan numerados y <strong style={{color:T.text}}>cualquiera se puede quitar de a uno</strong>, porque la imagen se recalcula entera desde el resultado del filtro. Act&uacute;a solo sobre la crominancia: la luminancia, y con ella el relieve y la textura, quedan intactos. <strong style={{color:T.text}}>La m&aacute;scara describe el color que produjo el filtro, no la composici&oacute;n del pigmento.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>La intensidad ya funciona en LDS (v3.4.0)</strong> &mdash; Hasta v3.3.0 el control no ten&iacute;a ning&uacute;n efecto en LDS: el factor se cancelaba con la normalizaci&oacute;n posterior. Ahora la intensidad es el <strong style={{color:T.text}}>exponente de blanqueo</strong>: por debajo de 1.5 la decorrelaci&oacute;n es parcial y la roca conserva m&aacute;s su color real &mdash; &uacute;til para <strong style={{color:T.text}}>verificar si un motivo sigue estando</strong> con menos realce&mdash;; por encima, se amplifican de m&aacute;s las componentes menores. <strong style={{color:T.text}}>El valor por defecto (1.5) da exactamente el mismo resultado que v3.3.0</strong>, as&iacute; que no hay nada que reprocesar.</p>
@@ -1500,9 +1524,25 @@ function RockArtEnhancer() {
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Estad&iacute;sticas por zona</strong> &mdash; Con una selecci&oacute;n activa, la decorrelaci&oacute;n (CRGB, DS-LAB, LDS, YBK) se calcula con los datos de esa zona: mejor separaci&oacute;n de pigmentos locales, como en DStretch.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Resultados reproducibles</strong> &mdash; Componentes principales ordenados por varianza: el mismo panel da los mismos colores en fotos distintas.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>CLAHE real</strong> &mdash; Ecualizaci&oacute;n adaptativa de histograma con l&iacute;mite de contraste (Zuiderveld 1994).</p>
-          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Mucho m&aacute;s r&aacute;pido</strong> &mdash; Micro-relieve optimizado con imagen integral. Opci&oacute;n de procesar a resoluci&oacute;n completa.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Mucho m&aacute;s r&aacute;pido</strong> &mdash; Micro-relieve optimizado con imagen integral. Se trabaja a resoluci&oacute;n completa por defecto.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Exportaci&oacute;n con metadatos</strong> &mdash; El nombre del archivo registra filtro e intensidad; el JPG conserva el EXIF/GPS original. TIFF v&aacute;lido seg&uacute;n spec 6.0.</p>
           <p style={{ margin:"0 0 8px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Reconocimiento</strong> &mdash; El decorrelation stretch (Gillespie et al. 1986) fue popularizado en arte rupestre por <strong style={{color:T.text}}>DStretch</strong> (J. Harman). OPC es una implementaci&oacute;n independiente de c&oacute;digo abierto, escrita desde cero a partir de la bibliograf&iacute;a publicada, sin c&oacute;digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci&oacute;n entre herramientas.</p>
+          </>) : (<>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Full resolution by default (v3.6.0)</strong> &mdash; Up to v3.5.0 every photo opened scaled down to 2000 px and full resolution had to be requested by hand: it was easy to analyze and export at low resolution without noticing. It now opens at <strong style={{color:T.text}}>the real resolution of the photo</strong> (up to 8192 px), and the resolution control moved <strong style={{color:T.text}}>to the very top of the panel, above the filter list</strong>: it shows both options side by side &mdash; full or 2000 px &mdash; with the pixel size that will actually be processed below them. While you work at reduced size, the box and that figure stay red. <strong style={{color:T.text}}>The default result changes</strong> &mdash; Micro-relief, Relief and CLAHE depend on scale, so anything processed with v3.5.0 in the default mode is not comparable without reprocessing.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Bilingual interface (v3.6.0)</strong> &mdash; The whole interface is available in <strong style={{color:T.text}}>Spanish and English</strong>: filters, controls, tooltips and this panel. The button in the top corner switches language at any time and the choice is remembered; on a first visit the browser language is used. <strong style={{color:T.text}}>No result changes</strong>: the exported file name is built from the filter’s internal identifier, so it comes out identical in both languages.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>LDS no longer drifts to violet (v3.5.0)</strong> &mdash; Normalization took the absolute minimum and maximum of each channel separately. With a color card, a hand or a specular highlight in the frame, those pixels set the range and flattened the whole rock surface; and stretching each channel on its own broke the relationship between tones. The range now comes from <strong style={{color:T.text}}>Tukey fences</strong> and the gain is <strong style={{color:T.text}}>common to all three channels</strong>: the rock keeps its real color. <strong style={{color:T.text}}>LDS results change</strong> &mdash; to compare with earlier material you have to reprocess it.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Chromatic eyedropper (v3.5.0)</strong> &mdash; After applying a filter, you tap a color in the result and <strong style={{color:T.text}}>boost it or reduce it</strong> without touching the rest of the scene. It brings down the green or the violet that cover the panel, and brings up the color in which the motif reads. Each adjustment is <strong style={{color:T.text}}>fixed</strong> and the eyedropper is freed for the next color, which is sampled on the accumulated result; the adjustments are listed and numbered, and <strong style={{color:T.text}}>any one of them can be removed on its own</strong>, because the image is recomputed in full from the filter output. It acts on chrominance only: luminance, and with it relief and texture, are left intact. <strong style={{color:T.text}}>The mask describes the color the filter produced, not the composition of the pigment.</strong></p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Intensity now works in LDS (v3.4.0)</strong> &mdash; Up to v3.3.0 the control had no effect at all in LDS: the factor was cancelled out by the normalization that followed. Intensity is now the <strong style={{color:T.text}}>whitening exponent</strong>: below 1.5 the decorrelation is partial and the rock keeps more of its real color &mdash; useful to <strong style={{color:T.text}}>check whether a motif is still there</strong> with less enhancement &mdash;; above it, the minor components are amplified too much. <strong style={{color:T.text}}>The default value (1.5) gives exactly the same result as v3.3.0</strong>, so there is nothing to reprocess.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Important fix (v3.3.0)</strong> &mdash; A bug in the eigendecomposition that made the eigenvalues incorrect was fixed. <strong style={{color:T.text}}>CRGB, DS-LAB and LDS results change with respect to versions 3.0 to 3.2</strong>: images processed with earlier versions must be reprocessed before they can be compared.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}>12 filters for paintings, engravings and technical analysis. Works 100% offline: local processing, no connection needed.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Batch processing (photogrammetry)</strong> &mdash; Tune the filter on a reference photo and apply it automatically to the whole photogrammetric set. The statistics (the decorrelation matrix) are frozen from the reference: identical colors across every photo, coherent texture in the 3D model. Each photo keeps its name and its EXIF/GPS.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Per-area statistics</strong> &mdash; With a selection active, the decorrelation (CRGB, DS-LAB, LDS, YBK) is computed from the data inside that area: better separation of local pigments, as in DStretch.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Reproducible results</strong> &mdash; Principal components ordered by variance: the same panel gives the same colors across different photos.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Real CLAHE</strong> &mdash; Contrast Limited Adaptive Histogram Equalization (Zuiderveld 1994).</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Much faster</strong> &mdash; Micro-relief optimized with an integral image. Full resolution is the default working size.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Export with metadata</strong> &mdash; The file name records filter and intensity; the JPG keeps the original EXIF/GPS. TIFF valid per spec 6.0.</p>
+          <p style={{ margin:"0 0 8px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Acknowledgement</strong> &mdash; Decorrelation stretch (Gillespie et al. 1986) was popularized in rock art by <strong style={{color:T.text}}>DStretch</strong> (J. Harman). OPC is an independent open-source implementation, written from scratch from the published literature, with no derived code. The names CRGB, LDS and YBK follow the color-space nomenclature spread by DStretch, to make comparison between tools easier.</p>
+          </>)}
           <p style={{ margin:0,color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Dr. Emilio A. Villafa&ntilde;ez</strong> &middot; <strong style={{color:T.text}}>LATDAA</strong> &middot; <strong style={{color:T.text}}>Fund. F&eacute;lix de Azara</strong> &middot; <strong style={{color:T.text}}>Universidad Nacional de Catamarca (UNCA), Argentina</strong></p>
         </div>
       )}
@@ -1513,9 +1553,9 @@ function RockArtEnhancer() {
         {!image && (
           <div onDrop={handleDrop} onDragOver={e=>e.preventDefault()} onClick={()=>fileInputRef.current?.click()} style={{ maxWidth:680,margin:"50px auto",borderRadius:14,padding:"50px 36px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",cursor:"pointer",background:solar?"#e8e5e2":"#373334",border:solar?"2px dashed #999":"none",transition:"all 0.3s" }}>
             <img src={OPC_LOGO} alt="OPC Logo" style={{ width:140,height:140,marginBottom:16,opacity:0.95 }} />
-            <p style={{ fontSize:19,fontWeight:600,margin:"0 0 6px",color:solar?"#000":"#e8e0d4" }}>Arrastr&aacute; tu foto aqu&iacute;</p>
-            <p style={{ fontSize:13,color:solar?"#555":"#8a7e6e",margin:0 }}>o hac&eacute; clic para seleccionar &middot; JPG, PNG, WebP</p>
-            <p style={{ fontSize:10,color:solar?"#777":"#6a5e4e",margin:"14px 0 0",fontFamily:mono }}>Procesamiento 100% local, sin conexi&oacute;n &middot; RAW: convertir antes a JPG/PNG</p>
+            <p style={{ fontSize:19,fontWeight:600,margin:"0 0 6px",color:solar?"#000":"#e8e0d4" }}>{tr("Arrastr\u00E1 tu foto aqu\u00ED","Drop your photo here")}</p>
+            <p style={{ fontSize:13,color:solar?"#555":"#8a7e6e",margin:0 }}>{tr("o hac\u00E9 clic para seleccionar \u00B7 JPG, PNG, WebP","or click to browse \u00B7 JPG, PNG, WebP")}</p>
+            <p style={{ fontSize:10,color:solar?"#777":"#6a5e4e",margin:"14px 0 0",fontFamily:mono }}>{tr("Procesamiento 100% local, sin conexi\u00F3n \u00B7 RAW: convertir antes a JPG/PNG","100% local processing, works offline \u00B7 RAW: convert to JPG/PNG first")}</p>
           </div>
         )}
         <input ref={fileInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{handleFile(e.target.files?.[0]);e.target.value="";}} />
@@ -1529,8 +1569,8 @@ function RockArtEnhancer() {
               {/* Actions — siempre visibles arriba */}
               <div style={{ display:"flex",flexDirection:"column",gap:4,marginBottom:4 }}>
                 <div style={{ display:"flex",gap:4 }}>
-                  {processedSrc && <button onClick={handleDownload} style={{ flex:1,padding:"8px 8px",background:`linear-gradient(135deg,${T.ac},${solar?"#7f1d1d":"#8e2118"})`,border:"none",borderRadius:8,color:"#fff",fontWeight:600,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"\u2B07"} Descargar</button>}
-                  <button onClick={handleReset} style={{ flex:1,padding:"8px 8px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8,color:T.tm,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"\u21BB"} Nueva imagen</button>
+                  {processedSrc && <button onClick={handleDownload} style={{ flex:1,padding:"8px 8px",background:`linear-gradient(135deg,${T.ac},${solar?"#7f1d1d":"#8e2118"})`,border:"none",borderRadius:8,color:"#fff",fontWeight:600,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"\u2B07"} {tr("Descargar","Download")}</button>}
+                  <button onClick={handleReset} style={{ flex:1,padding:"8px 8px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8,color:T.tm,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"\u21BB"} {tr("Nueva imagen","New image")}</button>
                 </div>
                 {processedSrc && (
                   <div style={{ display:"flex",gap:2 }}>
@@ -1540,53 +1580,76 @@ function RockArtEnhancer() {
                   </div>
                 )}
                 {processedSrc && (
-                  <button onClick={()=>{setShowBatch(true);setBatchFiles([]);setBatchProgress({done:0,total:0,current:"",errors:[]});}} style={{ padding:"7px 8px",background:T.gnBg,border:`1px solid ${T.gnBd}`,borderRadius:8,color:T.gn,fontWeight:600,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"▦"} Procesar lote (fotogrametr&iacute;a)</button>
+                  <button onClick={()=>{setShowBatch(true);setBatchFiles([]);setBatchProgress({done:0,total:0,current:"",errors:[]});}} style={{ padding:"7px 8px",background:T.gnBg,border:`1px solid ${T.gnBd}`,borderRadius:8,color:T.gn,fontWeight:600,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"▦"} {tr("Procesar lote (fotogrametr\u00EDa)","Batch processing (photogrammetry)")}</button>
                 )}
               </div>
 
+              {/* Resolución de trabajo. Va arriba, antes de los filtros, porque es
+                  una decisión que se toma ANTES de procesar y porque al fondo del
+                  panel pasaba inadvertida: se terminaba analizando en baja sin
+                  querer. Las dos opciones se muestran juntas para que se vea que
+                  hay una elección y cuál está activa. */}
+              {image && Math.max(image.naturalWidth,image.naturalHeight) > 2000 && (
+                <div style={{ marginBottom:4,padding:"8px 10px",background:T.cBg,border:`1px solid ${fullRes?T.cBd:T.acBd}`,borderRadius:8 }}>
+                  <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:4 }}>{tr("Resoluci\u00F3n de trabajo","Working resolution")}</div>
+                  <div style={{ display:"flex",gap:3 }}>
+                    {[{ v:true, l:tr("Completa","Full") },{ v:false, l:"2000 px" }].map(o => (
+                      <button key={String(o.v)} onClick={()=>setWorkingRes(o.v)}
+                        title={o.v?tr("Procesar la foto en su resoluci\u00F3n real","Process the photo at its real resolution"):tr("M\u00E1s r\u00E1pido, pero se procesa menos detalle","Faster, but less detail is processed")}
+                        style={{ flex:1,padding:"5px 4px",fontSize:9.5,fontFamily:mono,fontWeight:fullRes===o.v?700:400,background:fullRes===o.v?T.acBg:T.bBg,border:`1px solid ${fullRes===o.v?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:fullRes===o.v?T.ac:T.tm }}>{o.l}</button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize:8,fontFamily:mono,color:fullRes?T.td:T.ac,marginTop:4,lineHeight:1.4 }}>
+                    {imageSize.w} &times; {imageSize.h} px {fullRes
+                      ? tr("\u00B7 la resoluci\u00F3n real de la foto","\u00B7 the photo\u2019s real resolution")
+                      : tr(`\u00B7 reducida de ${image.naturalWidth}\u00D7${image.naturalHeight}`,`\u00B7 reduced from ${image.naturalWidth}\u00D7${image.naturalHeight}`)}
+                  </div>
+                </div>
+              )}
+
               {/* Filtros */}
-              <div style={{ fontSize:8.5,fontFamily:mono,color:T.ac,letterSpacing:"1.5px",textTransform:"uppercase",margin:"4px 0 3px 4px",fontWeight:600 }}>Filtros</div>
+              <div style={{ fontSize:8.5,fontFamily:mono,color:T.ac,letterSpacing:"1.5px",textTransform:"uppercase",margin:"4px 0 3px 4px",fontWeight:600 }}>{tr("Filtros","Filters")}</div>
               {PRESETS.map(p => (
                 <button key={p.id} onClick={()=>processImage(p,intensity)} disabled={processing} style={{ display:"flex",alignItems:"center",gap:8,padding:"6px 10px",width:"100%",background:activePreset===p.id?T.acBg:T.cBg,border:`1px solid ${activePreset===p.id?T.acBd:T.cBd}`,borderRadius:7,cursor:processing?"wait":"pointer",transition:"all 0.2s",textAlign:"left",color:T.text,opacity:processing?0.6:1,marginBottom:2 }}>
                   <span style={{fontSize:14,width:22,textAlign:"center"}}>{p.icon}</span>
-                  <div><div style={{fontSize:11,fontWeight:600}}>{p.name}</div><div style={{fontSize:8.5,color:T.tm,fontFamily:mono,lineHeight:1.3}}>{p.desc}</div></div>
+                  <div><div style={{fontSize:11,fontWeight:600}}>{tr(p.name,p.nameEn)}</div><div style={{fontSize:8.5,color:T.tm,fontFamily:mono,lineHeight:1.3}}>{tr(p.desc,p.descEn)}</div></div>
                 </button>
               ))}
 
               {/* Stacking toggle */}
               <button onClick={()=>setStackMode(!stackMode)} style={{ margin:"6px 0 2px",padding:"7px 10px",background:stackMode?"rgba(109,184,93,0.15)":T.cBg,border:`1px solid ${stackMode?"rgba(109,184,93,0.4)":T.cBd}`,borderRadius:7,cursor:"pointer",fontSize:10,fontFamily:mono,color:stackMode?T.gn:T.tm,fontWeight:stackMode?600:400,textAlign:"left" }}>
-                {stackMode ? "\uD83D\uDD17 Acumular: ON" : "\uD83D\uDD17 Acumular: OFF"}{stackMode && <span style={{fontSize:8,display:"block",fontWeight:400,marginTop:1}}>Aplica sobre resultado previo</span>}
+                {stackMode ? "\uD83D\uDD17 " + tr("Acumular: ON","Stacking: ON") : "\uD83D\uDD17 " + tr("Acumular: OFF","Stacking: OFF")}{stackMode && <span style={{fontSize:8,display:"block",fontWeight:400,marginTop:1}}>{tr("Aplica sobre resultado previo","Applies on top of the previous result")}</span>}
               </button>
 
               {/* Herramientas de selección */}
               <div style={{ marginTop:6,padding:"8px 10px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8 }}>
-                <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:5 }}>Selecci&oacute;n</div>
+                <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:5 }}>{tr("Selecci\u00F3n","Selection")}</div>
                 <div style={{ display:"flex",gap:3 }}>
                   {[
-                    { id:"rect", icon:"\u25A1", tip:"Rect\u00E1ngulo" },
-                    { id:"circle", icon:"\u25CB", tip:"C\u00EDrculo" },
-                    { id:"free", icon:"\u270E", tip:"Mano alzada" },
+                    { id:"rect", icon:"\u25A1", tip:"Rect\u00E1ngulo", tipEn:"Rectangle" },
+                    { id:"circle", icon:"\u25CB", tip:"C\u00EDrculo", tipEn:"Circle" },
+                    { id:"free", icon:"\u270E", tip:"Mano alzada", tipEn:"Freehand" },
                   ].map(t => (
-                    <button key={t.id} onClick={()=>{setSelData(null);setProcessedSrc(null);setPanTool(false);setSelTool(selTool===t.id?"none":t.id);drawRef.current={active:false,tool:"",start:null,pts:[]};pipelineRef.current=[];}} title={t.tip} style={{ flex:1,padding:"5px 4px",fontSize:13,background:selTool===t.id?T.acBg:T.bBg,border:`1px solid ${selTool===t.id?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:selTool===t.id?T.ac:T.tm,fontWeight:selTool===t.id?700:400,transition:"all 0.2s" }}>{t.icon}</button>
+                    <button key={t.id} onClick={()=>{setSelData(null);setProcessedSrc(null);setPanTool(false);setSelTool(selTool===t.id?"none":t.id);drawRef.current={active:false,tool:"",start:null,pts:[]};pipelineRef.current=[];}} title={tr(t.tip,t.tipEn)} style={{ flex:1,padding:"5px 4px",fontSize:13,background:selTool===t.id?T.acBg:T.bBg,border:`1px solid ${selTool===t.id?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:selTool===t.id?T.ac:T.tm,fontWeight:selTool===t.id?700:400,transition:"all 0.2s" }}>{t.icon}</button>
                   ))}
-                  {selData && <button onClick={clearSelection} title="Limpiar selecci&oacute;n" style={{ flex:1,padding:"5px 4px",fontSize:10,background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5,cursor:"pointer",color:T.tm,fontFamily:mono }}>{"\u2715"}</button>}
+                  {selData && <button onClick={clearSelection} title={tr("Limpiar selecci\u00F3n","Clear selection")} style={{ flex:1,padding:"5px 4px",fontSize:10,background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5,cursor:"pointer",color:T.tm,fontFamily:mono }}>{"\u2715"}</button>}
                 </div>
                 <div style={{ fontSize:8,fontFamily:mono,color:T.td,marginTop:4,lineHeight:1.4 }}>
-                  {selTool !== "none" ? `Dibuj\u00E1 sobre la imagen \u2192 ${selTool==="rect"?"rect\u00E1ngulo":selTool==="circle"?"c\u00EDrculo":"forma libre"}`
-                    : selData ? `\u2713 Zona seleccionada \u2014 el filtro se aplica solo ah\u00ED`
-                    : "Sin selecci\u00F3n \u2014 filtro en toda la imagen"}
+                  {selTool !== "none" ? `${tr("Dibuj\u00E1 sobre la imagen","Draw on the image")} \u2192 ${selTool==="rect"?tr("rect\u00E1ngulo","rectangle"):selTool==="circle"?tr("c\u00EDrculo","circle"):tr("forma libre","freehand")}`
+                    : selData ? tr("\u2713 Zona seleccionada \u2014 el filtro se aplica solo ah\u00ED","\u2713 Area selected \u2014 the filter is applied only there")
+                    : tr("Sin selecci\u00F3n \u2014 filtro en toda la imagen","No selection \u2014 filter applied to the whole image")}
                 </div>
               </div>
 
               {/* Intensity */}
               <div style={{ marginTop:6,padding:"10px 12px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8 }}>
-                <div style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:4 }}>Intensidad: {intensity.toFixed(1)}</div>
+                <div style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:4 }}>{tr("Intensidad","Intensity")}: {intensity.toFixed(1)}</div>
                 <input type="range" min="0.2" max="5.0" step="0.1" value={intensity} onChange={e=>setIntensity(parseFloat(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
                 <div style={{ display:"flex",justifyContent:"space-between",fontSize:7.5,color:T.td,fontFamily:mono,marginBottom:6 }}><span>0.2</span><span>5.0</span></div>
                 {/* Preset buttons */}
                 <div style={{ display:"flex",gap:3,flexWrap:"wrap" }}>
                   {INTENSITY_PRESETS.map(ip => (
-                    <button key={ip.label} onClick={()=>setIntensity(ip.value)} style={{ flex:1,minWidth:36,padding:"4px 2px",fontSize:8.5,fontFamily:mono,fontWeight:Math.abs(intensity-ip.value)<0.2?700:400,background:Math.abs(intensity-ip.value)<0.2?T.acBg:T.cBg,border:`1px solid ${Math.abs(intensity-ip.value)<0.2?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:Math.abs(intensity-ip.value)<0.2?T.ac:T.tm }}>{ip.label}</button>
+                    <button key={ip.label} onClick={()=>setIntensity(ip.value)} style={{ flex:1,minWidth:36,padding:"4px 2px",fontSize:8.5,fontFamily:mono,fontWeight:Math.abs(intensity-ip.value)<0.2?700:400,background:Math.abs(intensity-ip.value)<0.2?T.acBg:T.cBg,border:`1px solid ${Math.abs(intensity-ip.value)<0.2?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:Math.abs(intensity-ip.value)<0.2?T.ac:T.tm }}>{tr(ip.label,ip.labelEn)}</button>
                   ))}
                 </div>
               </div>
@@ -1594,15 +1657,15 @@ function RockArtEnhancer() {
               {/* Contraste y Saturación — post-procesamiento */}
               <div style={{ marginTop:4,padding:"10px 12px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8 }}>
                 <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6 }}>
-                  <span style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase" }}>Ajustes post</span>
+                  <span style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase" }}>{tr("Ajustes post","Post adjustments")}</span>
                   {(contrast !== 0 || saturation !== 0) && <button onClick={()=>{setContrast(0);setSaturation(0);}} style={{ fontSize:8,fontFamily:mono,background:"none",border:`1px solid ${T.cBd}`,borderRadius:4,padding:"1px 6px",color:T.tm,cursor:"pointer" }}>Reset</button>}
                 </div>
                 <div style={{ marginBottom:8 }}>
-                  <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>Contraste</span><span style={{color:contrast!==0?T.ac:T.td}}>{contrast > 0 ? "+" : ""}{contrast}</span></div>
+                  <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>{tr("Contraste","Contrast")}</span><span style={{color:contrast!==0?T.ac:T.td}}>{contrast > 0 ? "+" : ""}{contrast}</span></div>
                   <input type="range" min="-80" max="80" step="5" value={contrast} onChange={e=>setContrast(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
                 </div>
                 <div>
-                  <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>Saturaci&oacute;n</span><span style={{color:saturation!==0?T.ac:T.td}}>{saturation > 0 ? "+" : ""}{saturation}</span></div>
+                  <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>{tr("Saturaci\u00F3n","Saturation")}</span><span style={{color:saturation!==0?T.ac:T.td}}>{saturation > 0 ? "+" : ""}{saturation}</span></div>
                   <input type="range" min="-100" max="100" step="5" value={saturation} onChange={e=>setSaturation(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
                 </div>
               </div>
@@ -1611,8 +1674,8 @@ function RockArtEnhancer() {
               {processedSrc && (
               <div style={{ marginTop:4,padding:"10px 12px",background:T.cBg,border:`1px solid ${(pickSteps.length||(pickColor&&pickGain))?T.acBd:T.cBd}`,borderRadius:8 }}>
                 <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6 }}>
-                  <span style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase" }}>Gotero crom&aacute;tico</span>
-                  {(pickColor || pickSteps.length > 0) && <button onClick={clearPick} title="Descarta todos los ajustes del gotero" style={{ fontSize:8,fontFamily:mono,background:"none",border:`1px solid ${T.cBd}`,borderRadius:4,padding:"1px 6px",color:T.tm,cursor:"pointer" }}>Limpiar</button>}
+                  <span style={{ fontSize:9,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase" }}>{tr("Gotero crom\u00E1tico","Chromatic eyedropper")}</span>
+                  {(pickColor || pickSteps.length > 0) && <button onClick={clearPick} title={tr("Descarta todos los ajustes del gotero","Discards every eyedropper adjustment")} style={{ fontSize:8,fontFamily:mono,background:"none",border:`1px solid ${T.cBd}`,borderRadius:4,padding:"1px 6px",color:T.tm,cursor:"pointer" }}>{tr("Limpiar","Clear")}</button>}
                 </div>
 
                 {/* Ajustes ya fijados: se pueden quitar de a uno */}
@@ -1622,49 +1685,49 @@ function RockArtEnhancer() {
                       <div key={i} style={{ display:"flex",alignItems:"center",gap:6,padding:"3px 5px",background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5 }}>
                         <span style={{ fontSize:8,fontFamily:mono,color:T.td,width:12 }}>{i+1}</span>
                         <div style={{ width:16,height:16,flexShrink:0,borderRadius:3,border:`1px solid ${T.hBd}`,background:`rgb(${a.r},${a.g},${a.b})` }} />
-                        <span style={{ flex:1,fontSize:8.5,fontFamily:mono,color:T.tm }}>{a.gain > 0 ? "realza +" : "aten\u00FAa "}{a.gain} &middot; tol {a.tol}</span>
-                        <button onClick={()=>removePickStep(i)} title="Quitar este ajuste" style={{ fontSize:10,lineHeight:1,background:"none",border:"none",color:T.td,cursor:"pointer",padding:"0 2px" }}>{"\u2715"}</button>
+                        <span style={{ flex:1,fontSize:8.5,fontFamily:mono,color:T.tm }}>{a.gain > 0 ? tr("realza +","boost +") : tr("aten\u00FAa ","reduce ")}{a.gain} &middot; tol {a.tol}</span>
+                        <button onClick={()=>removePickStep(i)} title={tr("Quitar este ajuste","Remove this adjustment")} style={{ fontSize:10,lineHeight:1,background:"none",border:"none",color:T.td,cursor:"pointer",padding:"0 2px" }}>{"\u2715"}</button>
                       </div>
                     ))}
                   </div>
                 )}
 
                 <div style={{ display:"flex",gap:6,alignItems:"center",marginBottom:pickColor?8:0 }}>
-                  <button onClick={()=>{setPicking(!picking);setPanTool(false);}} title="Toc&aacute; sobre la imagen el color que quer&eacute;s trabajar"
+                  <button onClick={()=>{setPicking(!picking);setPanTool(false);}} title={tr("Toc\u00E1 sobre la imagen el color que quer\u00E9s trabajar","Tap on the image the color you want to work on")}
                     style={{ flex:1,padding:"6px 8px",fontSize:10,fontFamily:mono,background:picking?T.acBg:T.bBg,border:`1px solid ${picking?T.acBd:T.cBd}`,borderRadius:5,color:picking?T.ac:T.tm,cursor:"pointer",fontWeight:picking?700:400 }}>
-                    {picking ? "Toc\u00E1 la imagen\u2026" : (pickSteps.length || pickColor ? "\uD83D\uDD0D Otro color" : "\uD83D\uDD0D Muestrear color")}
+                    {picking ? tr("Toc\u00E1 la imagen\u2026","Tap the image\u2026") : "\uD83D\uDD0D " + (pickSteps.length || pickColor ? tr("Otro color","Another color") : tr("Muestrear color","Sample a color"))}
                   </button>
                   {pickColor && <div title={`rgb(${pickColor.r}, ${pickColor.g}, ${pickColor.b})`} style={{ width:28,height:28,flexShrink:0,borderRadius:5,border:`1px solid ${T.hBd}`,background:`rgb(${pickColor.r},${pickColor.g},${pickColor.b})` }} />}
                 </div>
 
                 {pickColor && (<>
                   <div style={{ marginBottom:8 }}>
-                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>{pickGain < 0 ? "Atenuar" : "Realzar"}</span><span style={{color:pickGain!==0?T.ac:T.td}}>{pickGain > 0 ? "+" : ""}{pickGain}</span></div>
+                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>{pickGain < 0 ? tr("Atenuar","Reduce") : tr("Realzar","Boost")}</span><span style={{color:pickGain!==0?T.ac:T.td}}>{pickGain > 0 ? "+" : ""}{pickGain}</span></div>
                     <input type="range" min="-100" max="100" step="5" value={pickGain} onChange={e=>setPickGain(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
                   </div>
                   <div style={{ marginBottom:8 }}>
-                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>Tolerancia</span><span style={{color:T.td}}>{pickTol}</span></div>
+                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>{tr("Tolerancia","Tolerance")}</span><span style={{color:T.td}}>{pickTol}</span></div>
                     <input type="range" min="5" max="60" step="1" value={pickTol} onChange={e=>setPickTol(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
                   </div>
                   <div style={{ marginBottom:8 }}>
-                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>Suavizado</span><span style={{color:T.td}}>{pickFeather}%</span></div>
+                    <div style={{ display:"flex",justifyContent:"space-between",fontSize:8.5,fontFamily:mono,color:T.tm,marginBottom:2 }}><span>{tr("Suavizado","Feather")}</span><span style={{color:T.td}}>{pickFeather}%</span></div>
                     <input type="range" min="0" max="150" step="5" value={pickFeather} onChange={e=>setPickFeather(parseInt(e.target.value))} style={{ width:"100%",accentColor:T.ac }} />
                   </div>
                   <div style={{ display:"flex",gap:6 }}>
-                    <button onClick={fixPick} disabled={!pickGain} title="Deja este ajuste aplicado y libera el gotero para el color siguiente"
+                    <button onClick={fixPick} disabled={!pickGain} title={tr("Deja este ajuste aplicado y libera el gotero para el color siguiente","Keeps this adjustment and frees the eyedropper for the next color")}
                       style={{ flex:1,padding:"6px 8px",fontSize:10,fontFamily:mono,background:pickGain?T.acBg:T.bBg,border:`1px solid ${pickGain?T.acBd:T.cBd}`,borderRadius:5,color:pickGain?T.ac:T.td,cursor:pickGain?"pointer":"default",fontWeight:600 }}>
-                      {"\u2713"} Fijar ajuste
+                      {"\u2713"} {tr("Fijar ajuste","Fix adjustment")}
                     </button>
-                    <button onClick={()=>setPickColor(null)} title="Descarta el ajuste en curso" style={{ padding:"6px 8px",fontSize:9,fontFamily:mono,background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5,color:T.tm,cursor:"pointer" }}>Descartar</button>
+                    <button onClick={()=>setPickColor(null)} title={tr("Descarta el ajuste en curso","Discards the adjustment in progress")} style={{ padding:"6px 8px",fontSize:9,fontFamily:mono,background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:5,color:T.tm,cursor:"pointer" }}>{tr("Descartar","Discard")}</button>
                   </div>
                   <p style={{ margin:"7px 0 0",fontSize:8.5,fontFamily:mono,color:T.td,lineHeight:1.5 }}>
-                    Alcanza el <span style={{color:T.tm}}>{(pickCoverage*100).toFixed(1)}%</span> de la imagen &middot; act&uacute;a sobre el color, no sobre el pigmento
+                    {tr("Alcanza el","Covers")} <span style={{color:T.tm}}>{(pickCoverage*100).toFixed(1)}%</span> {tr("de la imagen \u00B7 act\u00FAa sobre el color, no sobre el pigmento","of the image \u00B7 it acts on the color, not on the pigment")}
                   </p>
                 </>)}
 
                 {!pickColor && pickSteps.length > 0 && (
                   <p style={{ margin:"7px 0 0",fontSize:8.5,fontFamily:mono,color:T.td,lineHeight:1.5 }}>
-                    {pickSteps.length} ajuste{pickSteps.length>1?"s":""} aplicado{pickSteps.length>1?"s":""} &middot; se pueden quitar de a uno sin perder los dem&aacute;s
+                    {tr(`${pickSteps.length} ajuste${pickSteps.length>1?"s":""} aplicado${pickSteps.length>1?"s":""} \u00B7 se pueden quitar de a uno sin perder los dem\u00E1s`,`${pickSteps.length} adjustment${pickSteps.length>1?"s":""} applied \u00B7 they can be removed one at a time without losing the others`)}
                   </p>
                 )}
               </div>)}
@@ -1673,27 +1736,22 @@ function RockArtEnhancer() {
               <div style={{ marginTop:6,padding:"8px 12px",background:solar?"#f5f5f5":"rgba(232,224,212,0.02)",borderRadius:6,fontSize:9,fontFamily:mono,color:T.td,lineHeight:1.6 }}>
                 <div style={{ wordBreak:"break-all",marginBottom:1,fontWeight:600,color:T.tm }}>{fileName}</div>
                 <div>{imageSize.w} &times; {imageSize.h} px{image && (image.naturalWidth!==imageSize.w||image.naturalHeight!==imageSize.h) ? ` (orig. ${image.naturalWidth}×${image.naturalHeight})` : ""}</div>
-                {image && Math.max(image.naturalWidth,image.naturalHeight) > 2000 && (
-                  <button onClick={toggleFullRes} title={fullRes?"Volver a 2000px (más rápido)":"Procesar a resolución completa (más lento)"} style={{ marginTop:4,padding:"3px 8px",fontSize:8.5,fontFamily:mono,background:fullRes?T.acBg:T.bBg,border:`1px solid ${fullRes?T.acBd:T.cBd}`,borderRadius:4,cursor:"pointer",color:fullRes?T.ac:T.tm,width:"100%" }}>
-                    {fullRes ? "✓ Resolución completa" : "Usar resolución completa"}
-                  </button>
-                )}
               </div>
 
               {/* EXIF/GPS */}
               {exifData ? (
                 <div style={{ padding:"8px 12px",background:solar?"#E8F5E9":"rgba(109,184,93,0.06)",border:`1px solid ${solar?"#A5D6A7":"rgba(109,184,93,0.15)"}`,borderRadius:6,fontSize:9,fontFamily:mono,color:T.tm,lineHeight:1.7 }}>
-                  <div style={{ fontWeight:600,color:T.gn,marginBottom:3,fontSize:10 }}>{"\uD83D\uDCCD"} Datos EXIF / GPS</div>
+                  <div style={{ fontWeight:600,color:T.gn,marginBottom:3,fontSize:10 }}>{"\uD83D\uDCCD"} {tr("Datos EXIF / GPS","EXIF / GPS data")}</div>
                   {exifData.dateTime && <div>{"\uD83D\uDCC5"} {exifData.dateTime}</div>}
                   {exifData.gps ? (<>
                     <div>Lat: {formatGPSCoord(exifData.gps.latitude, true)}</div>
                     <div>Lon: {formatGPSCoord(exifData.gps.longitude, false)}</div>
                     <div style={{fontSize:8,color:T.td,marginTop:1}}>({exifData.gps.latitude.toFixed(6)}, {exifData.gps.longitude.toFixed(6)})</div>
                     {exifData.gps.altitude!=null && <div>Alt: {exifData.gps.altitude.toFixed(1)} m</div>}
-                  </>) : (!exifData.dateTime && <div style={{fontStyle:"italic"}}>Sin GPS/fecha</div>)}
+                  </>) : (!exifData.dateTime && <div style={{fontStyle:"italic"}}>{tr("Sin GPS/fecha","No GPS/date")}</div>)}
                 </div>
               ) : image && (
-                <div style={{ padding:"6px 12px",borderRadius:6,fontSize:9,fontFamily:mono,color:T.td,fontStyle:"italic",background:solar?"#f5f5f5":"rgba(232,224,212,0.02)" }}>{"\uD83D\uDCCD"} Sin datos EXIF</div>
+                <div style={{ padding:"6px 12px",borderRadius:6,fontSize:9,fontFamily:mono,color:T.td,fontStyle:"italic",background:solar?"#f5f5f5":"rgba(232,224,212,0.02)" }}>{"\uD83D\uDCCD"} {tr("Sin datos EXIF","No EXIF data")}</div>
               )}
             </div>
 
@@ -1708,7 +1766,7 @@ function RockArtEnhancer() {
                 {/* Capa ampliable. El deslizador, las etiquetas y los controles quedan afuera, en coordenadas de pantalla. */}
                 <div style={{ position:"absolute",inset:0,transformOrigin:"0 0",transform:viewTransform,willChange:"transform" }}>
                   <img src={imageSrc} alt="Original" draggable={false} style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",pointerEvents:"none",imageRendering:zoomPx }} />
-                  {processedSrc && <img src={pickSrc || processedSrc} alt="Procesada" draggable={false} style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",clipPath:`inset(0 ${100-clipPct}% 0 0)`,filter:postFilter,pointerEvents:"none",imageRendering:zoomPx }} />}
+                  {processedSrc && <img src={pickSrc || processedSrc} alt={tr("Procesada","Processed")} draggable={false} style={{ position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"contain",clipPath:`inset(0 ${100-clipPct}% 0 0)`,filter:postFilter,pointerEvents:"none",imageRendering:zoomPx }} />}
                 </div>
                 {processedSrc && selTool==="none" && (<>
                   <div style={{ position:"absolute",top:0,bottom:0,left:`${sliderPos}%`,width:2,background:"rgba(255,255,255,0.7)",transform:"translateX(-1px)",pointerEvents:"none" }} />
@@ -1739,22 +1797,22 @@ function RockArtEnhancer() {
                   );
                 })()}
                 {processedSrc && (<>
-                  <div style={{ position:"absolute",bottom:10,left:10,padding:"3px 8px",borderRadius:5,background:solar?"rgba(183,28,28,0.85)":"rgba(192,57,43,0.65)",fontSize:10,fontFamily:mono,color:"#fff" }}>{PRESETS.find(p=>p.id===activePreset)?.name.toUpperCase()||"PROCESADA"}{stackMode && " \u26A1"}{selData && " \u2702"}</div>
+                  <div style={{ position:"absolute",bottom:10,left:10,padding:"3px 8px",borderRadius:5,background:solar?"rgba(183,28,28,0.85)":"rgba(192,57,43,0.65)",fontSize:10,fontFamily:mono,color:"#fff" }}>{presetLabel(activePreset)?.toUpperCase()||tr("PROCESADA","PROCESSED")}{stackMode && " \u26A1"}{selData && " \u2702"}</div>
                   <div style={{ position:"absolute",bottom:10,right:10,padding:"3px 8px",borderRadius:5,background:"rgba(0,0,0,0.65)",fontSize:10,fontFamily:mono,color:"#aaa" }}>ORIGINAL</div>
                 </>)}
                 {/* Encuadre: mano, alejar, lupa (ajustar a la ventana), acercar */}
                 <div onPointerDown={e=>e.stopPropagation()} style={{ position:"absolute",top:10,right:10,zIndex:6,display:"flex",gap:3,padding:3,borderRadius:9,background:solar?"rgba(255,255,255,0.92)":"rgba(26,23,20,0.85)",border:`1px solid ${T.cBd}` }}>
-                  <button onClick={()=>{setPanTool(!panTool);setPicking(false);}} title="Mover &mdash; arrastr&aacute; la imagen para correr el encuadre" style={{ ...zoomBtn,background:panTool?T.acBg:T.bBg,border:`1px solid ${panTool?T.acBd:T.cBd}`,color:panTool?T.ac:T.tm,fontWeight:panTool?700:400 }}>{"\u270B"}</button>
-                  <button onClick={()=>zoomAt(1/1.5,0.5,0.5)} disabled={view.z<=1} title="Alejar" style={{ ...zoomBtn,opacity:view.z<=1?0.35:1,cursor:view.z<=1?"default":"pointer" }}>{"\u2212"}</button>
-                  <button onClick={resetView} title="Ajustar a la ventana" style={{ ...zoomBtn,padding:"0 8px",fontSize:9.5,fontFamily:mono,gap:4,color:view.z>1?T.ac:T.tm }}>{"\uD83D\uDD0D"} {Math.round(view.z*100)}%</button>
-                  <button onClick={()=>zoomAt(1.5,0.5,0.5)} disabled={view.z>=ZOOM_MAX} title="Acercar" style={{ ...zoomBtn,opacity:view.z>=ZOOM_MAX?0.35:1,cursor:view.z>=ZOOM_MAX?"default":"pointer",fontSize:15 }}>{"+"}</button>
+                  <button onClick={()=>{setPanTool(!panTool);setPicking(false);}} title={tr("Mover \u2014 arrastr\u00E1 la imagen para correr el encuadre","Pan \u2014 drag the image to move the frame")} style={{ ...zoomBtn,background:panTool?T.acBg:T.bBg,border:`1px solid ${panTool?T.acBd:T.cBd}`,color:panTool?T.ac:T.tm,fontWeight:panTool?700:400 }}>{"\u270B"}</button>
+                  <button onClick={()=>zoomAt(1/1.5,0.5,0.5)} disabled={view.z<=1} title={tr("Alejar","Zoom out")} style={{ ...zoomBtn,opacity:view.z<=1?0.35:1,cursor:view.z<=1?"default":"pointer" }}>{"\u2212"}</button>
+                  <button onClick={resetView} title={tr("Ajustar a la ventana","Fit to window")} style={{ ...zoomBtn,padding:"0 8px",fontSize:9.5,fontFamily:mono,gap:4,color:view.z>1?T.ac:T.tm }}>{"\uD83D\uDD0D"} {Math.round(view.z*100)}%</button>
+                  <button onClick={()=>zoomAt(1.5,0.5,0.5)} disabled={view.z>=ZOOM_MAX} title={tr("Acercar","Zoom in")} style={{ ...zoomBtn,opacity:view.z>=ZOOM_MAX?0.35:1,cursor:view.z>=ZOOM_MAX?"default":"pointer",fontSize:15 }}>{"+"}</button>
                 </div>
-                {picking && <div style={{ position:"absolute",top:10,left:"50%",transform:"translateX(-50%)",padding:"4px 12px",borderRadius:6,background:"rgba(192,57,43,0.85)",fontSize:10,fontFamily:mono,color:"#fff",pointerEvents:"none" }}>{"\uD83D\uDD0D"} Toc&aacute; el color que quer&eacute;s realzar o atenuar</div>}
-                {selTool!=="none" && <div style={{ position:"absolute",top:10,left:"50%",transform:"translateX(-50%)",padding:"4px 12px",borderRadius:6,background:"rgba(192,57,43,0.85)",fontSize:10,fontFamily:mono,color:"#fff",pointerEvents:"none" }}>Dibuj&aacute; la zona &middot; {selTool==="rect"?"\u25A1 Rect\u00E1ngulo":selTool==="circle"?"\u25CB C\u00EDrculo":"\u270E Mano alzada"}</div>}
-                {processing && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:T.ov }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.95)":"rgba(26,23,20,0.9)",border:`1px solid ${T.acBd}`,color:T.ac,fontSize:13,fontFamily:mono,animation:"pulse 1.5s ease-in-out infinite" }}>Procesando p&iacute;xeles...</div></div>}
-                {!processedSrc && !processing && selTool==="none" && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:solar?"rgba(255,255,255,0.3)":"rgba(26,23,20,0.3)",pointerEvents:"none" }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.9)":"rgba(26,23,20,0.8)",border:`1px solid ${T.cBd}`,color:T.tm,fontSize:13,textAlign:"center" }}>{"\u2190"} Seleccion&aacute; un filtro</div></div>}
+                {picking && <div style={{ position:"absolute",top:10,left:"50%",transform:"translateX(-50%)",padding:"4px 12px",borderRadius:6,background:"rgba(192,57,43,0.85)",fontSize:10,fontFamily:mono,color:"#fff",pointerEvents:"none" }}>{"\uD83D\uDD0D"} {tr("Toc\u00E1 el color que quer\u00E9s realzar o atenuar","Tap the color you want to boost or reduce")}</div>}
+                {selTool!=="none" && <div style={{ position:"absolute",top:10,left:"50%",transform:"translateX(-50%)",padding:"4px 12px",borderRadius:6,background:"rgba(192,57,43,0.85)",fontSize:10,fontFamily:mono,color:"#fff",pointerEvents:"none" }}>{tr("Dibuj\u00E1 la zona","Draw the area")} &middot; {selTool==="rect"?tr("\u25A1 Rect\u00E1ngulo","\u25A1 Rectangle"):selTool==="circle"?tr("\u25CB C\u00EDrculo","\u25CB Circle"):tr("\u270E Mano alzada","\u270E Freehand")}</div>}
+                {processing && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:T.ov }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.95)":"rgba(26,23,20,0.9)",border:`1px solid ${T.acBd}`,color:T.ac,fontSize:13,fontFamily:mono,animation:"pulse 1.5s ease-in-out infinite" }}>{tr("Procesando p\u00EDxeles...","Processing pixels...")}</div></div>}
+                {!processedSrc && !processing && selTool==="none" && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:solar?"rgba(255,255,255,0.3)":"rgba(26,23,20,0.3)",pointerEvents:"none" }}><div style={{ padding:"14px 20px",borderRadius:10,background:solar?"rgba(255,255,255,0.9)":"rgba(26,23,20,0.8)",border:`1px solid ${T.cBd}`,color:T.tm,fontSize:13,textAlign:"center" }}>{"\u2190"} {tr("Seleccion\u00E1 un filtro","Choose a filter")}</div></div>}
               </div>
-              <p style={{ textAlign:"center",fontSize:10,color:T.td,marginTop:6,fontFamily:mono }}>{processedSrc ? "Arrastr\u00E1 el deslizador \u00B7 " : ""}Rueda del mouse: zoom{"\u00A0"}&middot; {"\u270B"} mano: mover{view.z > 1 ? " \u00B7 " + Math.round(view.z*100) + "%" : ""}{stackMode && " \u00B7 \u26A1 Modo acumular activo"}{selData && " \u00B7 \u2702 Selecci\u00F3n activa"}</p>
+              <p style={{ textAlign:"center",fontSize:10,color:T.td,marginTop:6,fontFamily:mono }}>{processedSrc ? tr("Arrastr\u00E1 el deslizador \u00B7 ","Drag the slider \u00B7 ") : ""}{tr("Rueda del mouse: zoom","Mouse wheel: zoom")}{"\u00A0"}&middot; {"\u270B"} {tr("mano: mover","hand: pan")}{view.z > 1 ? " \u00B7 " + Math.round(view.z*100) + "%" : ""}{stackMode && tr(" \u00B7 \u26A1 Modo acumular activo"," \u00B7 \u26A1 Stacking mode on")}{selData && tr(" \u00B7 \u2702 Selecci\u00F3n activa"," \u00B7 \u2702 Selection active")}</p>
             </div>
           </div>
         )}
@@ -1766,35 +1824,35 @@ function RockArtEnhancer() {
         <div style={{ position:"fixed",inset:0,zIndex:100,background:T.ov,backdropFilter:"blur(3px)",display:"flex",alignItems:"center",justifyContent:"center",padding:20 }}>
           <div style={{ width:"100%",maxWidth:480,maxHeight:"88vh",overflowY:"auto",background:T.bg,border:`1px solid ${T.acBd}`,borderRadius:12,padding:"18px 20px",boxShadow:"0 12px 40px rgba(0,0,0,0.5)" }}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10 }}>
-              <h3 style={{ margin:0,fontSize:15,color:T.ac }}>{"▦"} Procesado por lote</h3>
+              <h3 style={{ margin:0,fontSize:15,color:T.ac }}>{"▦"} {tr("Procesado por lote","Batch processing")}</h3>
               {!batchRunning && <button onClick={()=>setShowBatch(false)} style={{ background:"none",border:"none",color:T.tm,fontSize:16,cursor:"pointer" }}>{"✕"}</button>}
             </div>
 
             {/* Pipeline registrado */}
             <div style={{ padding:"8px 10px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8,marginBottom:10 }}>
-              <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:4 }}>Pipeline a aplicar</div>
+              <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:4 }}>{tr("Pipeline a aplicar","Pipeline to apply")}</div>
               {pipelineRef.current.map((step,i) => {
                 const p = PRESETS.find(x=>x.id===step.presetId);
                 return (
                   <div key={i} style={{ fontSize:10.5,fontFamily:mono,color:T.text,lineHeight:1.7 }}>
-                    {i+1}. {p?.icon} {p?.name} &middot; intensidad {step.intensity.toFixed(1)}
-                    {step.frozen && <span style={{ color:T.gn,fontSize:8.5 }}> &middot; {"❄"} matriz congelada</span>}
+                    {i+1}. {p?.icon} {tr(p?.name,p?.nameEn)} &middot; {tr("intensidad","intensity")} {step.intensity.toFixed(1)}
+                    {step.frozen && <span style={{ color:T.gn,fontSize:8.5 }}> &middot; {"❄"} {tr("matriz congelada","frozen matrix")}</span>}
                   </div>
                 );
               })}
-              {(contrast!==0||saturation!==0) && <div style={{ fontSize:9.5,fontFamily:mono,color:T.tm,marginTop:2 }}>+ Ajustes post: {contrast!==0?`contraste ${contrast>0?"+":""}${contrast}`:""}{contrast!==0&&saturation!==0?" · ":""}{saturation!==0?`saturación ${saturation>0?"+":""}${saturation}`:""}</div>}
-              <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,marginTop:5,lineHeight:1.5 }}>{"❄"} = estad&iacute;sticas de la foto de referencia aplicadas id&eacute;nticas a todo el lote {"→"} colores consistentes entre fotos (textura coherente en el modelo 3D)</div>
+              {(contrast!==0||saturation!==0) && <div style={{ fontSize:9.5,fontFamily:mono,color:T.tm,marginTop:2 }}>+ {tr("Ajustes post","Post adjustments")}: {contrast!==0?`${tr("contraste","contrast")} ${contrast>0?"+":""}${contrast}`:""}{contrast!==0&&saturation!==0?" · ":""}{saturation!==0?`${tr("saturación","saturation")} ${saturation>0?"+":""}${saturation}`:""}</div>}
+              <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,marginTop:5,lineHeight:1.5 }}>{"❄"} {tr("= estad\u00EDsticas de la foto de referencia aplicadas id\u00E9nticas a todo el lote","= reference-photo statistics applied identically to the whole batch")} {"→"} {tr("colores consistentes entre fotos (textura coherente en el modelo 3D)","consistent colors across photos (coherent texture in the 3D model)")}</div>
             </div>
 
             {/* Selección de fotos */}
             <button disabled={batchRunning} onClick={()=>batchInputRef.current?.click()} style={{ width:"100%",padding:"9px 10px",background:T.cBg,border:`1px dashed ${T.cBd}`,borderRadius:8,color:T.text,fontSize:12,cursor:batchRunning?"default":"pointer",fontFamily:"'Crimson Pro',serif",marginBottom:8,opacity:batchRunning?0.5:1 }}>
-              {batchFiles.length ? `✓ ${batchFiles.length} fotos seleccionadas` : "📂 Elegir las fotos del lote…"}
+              {batchFiles.length ? `✓ ${batchFiles.length} ${tr("fotos seleccionadas","photos selected")}` : "📂 " + tr("Elegir las fotos del lote…","Choose the photos for the batch…")}
             </button>
 
             {/* Formato y resolución */}
             <div style={{ display:"flex",gap:8,marginBottom:8 }}>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1px",textTransform:"uppercase",marginBottom:3 }}>Formato</div>
+                <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1px",textTransform:"uppercase",marginBottom:3 }}>{tr("Formato","Format")}</div>
                 <div style={{ display:"flex",gap:2 }}>
                   {["jpg","png","tiff"].map(fmt => (
                     <button key={fmt} disabled={batchRunning} onClick={()=>setBatchFmt(fmt)} style={{ flex:1,padding:"4px 2px",fontSize:9,fontFamily:mono,fontWeight:batchFmt===fmt?700:400,background:batchFmt===fmt?T.acBg:T.bBg,border:`1px solid ${batchFmt===fmt?T.acBd:T.cBd}`,borderRadius:4,cursor:"pointer",color:batchFmt===fmt?T.ac:T.tm,textTransform:"uppercase" }}>{fmt}</button>
@@ -1802,7 +1860,7 @@ function RockArtEnhancer() {
                 </div>
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1px",textTransform:"uppercase",marginBottom:3 }}>Resoluci&oacute;n m&aacute;x.</div>
+                <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1px",textTransform:"uppercase",marginBottom:3 }}>{tr("Resoluci\u00F3n m\u00E1x.","Max. resolution")}</div>
                 <div style={{ display:"flex",gap:2 }}>
                   {[{v:8192,l:"Full"},{v:4000,l:"4000"},{v:2000,l:"2000"}].map(r => (
                     <button key={r.v} disabled={batchRunning} onClick={()=>setBatchRes(r.v)} style={{ flex:1,padding:"4px 2px",fontSize:9,fontFamily:mono,fontWeight:batchRes===r.v?700:400,background:batchRes===r.v?T.acBg:T.bBg,border:`1px solid ${batchRes===r.v?T.acBd:T.cBd}`,borderRadius:4,cursor:"pointer",color:batchRes===r.v?T.ac:T.tm }}>{r.l}</button>
@@ -1811,9 +1869,9 @@ function RockArtEnhancer() {
               </div>
             </div>
             <div style={{ fontSize:9,fontFamily:mono,color:T.tm,lineHeight:1.6,marginBottom:10 }}>
-              {batchFmt==="jpg" ? "✓ JPG conserva el EXIF/GPS de cada foto (recomendado para fotogrametría)" : "⚠ Solo JPG conserva EXIF; para alinear en Metashape convienen los JPG"}
-              <br/>Cada foto se guarda con su <strong style={{color:T.text}}>mismo nombre</strong>: eleg&iacute; una carpeta <strong style={{color:T.text}}>distinta</strong> a la de los originales para no sobreescribirlos.
-              {!window.showDirectoryPicker && <><br/>{"⚠"} Este navegador no permite elegir carpeta: las fotos se descargar&aacute;n una por una.</>}
+              {batchFmt==="jpg" ? tr("✓ JPG conserva el EXIF/GPS de cada foto (recomendado para fotogrametría)","✓ JPG keeps each photo\u2019s EXIF/GPS (recommended for photogrammetry)") : tr("⚠ Solo JPG conserva EXIF; para alinear en Metashape convienen los JPG","⚠ Only JPG keeps EXIF; for alignment in Metashape, JPG is the safer choice")}
+              <br/>{lang==="es" ? (<>Cada foto se guarda con su <strong style={{color:T.text}}>mismo nombre</strong>: eleg&iacute; una carpeta <strong style={{color:T.text}}>distinta</strong> a la de los originales para no sobreescribirlos.</>) : (<>Each photo is saved under its <strong style={{color:T.text}}>same name</strong>: pick a <strong style={{color:T.text}}>different</strong> folder from the originals so they are not overwritten.</>)}
+              {!window.showDirectoryPicker && <><br/>{"⚠"} {tr("Este navegador no permite elegir carpeta: las fotos se descargar\u00E1n una por una.","This browser cannot pick a folder: the photos will be downloaded one by one.")}</>}
             </div>
 
             {/* Progreso */}
@@ -1823,10 +1881,10 @@ function RockArtEnhancer() {
                   <div style={{ height:"100%",width:`${batchProgress.total?Math.round(batchProgress.done/batchProgress.total*100):0}%`,background:`linear-gradient(90deg,${T.gn},${T.ac})`,transition:"width 0.3s",borderRadius:4 }} />
                 </div>
                 <div style={{ fontSize:9.5,fontFamily:mono,color:T.tm }}>
-                  {batchRunning ? `Procesando ${batchProgress.done+1}/${batchProgress.total}: ${batchProgress.current}` : batchProgress.done>0 ? `✓ Listo: ${batchProgress.done-batchProgress.errors.length}/${batchProgress.total} procesadas${batchProgress.errors.length?` · ${batchProgress.errors.length} con error`:""}` : ""}
+                  {batchRunning ? `${tr("Procesando","Processing")} ${batchProgress.done+1}/${batchProgress.total}: ${batchProgress.current}` : batchProgress.done>0 ? `✓ ${tr("Listo","Done")}: ${batchProgress.done-batchProgress.errors.length}/${batchProgress.total} ${tr("procesadas","processed")}${batchProgress.errors.length?` · ${batchProgress.errors.length} ${tr("con error","failed")}`:""}` : ""}
                 </div>
                 {!batchRunning && batchProgress.errors.length > 0 && (
-                  <div style={{ fontSize:8.5,fontFamily:mono,color:T.ac,marginTop:3,lineHeight:1.5 }}>Errores: {batchProgress.errors.join(", ")}</div>
+                  <div style={{ fontSize:8.5,fontFamily:mono,color:T.ac,marginTop:3,lineHeight:1.5 }}>{tr("Errores","Errors")}: {batchProgress.errors.join(", ")}</div>
                 )}
               </div>
             )}
@@ -1835,11 +1893,11 @@ function RockArtEnhancer() {
             <div style={{ display:"flex",gap:6 }}>
               {!batchRunning ? (
                 <button disabled={!batchFiles.length} onClick={runBatch} style={{ flex:1,padding:"9px 10px",background:batchFiles.length?`linear-gradient(135deg,${T.ac},${solar?"#7f1d1d":"#8e2118"})`:T.bBg,border:"none",borderRadius:8,color:batchFiles.length?"#fff":T.td,fontWeight:600,fontSize:12,cursor:batchFiles.length?"pointer":"default",fontFamily:"'Crimson Pro',serif" }}>
-                  {"▶"} Procesar {batchFiles.length || ""} foto{batchFiles.length===1?"":"s"}{window.showDirectoryPicker ? " → elegir carpeta destino" : ""}
+                  {"▶"} {tr("Procesar","Process")} {batchFiles.length || ""} {tr(`foto${batchFiles.length===1?"":"s"}`,`photo${batchFiles.length===1?"":"s"}`)}{window.showDirectoryPicker ? tr(" → elegir carpeta destino"," → choose destination folder") : ""}
                 </button>
               ) : (
                 <button onClick={()=>{batchCancelRef.current=true;}} style={{ flex:1,padding:"9px 10px",background:T.cBg,border:`1px solid ${T.acBd}`,borderRadius:8,color:T.ac,fontWeight:600,fontSize:12,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>
-                  {"■"} Cancelar
+                  {"■"} {tr("Cancelar","Cancel")}
                 </button>
               )}
             </div>
@@ -1849,7 +1907,7 @@ function RockArtEnhancer() {
 
       {/* FOOTER */}
       <footer style={{ padding:"14px 20px",borderTop:`1px solid ${T.fBd}`,textAlign:"center",fontSize:10,color:T.fTx,fontFamily:mono,position:"relative",zIndex:5,lineHeight:1.8 }}>
-        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v3.5.0 &middot; 12 filtros &middot; Gotero crom&aacute;tico &middot; Zoom y encuadre &middot; Lote fotogram&eacute;trico &middot; Estad&iacute;sticas por zona &middot; Stacking &middot; GPS/EXIF &middot; 100% offline</div>
+        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v3.6.0 &middot; {tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline","12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")}</div>
         <div><span style={{color:T.tm}}>Dr. Emilio A. Villafa&ntilde;ez</span> &middot; <span style={{color:T.tm}}>LATDAA</span> &middot; <span style={{color:T.tm}}>Fund. F&eacute;lix de Azara</span> &middot; <span style={{color:T.tm}}>Universidad Nacional de Catamarca (UNCA), Argentina</span></div>
       </footer>
 

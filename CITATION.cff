@@ -20,8 +20,8 @@ authors:
       Escuela de Arqueología, Universidad Nacional de Catamarca / CONICET
     city: "San Fernando del Valle de Catamarca"
     country: AR
-version: "3.5.0"
-date-released: "2026-08-28"
+version: "3.6.0"
+date-released: "2026-08-29"
 license: GPL-3.0-or-later
 repository-code: "https://github.com/emilios81/opuntiacolor"
 url: "https://emilios81.github.io/opuntiacolor/"

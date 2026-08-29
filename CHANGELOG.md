@@ -4,6 +4,76 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.6.0 (2026-08-29)
+
+### La resolución de trabajo por defecto pasa a ser la completa
+
+**⚠ Cambia los resultados con los valores por defecto.**
+
+- **El problema.** La aplicación abría cada foto reducida a 2000 px en el lado
+  mayor, y la resolución completa había que pedirla con un botón. Quien no
+  reparaba en ese botón analizaba, ajustaba y exportaba en baja resolución sin
+  enterarse: el resultado se ve bien en pantalla y el archivo sale con el mismo
+  nombre y los mismos metadatos que uno hecho en resolución completa.
+
+- **El cambio.** Al cargar una foto se trabaja con su resolución real, hasta el
+  tope de 8192 px que ya existía.
+
+- **El control subió a la cabecera del panel izquierdo**, antes de la lista de
+  filtros, en lugar de estar al final entre los datos del archivo, donde pasaba
+  inadvertido. Muestra las **dos opciones juntas** —completa o 2000 px— para que
+  se vea que hay una elección y cuál está activa, y debajo el tamaño en píxeles
+  que se va a procesar. Mientras se trabaja reducido, el recuadro y esa cifra
+  quedan en rojo. Está arriba porque es una decisión que se toma **antes** de
+  elegir filtro. La elección persiste al cargar la foto siguiente: es una
+  decisión sobre la máquina, no sobre la foto. Cambiarla descarta el resultado
+  procesado y la selección activa, porque sus coordenadas son las de la
+  resolución anterior.
+
+- **Qué cambia en los resultados.** Micro-relieve, Relieve y CLAHE dependen de
+  vecindarios definidos en píxeles o en fracción de la imagen, así que a otra
+  escala captan estructuras distintas; las diferencias pueden ser grandes. Los
+  filtros de decorrelación y de pigmento son por píxel y sus estadísticas apenas
+  se mueven, pero el remuestreo previo altera algo los valores. **Una imagen
+  procesada con v3.5.0 en el modo por defecto no es comparable con una de v3.6.0
+  sin reprocesarla.**
+
+- **Por qué acá no hay mapeo que deje el default byte-idéntico.** En el cambio
+  anterior que tocaba resultados —la intensidad de LDS en v3.4.0— el parámetro se
+  eligió de modo que el valor por defecto reprodujera exactamente la versión
+  previa. Acá eso no es posible: el cambio *es* el valor por defecto. Para
+  reproducir el comportamiento de v3.5.0 hay que bajar explícitamente a 2000 px.
+
+- **Documentación.** Se actualizaron `README.md`, `docs/PARAMETROS.md`,
+  `docs/LIMITACIONES.md` y `docs/INSTALACION.md`. El criterio práctico quedó
+  invertido: antes era «explorar en 2000 px, exportar en completa»; ahora es
+  trabajar en completa y bajar solo si la máquina se arrastra.
+
+### Interfaz bilingüe español / inglés
+
+**No cambia ningún resultado.**
+
+- Toda la interfaz —nombres y descripciones de los 12 filtros, controles, textos
+  de ayuda, tooltips, modal de procesado por lote y panel de novedades— está
+  disponible en español y en inglés. El motivo: colegas de habla inglesa no
+  llegaban a saber para qué servía cada filtro.
+
+- Un botón en la cabecera cambia de idioma en cualquier momento. La elección se
+  guarda en `localStorage`; en la primera visita se toma del idioma del
+  navegador, de modo que quien abre la herramienta en inglés la ve en inglés sin
+  tener que buscar nada. El atributo `lang` del documento acompaña el cambio.
+
+- **El español sigue siendo la fuente.** La traducción se resuelve con un helper
+  `tr(es, en)` que recibe el texto español y su versión inglesa juntos, en el
+  mismo lugar del código. Si falta la traducción se muestra el español, así que
+  agregar un texto nuevo no puede dejar un hueco en blanco en la interfaz.
+
+- **Los nombres de archivo exportados no cambian.** Se arman con el identificador
+  interno del filtro (`lds`, `red`, `petro`…), no con la etiqueta visible: un
+  archivo exportado desde la interfaz en inglés es indistinguible de uno
+  exportado desde la interfaz en español, y el material ya publicado sigue siendo
+  citable igual.
+
 ## v3.5.0 (2026)
 
 ### LDS deja de virar a violeta: normalización robusta con ganancia común

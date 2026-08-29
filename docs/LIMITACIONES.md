@@ -183,8 +183,8 @@ cuáles fueron.
 
 ## 7. La resolución de trabajo cambia el resultado
 
-Por defecto se trabaja a 2000 px en el lado mayor; la resolución completa llega
-hasta 8192 px.
+Por defecto se trabaja a la resolución completa de la foto, hasta 8192 px en el
+lado mayor; se puede bajar a 2000 px si la máquina se arrastra.
 
 Los resultados **no son idénticos** entre una y otra:
 
@@ -194,9 +194,10 @@ Los resultados **no son idénticos** entre una y otra:
 - **Decorrelación y pigmentos** son por píxel; sus estadísticas apenas se mueven,
   pero el remuestreo previo altera algo los valores.
 
-**En la práctica:** explorar en 2000 px, exportar en resolución completa con los
-parámetros ya elegidos, y **revisar el resultado final** en vez de asumir que es
-el mismo más grande. Consignar la resolución de trabajo en cualquier publicación.
+**En la práctica:** trabajar en resolución completa. Si hizo falta bajar a 2000 px
+para explorar, **rehacer el resultado final** en completa con los parámetros ya
+elegidos y revisarlo, en vez de asumir que es el mismo más grande. Consignar la
+resolución de trabajo en cualquier publicación.
 
 ## 8. Sin calibración fotométrica
 

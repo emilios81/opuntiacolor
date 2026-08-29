@@ -91,15 +91,15 @@ git add src/app.jsx app.js
 Lo que hace falta es soporte de `<canvas>` con `ImageData`, `Uint8ClampedArray`
 y ES2018. Cualquier navegador de escritorio actualizado sirve.
 
-**Memoria.** El procesamiento a resolución completa (hasta 8192 px) mantiene
-varios buffers en memoria a la vez. Una foto de 8000 × 6000 ocupa unos 190 MB
+**Memoria.** El procesamiento a resolución completa (hasta 8192 px), que es el
+modo por defecto, mantiene varios buffers en memoria a la vez. Una foto de 8000 × 6000 ocupa unos 190 MB
 solo en el buffer RGBA, y el pipeline necesita entre tres y cinco copias. Con
-menos de 8 GB de RAM conviene trabajar a 2000 px y dejar la resolución completa
-para la exportación final.
+menos de 8 GB de RAM conviene bajar a 2000 px para explorar y volver a la
+resolución completa para el resultado final.
 
 **Móviles.** La interfaz responde, pero el procesamiento a resolución completa
 puede agotar la memoria del navegador y hacer que la pestaña se recargue sola.
-En teléfono, usar 2000 px.
+En teléfono, bajar a 2000 px.
 
 ---
 

@@ -87,9 +87,12 @@ falso color; ver las limitaciones antes de usarlo).
   encuadre. Llega a 1600 %; pasado 300 % se muestran los píxeles reales, sin
   interpolar. El deslizador de comparación, el gotero y la selección siguen
   cayendo donde uno los pone, con la imagen ampliada o corrida.
+- **Interfaz bilingüe** — español e inglés; el botón de la cabecera cambia de
+  idioma y la elección queda guardada. En la primera visita se toma la del
+  navegador.
 - **Modo Solar** — interfaz de alto contraste para trabajo de campo bajo luz directa.
-- **Resolución completa** — hasta 8192 px para publicación y archivo (2000 px por
-  defecto, más rápido).
+- **Resolución completa** — es el modo por defecto, hasta 8192 px; se puede bajar
+  a 2000 px si la máquina se arrastra.
 
 ## Procesado por lote para fotogrametría
 

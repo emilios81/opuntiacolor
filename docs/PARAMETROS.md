@@ -11,7 +11,7 @@ Rangos, valores por defecto y efecto real de cada control.
 | Intensidad | 0.2 – 5.0 | 0.1 | **1.5** |
 | Contraste | −80 – +80 | 5 | **0** |
 | Saturación | −100 – +100 | 5 | **0** |
-| Resolución de trabajo | 2000 px / completa (hasta 8192 px) | — | **2000 px** |
+| Resolución de trabajo | completa (hasta 8192 px) / 2000 px | — | **completa** |
 | Resolución del lote | 2000 / 4000 / 8192 px | — | **8192 px** |
 
 ---
@@ -196,10 +196,19 @@ el color que produjo el filtro, no la composición del pigmento. Ver
 
 ## Resolución de trabajo
 
-**2000 px por defecto; resolución completa hasta 8192 px.**
+**Resolución completa por defecto, hasta 8192 px; se puede bajar a 2000 px.**
 
-El botón de resolución completa aparece solo si la foto supera los 2000 px en su
-lado mayor.
+El control está **arriba de todo en el panel izquierdo, antes de la lista de
+filtros**, y aparece solo si la foto supera los 2000 px en su lado mayor. Muestra
+las dos opciones juntas —completa o 2000 px— y debajo el tamaño en píxeles que se
+va a procesar; mientras se trabaja reducido, el recuadro y esa cifra quedan en
+rojo. Está ahí porque la resolución se decide **antes** de elegir filtro, y porque
+no debería pasar inadvertida: es la diferencia entre una imagen de exploración y
+una publicable.
+
+Cambiar la resolución **descarta el resultado procesado y la selección activa**:
+sus coordenadas corresponden a la resolución anterior. Los filtros y la intensidad
+elegidos no se pierden, así que rehacer el resultado es un clic.
 
 **Los resultados no son idénticos entre resoluciones.** Los filtros que dependen
 de vecindarios —Micro-relieve, Relieve, CLAHE— usan ventanas definidas en
@@ -207,8 +216,10 @@ píxeles o en fracción de la imagen, así que cambian con la escala. Los filtro
 decorrelación y de pigmento son por píxel y sus estadísticas apenas se mueven,
 pero el remuestreo previo altera algo los valores.
 
-Criterio práctico: **explorar en 2000 px, exportar en resolución completa** con
-los parámetros ya elegidos, y revisar el resultado final antes de darlo por bueno.
+Criterio práctico: **trabajar en resolución completa** y bajar a 2000 px solo si
+la máquina se arrastra. Si se exploró en 2000 px, rehacer el resultado final en
+resolución completa con los parámetros ya elegidos y revisarlo antes de darlo por
+bueno.
 
 Para una publicación conviene consignar la resolución de trabajo junto con la
 versión, el filtro y la intensidad: son los cuatro datos necesarios para que otra
