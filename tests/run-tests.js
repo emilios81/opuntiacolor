@@ -951,17 +951,30 @@ suite("Correspondencia src/app.jsx ↔ app.js", () => {
       "(primera: " + (jsx ? jsx[0] : "") + "). Correr `node build.js`.");
   });
 
-  test("la versión coincide en src/app.jsx, index.html y package.json", () => {
-    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
-    const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+  test("la versión coincide en todos los archivos que la declaran", () => {
+    const leer = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const pkg = JSON.parse(leer("package.json"));
+    const html = leer("index.html"), readme = leer("README.md"), cff = leer("CITATION.cff");
+    const zenodo = JSON.parse(leer(".zenodo.json"));
 
-    const enHtml = (html.match(/OpuntiaColor v([\d.]+)/) || [])[1];
-    const enFuente = (source.match(/OPC – OpuntiaColor v([\d.]+)/) || [])[1];
+    // Un bump de versión toca ocho lugares. En v3.6.0 se olvidaron dos del
+    // README y nadie se enteró hasta revisarlo a mano: de ahí esta prueba.
+    const donde = {
+      "src/app.jsx (cabecera)":      (source.match(/OPC – OpuntiaColor v([\d.]+)/) || [])[1],
+      "src/app.jsx (span del header)": (source.match(/fontFamily:mono }}>v([\d.]+)<\/span>/) || [])[1],
+      "src/app.jsx (h3 de novedades)": (source.match(/OPC v([\d.]+) &mdash;/) || [])[1],
+      "src/app.jsx (pie)":           (source.match(/&ndash; OpuntiaColor v([\d.]+) &middot;/) || [])[1],
+      "index.html":                  (html.match(/OpuntiaColor v([\d.]+)/) || [])[1],
+      "README.md (título)":          (readme.match(/^# OPC – OpuntiaColor v([\d.]+)/m) || [])[1],
+      "README.md (cómo citar)":      (readme.match(/arte rupestre\* \(v([\d.]+)\)/) || [])[1],
+      "CITATION.cff":                (cff.match(/^version: "([\d.]+)"/m) || [])[1],
+      ".zenodo.json":                zenodo.version,
+    };
 
-    assert(enFuente === pkg.version,
-      "src/app.jsx dice v" + enFuente + " y package.json dice v" + pkg.version);
-    assert(enHtml === pkg.version,
-      "index.html dice v" + enHtml + " y package.json dice v" + pkg.version);
+    for (const [archivo, v] of Object.entries(donde)) {
+      assert(v === pkg.version,
+        archivo + " dice v" + v + " y package.json dice v" + pkg.version);
+    }
   });
 });
 

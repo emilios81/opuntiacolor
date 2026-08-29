@@ -1895,6 +1895,7 @@ function RockArtEnhancer() {
     if (image) {
       setImageSize(computeSize(image, nv));
       setProcessedSrc(null);
+      setActivePreset(null);
       setSelData(null);
       setSelTool("none");
       drawRef.current = {
@@ -3327,7 +3328,7 @@ function RockArtEnhancer() {
   }].map(o => /*#__PURE__*/React.createElement("button", {
     key: String(o.v),
     onClick: () => setWorkingRes(o.v),
-    title: o.v ? tr("Procesar la foto en su resoluci\u00F3n real", "Process the photo at its real resolution") : tr("M\u00E1s r\u00E1pido, pero se procesa menos detalle", "Faster, but less detail is processed"),
+    title: o.v ? tr("Procesar la foto en su resoluci\u00F3n real, con un tope de 8192 px", "Process the photo at its real resolution, capped at 8192 px") : tr("M\u00E1s r\u00E1pido, pero se procesa menos detalle", "Faster, but less detail is processed"),
     style: {
       flex: 1,
       padding: "5px 4px",
@@ -3348,7 +3349,7 @@ function RockArtEnhancer() {
       marginTop: 4,
       lineHeight: 1.4
     }
-  }, imageSize.w, " \xD7 ", imageSize.h, " px ", fullRes ? tr("\u00B7 la resoluci\u00F3n real de la foto", "\u00B7 the photo\u2019s real resolution") : tr(`\u00B7 reducida de ${image.naturalWidth}\u00D7${image.naturalHeight}`, `\u00B7 reduced from ${image.naturalWidth}\u00D7${image.naturalHeight}`))), /*#__PURE__*/React.createElement("div", {
+  }, imageSize.w, " \xD7 ", imageSize.h, " px ", !fullRes ? tr(`\u00B7 reducida de ${image.naturalWidth}\u00D7${image.naturalHeight}`, `\u00B7 reduced from ${image.naturalWidth}\u00D7${image.naturalHeight}`) : Math.max(image.naturalWidth, image.naturalHeight) > 8192 ? tr(`\u00B7 tope de 8192 px (orig. ${image.naturalWidth}\u00D7${image.naturalHeight})`, `\u00B7 capped at 8192 px (orig. ${image.naturalWidth}\u00D7${image.naturalHeight})`) : tr("\u00B7 la resoluci\u00F3n real de la foto", "\u00B7 the photo\u2019s real resolution"))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 8.5,
       fontFamily: mono,

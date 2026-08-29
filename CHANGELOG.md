@@ -49,6 +49,29 @@ reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
   invertido: antes era «explorar en 2000 px, exportar en completa»; ahora es
   trabajar en completa y bajar solo si la máquina se arrastra.
 
+### Correcciones de la propia v3.6.0
+
+- **Cambiar la resolución ya no deja el filtro marcado.** Al bajar o subir la
+  resolución se descarta el resultado procesado, pero el filtro seguía resaltado
+  en rojo en la lista mientras el visor decía «Seleccioná un filtro»: la pantalla
+  afirmaba dos cosas contradictorias. Ahora el filtro activo se apaga junto con
+  el resultado.
+
+- **La leyenda del control decía «la resolución real de la foto» siempre.** Con
+  una foto de más de 8192 px en el lado mayor eso era falso, porque ese es el
+  tope de trabajo. Ahora en ese caso dice «tope de 8192 px» y muestra el tamaño
+  original entre paréntesis.
+
+- **La prueba de versión mira los ocho lugares que la declaran**, no tres. En el
+  bump a v3.6.0 se olvidaron el título del README y el bloque «Cómo citar», y la
+  suite no lo detectó porque solo comparaba `src/app.jsx`, `index.html` y
+  `package.json`. Ahora incluye también README (título y cita), `CITATION.cff`,
+  `.zenodo.json` y los tres puntos visibles de `src/app.jsx`.
+
+- **README con resumen en inglés** y `.zenodo.json` con un resumen en inglés en
+  la descripción del registro: quien llega buscando la herramienta en inglés no
+  tiene por qué leer en español para saber qué hace.
+
 ### Interfaz bilingüe español / inglés
 
 **No cambia ningún resultado.**

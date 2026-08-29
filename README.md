@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.5.0
+# OPC – OpuntiaColor v3.6.0
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -15,6 +15,25 @@ Las imágenes **no se transmiten a ningún servidor**. Todo el procesamiento
 ocurre en la computadora de quien la usa.
 
 🔗 **Usar ahora:** https://emilios81.github.io/opuntiacolor/
+
+---
+
+## In English
+
+**OPC – OpuntiaColor** is an open-source web tool for the digital enhancement of
+pigments and engravings in rock art. It applies decorrelation stretching (in RGB
+and CIE-LAB), selective pigment enhancement, contrast-limited adaptive histogram
+equalization and micro-relief detection to field photographs — entirely **in the
+browser and offline**. Images are never uploaded to any server.
+
+**The interface is available in English.** Use the language button in the top bar,
+or just open the tool in an English-language browser and it starts in English.
+
+🔗 **Use it now:** https://emilios81.github.io/opuntiacolor/
+
+The documentation below and the code comments are in Spanish. The in-app *Info*
+panel explains, in English too, what each version changed — including which ones
+change processing results.
 
 ---
 
@@ -204,7 +223,7 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.5.0)
+para el realce digital de pigmentos y grabados en arte rupestre* (v3.6.0)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://doi.org/10.5281/zenodo.21796290
 
