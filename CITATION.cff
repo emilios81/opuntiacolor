@@ -36,6 +36,9 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.22145678"
     description: "DOI de la versión 3.5.0"
+  - type: doi
+    value: "10.5281/zenodo.22162329"
+    description: "DOI de la versión 3.6.0"
 keywords:
   - arte rupestre
   - rock art

@@ -229,9 +229,11 @@ https://doi.org/10.5281/zenodo.21796290
 
 Cada versión queda archivada en Zenodo con su propio DOI. El de arriba es el
 **DOI concepto**: siempre resuelve a la última versión, y es el que conviene
-citar salvo que se quiera referir a una versión concreta. El de v3.4.0 en
-particular es [10.5281/zenodo.21796291](https://doi.org/10.5281/zenodo.21796291)
-y el de v3.5.0 es [10.5281/zenodo.22145678](https://doi.org/10.5281/zenodo.22145678).
+citar salvo que se quiera referir a una versión concreta. Los de las versiones
+concretas son [10.5281/zenodo.21796291](https://doi.org/10.5281/zenodo.21796291)
+para v3.4.0, [10.5281/zenodo.22145678](https://doi.org/10.5281/zenodo.22145678)
+para v3.5.0 y [10.5281/zenodo.22162329](https://doi.org/10.5281/zenodo.22162329)
+para v3.6.0.
 
 El archivo [CITATION.cff](CITATION.cff) permite que GitHub genere la cita en
 distintos formatos desde el botón *Cite this repository*.
