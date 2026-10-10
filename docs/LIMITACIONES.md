@@ -15,6 +15,7 @@ todavía no se corrigieron.
 1. [El realce no descubre: redistribuye](#1-el-realce-no-descubre-redistribuye)
 2. [El mapa de pigmentos no identifica pigmentos](#2-el-mapa-de-pigmentos-no-identifica-pigmentos)
 11. [El gotero selecciona color, no pigmento](#11-el-gotero-selecciona-color-no-pigmento)
+12. [El Relieve mide brillo, no altura](#12-el-relieve-mide-brillo-no-altura)
 
 **Técnicas**
 3. [El rango de intensidad de LDS no llega a la foto original](#3-el-rango-de-intensidad-de-lds-no-llega-a-la-foto-original)
@@ -76,6 +77,11 @@ Concretamente, el filtro **no distingue**:
 Los umbrales son absolutos y no se adaptan a la iluminación, al balance de
 blancos de la cámara ni al tipo de roca. La misma pintura fotografiada al sol y
 a la sombra puede caer en dos categorías distintas.
+
+Desde v3.7.0 la descripción del filtro lo dice («hipótesis, no
+identificación»), y con el mapa activo el panel propone un control: mirar cómo
+sale una zona de roca sin pintura. Si también sale roja, el rojo del mapa no
+está distinguiendo pigmento de soporte en esa foto.
 
 **Es una herramienta exploratoria: sirve para separar visualmente zonas y
 orientar dónde mirar. No sustituye ningún análisis.** Determinar composición
@@ -188,9 +194,11 @@ lado mayor; se puede bajar a 2000 px si la máquina se arrastra.
 
 Los resultados **no son idénticos** entre una y otra:
 
-- **Micro-relieve, Relieve y CLAHE** dependen de vecindarios. Sus ventanas están
-  definidas en píxeles o en fracción de la imagen, así que a distinta escala
-  captan estructuras distintas. Las diferencias pueden ser grandes.
+- **Micro-relieve, Relieve en Bordes y CLAHE** dependen de vecindarios. Sus
+  ventanas están definidas en píxeles o en fracción de la imagen, así que a
+  distinta escala captan estructuras distintas. Las diferencias pueden ser
+  grandes. El **Relieve con escala** es la excepción: la escala es un porcentaje
+  del lado mayor y el resultado cambia poco con la resolución.
 - **Decorrelación y pigmentos** son por píxel; sus estadísticas apenas se mueven,
   pero el remuestreo previo altera algo los valores.
 
@@ -233,7 +241,8 @@ básico, pero **no** queda registrado:
 - la **versión de OPC** usada (y las versiones cambian resultados: ver §10);
 - la **resolución de trabajo** (2000 px o completa);
 - la **zona de selección**, que puede cambiar el resultado por completo;
-- la **cadena de filtros** si se usó el modo Acumular;
+- la **cadena de filtros** si se usó el modo Acumular (desde v3.7.0 la escala
+  del Relieve sí queda en el nombre, como `_e0.25`);
 - en el lote, **cuál fue la foto de referencia**.
 
 Todo eso hay que anotarlo aparte. Como mínimo, en una publicación deberían
@@ -249,6 +258,10 @@ Ya pasó una vez, y no fue menor: **v3.3.0 corrigió la eigendescomposición**, 
 daba eigenvalores incorrectos desde v3.0. Los resultados de CRGB, DS-LAB y LDS de
 las versiones 3.0 a 3.2.1 **difieren** de los actuales. Si hay material publicado
 o en preparación con esas versiones, hay que reprocesarlo para poder compararlo.
+
+Desde entonces hubo más: v3.4.0 y v3.5.0 cambiaron LDS, v3.6.0 la resolución de
+trabajo por defecto y **v3.7.0 el filtro Rojo**, que pasó de una transformación
+fija a una adaptativa.
 
 El [CHANGELOG](../CHANGELOG.md) señala de forma explícita cada versión que cambia
 resultados. Conviene revisarlo antes de actualizar en medio de un trabajo en
@@ -287,6 +300,27 @@ debe reportarse.
 tolerancia, pero no el color: si el procedimiento se va a publicar, hay que
 anotar los valores RGB de la muestra junto con los demás parámetros. Es un caso
 particular de §9.
+
+## 12. El Relieve mide brillo, no altura
+
+Con una escala, el Relieve muestra lo que la foto registra como **más claro o
+más oscuro que su entorno** a ese tamaño. No hay datos de altura en una foto: si
+el resultado se parece a un relieve es porque, con luz rasante, las caras que
+miran a la luz salen claras y las que no, oscuras.
+
+- **Con luz rasante** lo que se ve es, en buena medida, relieve, pero depende de
+  la dirección de la luz: un surco perpendicular a ella se marca mucho y uno
+  paralelo casi nada. Dos fotos con luz de lados opuestos muestran surcos
+  distintos.
+- **Con luz difusa** lo que se ve es diferencia de tono: pátina, picado fresco,
+  manchas, líquenes. Un grabado se distingue si el picado cambió el color de la
+  superficie, no por su profundidad.
+- **Mojar la roca, la hora del día o el balance de blancos** cambian el
+  resultado tanto como el motivo.
+
+Para documentar relieve de verdad hacen falta datos de forma: fotogrametría
+(y un modelo de elevación, al que sí se le puede aplicar un Local Relief Model),
+RTI o escaneo. El Relieve de OPC sirve para encontrar y orientar, no para medir.
 
 ---
 

@@ -29,7 +29,7 @@ const {
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.6.0
+// OPC – OpuntiaColor v3.7.0
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -41,6 +41,9 @@ const OPC_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 // v3.4: La intensidad de LDS pasa a ser el exponente de blanqueo.
 //       Antes no tenía ningún efecto; ahora el valor por defecto (1.5)
 //       reproduce exactamente la salida de v3.3.0
+// v3.7: Rojo adaptativo (decorrelación en el plano a*-b*: cambian
+//       sus resultados) y Relieve con escala; la escala 0 (bordes)
+//       reproduce exactamente la salida de v3.6.0
 // ============================================================
 
 // --- Color Conversion Core ---
@@ -306,22 +309,124 @@ function satMean(sat, w, x0, y0, x1, y1) {
 
 // --- Pinturas ---
 
-function enhanceRedPigment(imageData, intensity = 1.5) {
+// Rojo adaptativo (v3.7.0)
+//
+// Hasta v3.6.0 este filtro era una transformación FIJA en CIE-LAB: multiplicaba
+// a* por la intensidad y corría L* según el signo de a*, sin mirar la foto. En
+// una arenisca con manchas de hierro —rojiza toda ella— eso enrojecía la roca y
+// el pigmento por igual, y los trazos no se separaban del soporte. Es lo que
+// mostró la comparación de B. Gunn contra DStretch (sep-2026).
+//
+// Ahora es un decorrelation stretch en el plano cromático a*-b*, calculado con
+// los colores de la propia foto o de la zona seleccionada:
+//
+//   1. Media y covarianza 2×2 de (a*, b*), sin los píxeles que caen fuera de
+//      las vallas de Tukey (k = 3) de cada eje: la tarjeta de color o una mano
+//      no deciden cuál es el color de la roca.
+//   2. Ejes principales: el primero sigue la variación dominante del soporte
+//      (en una arenisca ferruginosa, del ocre claro al naranja); el segundo es
+//      su perpendicular, donde suele quedar el pigmento.
+//   3. Los dos ejes se llevan a la misma dispersión, RED_SIGMA · intensidad
+//      unidades LAB, y se vuelve a los ejes a*, b*. El color medio de la roca
+//      queda gris; lo que se aparta de él, amplificado.
+//   4. Lo que se aparta hacia +a* —más rojo que la roca— se estira además
+//      RED_ENFASIS veces: es lo que hace de este un filtro rojo.
+//
+// L* no se toca, así que la textura y el relieve quedan como en la foto. El
+// desvío de cada eje tiene un piso de RED_PISO: en una roca casi gris un eje
+// puede tener σ ≈ 1, que es ruido de compresión, y sin piso se lo amplificaría
+// ×15 con el valor por defecto. En el lote, media, ejes y desvíos van
+// congelados de la referencia; la intensidad se sigue aplicando en cada foto.
+const RED_SIGMA = 10;
+const RED_PISO = 1.5;
+const RED_ENFASIS = 1.5;
+function enhanceRedPigment(imageData, intensity = 1.5, mask = null, store = null) {
   const data = imageData.data,
-    n = data.length / 4,
-    output = new Uint8ClampedArray(data.length);
+    n = data.length / 4;
+  const L = new Float64Array(n),
+    A = new Float64Array(n),
+    B = new Float64Array(n);
   for (let i = 0; i < n; i++) {
-    const r = data[i * 4],
-      g = data[i * 4 + 1],
-      b = data[i * 4 + 2];
-    const [L, a, bL] = rgb2lab(r, g, b);
-    const nA = a * intensity,
-      nB = bL * (1 + (intensity - 1) * 0.3),
-      nL = L + (a > 0 ? (intensity - 1) * 8 : -(intensity - 1) * 5);
-    const [nr, ng, nb] = lab2rgb(Math.max(0, Math.min(100, nL)), Math.max(-128, Math.min(127, nA)), Math.max(-128, Math.min(127, nB)));
-    output[i * 4] = nr;
-    output[i * 4 + 1] = ng;
-    output[i * 4 + 2] = nb;
+    const [l, a, b] = rgb2lab(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+    L[i] = l;
+    A[i] = a;
+    B[i] = b;
+  }
+  let st = store && store.frozen;
+  if (!st) {
+    // Máscara vacía → toda la imagen, igual que meanCov3
+    if (mask) {
+      let alguno = false;
+      for (let i = 0; i < n; i++) if (mask[i]) {
+        alguno = true;
+        break;
+      }
+      if (!alguno) mask = null;
+    }
+    const fa = tukeyFences(A, n, mask, 3),
+      fb = tukeyFences(B, n, mask, 3);
+    const vale = i => (!mask || mask[i]) && A[i] >= fa.lo && A[i] <= fa.hi && B[i] >= fb.lo && B[i] <= fb.hi;
+    let ma = 0,
+      mb = 0,
+      cnt = 0;
+    for (let i = 0; i < n; i++) {
+      if (!vale(i)) continue;
+      ma += A[i];
+      mb += B[i];
+      cnt++;
+    }
+    ma /= cnt;
+    mb /= cnt;
+    let saa = 0,
+      sab = 0,
+      sbb = 0;
+    for (let i = 0; i < n; i++) {
+      if (!vale(i)) continue;
+      const da = A[i] - ma,
+        db = B[i] - mb;
+      saa += da * da;
+      sab += da * db;
+      sbb += db * db;
+    }
+    saa /= cnt;
+    sab /= cnt;
+    sbb /= cnt;
+    // Ejes principales de una covarianza 2×2, en forma cerrada
+    const th = 0.5 * Math.atan2(2 * sab, saa - sbb);
+    const medio = (saa + sbb) / 2,
+      radio = Math.sqrt(((saa - sbb) / 2) ** 2 + sab * sab);
+    st = {
+      ma,
+      mb,
+      co: Math.cos(th),
+      si: Math.sin(th),
+      s1: Math.max(RED_PISO, Math.sqrt(Math.max(0, medio + radio))),
+      s2: Math.max(RED_PISO, Math.sqrt(Math.max(0, medio - radio)))
+    };
+    if (store) store.frozen = st;
+  }
+  const {
+    ma,
+    mb,
+    co,
+    si
+  } = st;
+  const objetivo = RED_SIGMA * intensity,
+    w1 = objetivo / st.s1,
+    w2 = objetivo / st.s2;
+  const output = new Uint8ClampedArray(data.length);
+  for (let i = 0; i < n; i++) {
+    const da = A[i] - ma,
+      db = B[i] - mb;
+    const p1 = (co * da + si * db) * w1,
+      p2 = (co * db - si * da) * w2;
+    let a = co * p1 - si * p2;
+    const b = si * p1 + co * p2;
+    if (a > 0) a *= RED_ENFASIS;
+    const [r, g, bb] = lab2rgb(L[i], Math.max(-128, Math.min(127, a)), Math.max(-128, Math.min(127, b)));
+    output[i * 4] = r;
+    output[i * 4 + 1] = g;
+    output[i * 4 + 2] = bb;
     output[i * 4 + 3] = 255;
   }
   return new ImageData(output, imageData.width, imageData.height);
@@ -635,9 +740,14 @@ function crgbEnhance(imageData, intensity = 1.5, mask = null, store = null) {
   return new ImageData(output, w, h);
 }
 
-// NUEVO: Mapa de Relieve — Solo detección de bordes multi-escala
-// Genera un "calco digital" ideal para grabados rupestres
-function reliefMap(imageData, intensity = 1.5) {
+// Mapa de Relieve
+//
+// Con escala 0 (por defecto) es el mapa de bordes multi-escala de v3.0–v3.6,
+// byte a byte el mismo: un calco digital, útil sobre todo en pinturas. Con una
+// escala mayor que 0 pasa a reliefEscala (v3.7.0), pensado para grabados.
+function reliefMap(imageData, intensity = 1.5, mask = null, store = null, opts = null) {
+  const escala = opts && opts.escala || 0;
+  if (escala > 0) return reliefEscala(imageData, intensity, mask, store, escala);
   const data = imageData.data,
     w = imageData.width,
     h = imageData.height,
@@ -673,6 +783,220 @@ function reliefMap(imageData, intensity = 1.5) {
     output[i * 4] = Math.min(255, Math.round(v * 1.05));
     output[i * 4 + 1] = Math.min(255, Math.round(v * 0.92));
     output[i * 4 + 2] = Math.min(255, Math.round(v * 0.78));
+    output[i * 4 + 3] = 255;
+  }
+  return new ImageData(output, w, h);
+}
+
+// Escalas del Relieve, en % del lado mayor de la imagen. 0 = mapa de bordes.
+// La escala es lo más chico que se conserva: todo lo menor se borra. El tope es
+// 1 %: con 2 %, en una foto de panel (~1 m) se borra lo que mide menos de 2 cm,
+// que es el ancho de los propios surcos, y queda una mancha borrosa.
+const RELIEF_ESCALAS = [0, 0.1, 0.25, 0.5, 1];
+// Cuántas veces más grande que la escala es el entorno que se resta como fondo
+const RELIEF_FONDO = 16;
+
+// Promedio en caja de (2r+1)×(2r+1) píxeles, separable y recorriendo siempre
+// por filas (la pasada vertical lleva una suma corrida por columna, así no
+// salta de fila en fila con imágenes de decenas de megapíxeles). En los bordes
+// la ventana se recorta y promedia solo los píxeles que caen dentro, el mismo
+// criterio que satMean. Lee src y escribe dst usando tmp de intermedio; src y
+// dst pueden ser el mismo arreglo, tmp no.
+function boxBlur(src, dst, tmp, w, h, r) {
+  for (let y = 0; y < h; y++) {
+    const o = y * w;
+    let s = 0;
+    for (let x = 0; x <= Math.min(w - 1, r); x++) s += src[o + x];
+    for (let x = 0; x < w; x++) {
+      tmp[o + x] = s / (Math.min(w - 1, x + r) - Math.max(0, x - r) + 1);
+      if (x + r + 1 < w) s += src[o + x + r + 1];
+      if (x - r >= 0) s -= src[o + x - r];
+    }
+  }
+  const col = new Float64Array(w);
+  for (let y = 0; y <= Math.min(h - 1, r); y++) {
+    const o = y * w;
+    for (let x = 0; x < w; x++) col[x] += tmp[o + x];
+  }
+  for (let y = 0; y < h; y++) {
+    const o = y * w,
+      cnt = Math.min(h - 1, y + r) - Math.max(0, y - r) + 1;
+    for (let x = 0; x < w; x++) dst[o + x] = col[x] / cnt;
+    if (y + r + 1 < h) {
+      const o2 = (y + r + 1) * w;
+      for (let x = 0; x < w; x++) col[x] += tmp[o2 + x];
+    }
+    if (y - r >= 0) {
+      const o3 = (y - r) * w;
+      for (let x = 0; x < w; x++) col[x] -= tmp[o3 + x];
+    }
+  }
+}
+
+// Resta a la luminancia, en el lugar, la superficie cuadrática que mejor la
+// ajusta por mínimos cuadrados: c0 + c1·u + c2·v + c3·u² + c4·u·v + c5·v², con
+// u, v ∈ [-1, 1] del centro a los bordes. Es la iluminación general de la foto
+// —un gradiente de luz, un viñeteo— y la curvatura de conjunto de la roca.
+//
+// Hace falta porque el promedio en caja recorta la ventana en los bordes: ahí
+// el entorno queda corrido hacia el interior y un gradiente no se cancela. Con
+// escala 1 % la franja afectada llegaba a un sexto del ancho, y de
+// rebote movía la normalización de toda la imagen. Sacada antes la tendencia,
+// en los bordes no queda gradiente que cancelar; en el interior no cambia
+// nada, porque el pasabanda ya anulaba ahí cualquier cuadrática.
+//
+// La grilla es separable: los momentos geométricos salen de sumas por columna
+// y por fila, y de cada píxel solo hacen falta ΣL, ΣL·u y ΣL·u² de su fila.
+function quitarTendencia(lum, w, h) {
+  const cx = (w - 1) / 2,
+    cy = (h - 1) / 2,
+    sx = Math.max(cx, 1),
+    sy = Math.max(cy, 1);
+  const uu = new Float64Array(w),
+    vv = new Float64Array(h);
+  for (let x = 0; x < w; x++) uu[x] = (x - cx) / sx;
+  for (let y = 0; y < h; y++) vv[y] = (y - cy) / sy;
+  // U[a] = Σ u^a, V[b] = Σ v^b, a, b = 0..4
+  const U = [0, 0, 0, 0, 0],
+    V = [0, 0, 0, 0, 0];
+  for (let x = 0; x < w; x++) {
+    let p = 1;
+    for (let a = 0; a < 5; a++) {
+      U[a] += p;
+      p *= uu[x];
+    }
+  }
+  for (let y = 0; y < h; y++) {
+    let p = 1;
+    for (let a = 0; a < 5; a++) {
+      V[a] += p;
+      p *= vv[y];
+    }
+  }
+  // Exponentes (de u, de v) de cada término: 1, u, v, u², u·v, v²
+  const E = [[0, 0], [1, 0], [0, 1], [2, 0], [1, 1], [0, 2]];
+  const M = E.map(([aj, bj]) => E.map(([ak, bk]) => U[aj + ak] * V[bj + bk]));
+  const b = [0, 0, 0, 0, 0, 0];
+  for (let y = 0; y < h; y++) {
+    const o = y * w,
+      v = vv[y];
+    let s0 = 0,
+      s1 = 0,
+      s2 = 0;
+    for (let x = 0; x < w; x++) {
+      const L = lum[o + x],
+        u = uu[x];
+      s0 += L;
+      s1 += L * u;
+      s2 += L * u * u;
+    }
+    b[0] += s0;
+    b[1] += s1;
+    b[2] += v * s0;
+    b[3] += s2;
+    b[4] += v * s1;
+    b[5] += v * v * s0;
+  }
+  // Eliminación gaussiana con pivoteo parcial
+  for (let c = 0; c < 6; c++) {
+    let p = c;
+    for (let r = c + 1; r < 6; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    if (Math.abs(M[p][c]) < 1e-12) return; // imagen de una fila o columna: no hay superficie que ajustar
+    [M[c], M[p]] = [M[p], M[c]];
+    [b[c], b[p]] = [b[p], b[c]];
+    for (let r = c + 1; r < 6; r++) {
+      const k = M[r][c] / M[c][c];
+      for (let j = c; j < 6; j++) M[r][j] -= k * M[c][j];
+      b[r] -= k * b[c];
+    }
+  }
+  const co = [0, 0, 0, 0, 0, 0];
+  for (let c = 5; c >= 0; c--) {
+    let s = b[c];
+    for (let j = c + 1; j < 6; j++) s -= M[c][j] * co[j];
+    co[c] = s / M[c][c];
+  }
+  for (let y = 0; y < h; y++) {
+    const o = y * w,
+      v = vv[y];
+    const k0 = co[0] + co[2] * v + co[5] * v * v,
+      k1 = co[1] + co[4] * v;
+    for (let x = 0; x < w; x++) {
+      const u = uu[x];
+      lum[o + x] -= k0 + k1 * u + co[3] * u * u;
+    }
+  }
+}
+
+// Relieve por escala (v3.7.0)
+//
+// El mapa de bordes trata igual un grano de 2 mm que un surco picoteado de
+// 4 cm, y como no resta el fondo, un cambio general de iluminación o de altura
+// a lo ancho del panel corre toda la línea de base y tapa la señal. Sirve para
+// calcar una pintura; en petroglifos casi no sirve (B. Gunn, sep-2026).
+//
+// Acá la luminancia pasa por un pasabanda, al modo del Local Relief Model que
+// se usa con los modelos de elevación:
+//
+//   D = suavizado(r) − suavizado(RELIEF_FONDO · r)
+//
+// El primer suavizado borra lo que es más chico que la escala elegida; restar
+// el segundo saca el fondo: la iluminación despareja y la pendiente general de
+// la roca. Queda lo que tiene el tamaño elegido, positivo donde es más claro
+// que su entorno y negativo donde es más oscuro. Cada suavizado son tres
+// pasadas de promedio en caja de radio r, que equivalen a una gaussiana de
+// σ ≈ r. Antes se resta la tendencia cuadrática de toda la foto
+// (quitarTendencia), para que el fondo también se vaya junto a los bordes.
+//
+// r sale de la escala como fracción del lado mayor y no en píxeles: la misma
+// foto a 2000 px o a resolución completa da el mismo relieve, y el lote puede
+// reducir las fotos sin cambiar lo que se ve.
+//
+// La salida es gris: 128 es el nivel del entorno, y cada desvío robusto
+// (IQR/1.349) vale 40 · intensidad/1.5 niveles. El centro (punto medio entre
+// cuartiles) y el desvío salen de la zona seleccionada si la hay, y en el lote
+// quedan congelados de la referencia.
+//
+// Trabaja sobre el brillo, no sobre la altura: muestra lo que la foto registra
+// como más claro o más oscuro a esa escala. Con luz rasante eso es relieve; con
+// luz difusa, pátina y picado. Ver docs/LIMITACIONES.md.
+function reliefEscala(imageData, intensity, mask, store, escala) {
+  const data = imageData.data,
+    w = imageData.width,
+    h = imageData.height,
+    n = w * h;
+  const lum = new Float32Array(n),
+    fino = new Float32Array(n),
+    fondo = new Float32Array(n),
+    tmp = new Float32Array(n);
+  for (let i = 0; i < n; i++) lum[i] = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2];
+  quitarTendencia(lum, w, h);
+  const r = Math.max(1, Math.round(Math.max(w, h) * escala / 200)),
+    R = r * RELIEF_FONDO;
+  boxBlur(lum, fino, tmp, w, h, r);
+  boxBlur(fino, fondo, tmp, w, h, r);
+  boxBlur(fondo, fino, tmp, w, h, r);
+  // El fondo usa lum como intermedio: ya no hace falta
+  boxBlur(lum, fondo, tmp, w, h, R);
+  boxBlur(fondo, lum, tmp, w, h, R);
+  boxBlur(lum, fondo, tmp, w, h, R);
+  for (let i = 0; i < n; i++) fino[i] -= fondo[i];
+  let st = store && store.frozen;
+  if (!st) {
+    const q = tukeyFences(fino, n, mask, 0); // k = 0: Q1 y Q3
+    st = {
+      mid: (q.lo + q.hi) / 2,
+      sig: (q.hi - q.lo) / 1.349 || 1
+    };
+    if (store) store.frozen = st;
+  }
+  const g = 40 * intensity / 1.5 / st.sig;
+  const output = new Uint8ClampedArray(data.length);
+  for (let i = 0; i < n; i++) {
+    const v = 128 + (fino[i] - st.mid) * g;
+    output[i * 4] = v;
+    output[i * 4 + 1] = v;
+    output[i * 4 + 2] = v;
     output[i * 4 + 3] = 255;
   }
   return new ImageData(output, w, h);
@@ -1396,8 +1720,8 @@ const PRESETS = [{
   id: "red",
   name: "Rojo",
   nameEn: "Red",
-  desc: "Pinturas y pigmentos rojos / ocres",
-  descEn: "Red paints and pigments / ochres",
+  desc: "Rojos y ocres / se adapta al color de la roca",
+  descEn: "Reds and ochres / adapts to the rock\u2019s color",
   icon: "\uD83D\uDD34",
   fn: enhanceRedPigment
 }, {
@@ -1460,8 +1784,8 @@ const PRESETS = [{
   id: "relief",
   name: "Relieve",
   nameEn: "Relief",
-  desc: "Mapa de bordes multi-escala / calco digital",
-  descEn: "Multi-scale edge map / digital tracing",
+  desc: "Bordes para calcar, o relieve por escala / grabados",
+  descEn: "Edges for tracing, or relief by scale / engravings",
   icon: "\uD83D\uDDFA",
   fn: reliefMap
 }, {
@@ -1484,8 +1808,8 @@ const PRESETS = [{
   id: "map",
   name: "Mapa pigmentos",
   nameEn: "Pigment map",
-  desc: "Falso color por tipo de pigmento detectado",
-  descEn: "False color by detected pigment type",
+  desc: "Falso color por firma cromática / hipótesis, no identificación",
+  descEn: "False color by chromatic signature / a hypothesis, not an identification",
   icon: "\uD83D\uDDFA\uFE0F",
   fn: pigmentMapping
 }];
@@ -1521,6 +1845,8 @@ function RockArtEnhancer() {
   const [processedSrc, setProcessedSrc] = useState(null);
   const [activePreset, setActivePreset] = useState(null);
   const [intensity, setIntensity] = useState(1.5);
+  // Escala del Relieve en % del lado mayor (0 = mapa de bordes de v3.6)
+  const [reliefScale, setReliefScale] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [sliderPos, setSliderPos] = useState(50);
   const [dragging, setDragging] = useState(false);
@@ -1939,6 +2265,10 @@ function RockArtEnhancer() {
           return merged;
         };
         const mask = generateMask(selData, w, h);
+        // Parámetros propios de un filtro; viajan también al pipeline del lote
+        const opts = preset.id === "relief" ? {
+          escala: reliefScale
+        } : null;
 
         // Si stackMode y hay resultado previo, usar ese como fuente
         if (stackMode && processedSrc) {
@@ -1949,7 +2279,7 @@ function RockArtEnhancer() {
               const sourceData = ctx.getImageData(0, 0, w, h);
               const id = new ImageData(new Uint8ClampedArray(sourceData.data), w, h);
               const store = {};
-              const result = preset.fn(id, int, mask, store);
+              const result = preset.fn(id, int, mask, store, opts);
               const final = applyWithMask(sourceData, result, mask);
               processedDataRef.current = final; // fuente del gotero: el filtro sin ajustes post
               ctx.putImageData(final, 0, 0);
@@ -1958,7 +2288,8 @@ function RockArtEnhancer() {
               pipelineRef.current.push({
                 presetId: preset.id,
                 intensity: int,
-                frozen: store.frozen || null
+                frozen: store.frozen || null,
+                opts
               });
             } catch (err) {
               console.error(err);
@@ -1975,7 +2306,7 @@ function RockArtEnhancer() {
         // La máscara también se pasa al filtro: las estadísticas se calculan
         // sobre la zona seleccionada (decorrelación local, como DStretch)
         const store = {};
-        const result = preset.fn(id, int, mask, store);
+        const result = preset.fn(id, int, mask, store, opts);
         const final = applyWithMask(sourceData, result, mask);
         processedDataRef.current = final; // fuente del gotero: el filtro sin ajustes post
         ctx.putImageData(final, 0, 0);
@@ -1984,14 +2315,15 @@ function RockArtEnhancer() {
         pipelineRef.current = [{
           presetId: preset.id,
           intensity: int,
-          frozen: store.frozen || null
+          frozen: store.frozen || null,
+          opts
         }];
       } catch (e) {
         console.error(e);
       }
       setProcessing(false);
     }, 50);
-  }, [image, imageSize, stackMode, processedSrc, selData, generateMask]);
+  }, [image, imageSize, stackMode, processedSrc, selData, generateMask, reliefScale]);
   useEffect(() => {
     // En modo acumular NO se reaplica automáticamente al mover la intensidad:
     // cada reaplicación tomaría el resultado previo como fuente y el filtro
@@ -2005,6 +2337,14 @@ function RockArtEnhancer() {
       }
     }
   }, [intensity]);
+
+  // Lo mismo con la escala del Relieve, que solo afecta a ese filtro
+  useEffect(() => {
+    if (stackMode || activePreset !== "relief" || !image) return;
+    const p = PRESETS.find(x => x.id === "relief");
+    const t = setTimeout(() => processImage(p, intensity), 100);
+    return () => clearTimeout(t);
+  }, [reliefScale]);
   const handleSliderMove = useCallback(cx => {
     const b = getImageBounds();
     if (!b) return;
@@ -2116,7 +2456,10 @@ function RockArtEnhancer() {
           gain: pickGain
         }] : [])];
         const gt = gPasos.length ? "_gotero" + gPasos.map(a => `_g${a.gain > 0 ? "+" : ""}${a.gain}t${a.tol}`).join("") : "";
-        const params = `_i${intensity.toFixed(1)}${gt}${contrast !== 0 ? `_c${contrast}` : ""}${saturation !== 0 ? `_s${saturation}` : ""}`;
+        // La escala del Relieve va al lado de la intensidad; con 0 (bordes) se
+        // omite, así el nombre sale igual que en v3.6 para el mismo resultado
+        const esc = activePreset === "relief" && reliefScale ? `_e${reliefScale}` : "";
+        const params = `_i${intensity.toFixed(1)}${esc}${gt}${contrast !== 0 ? `_c${contrast}` : ""}${saturation !== 0 ? `_s${saturation}` : ""}`;
         const base = `${(fileName || "opc").replace(/\.[^.]+$/, "")}_OPC_${activePreset}${params}`;
         const doDownload = (blob, ext) => {
           const url = URL.createObjectURL(blob);
@@ -2235,7 +2578,7 @@ function RockArtEnhancer() {
           if (!preset) continue;
           id = preset.fn(id, step.intensity, null, step.frozen ? {
             frozen: step.frozen
-          } : null);
+          } : null, step.opts);
           await new Promise(r => setTimeout(r, 0));
         }
         // Ajustes post por píxel (ver applyPostAdjust): mismo resultado que
@@ -2665,7 +3008,7 @@ function RockArtEnhancer() {
       color: T.tm,
       fontFamily: mono
     }
-  }, "v3.6.0")))), /*#__PURE__*/React.createElement("div", {
+  }, "v3.7.0")))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 6,
@@ -2730,7 +3073,58 @@ function RockArtEnhancer() {
       color: T.ac,
       fontSize: 15
     }
-  }, "OPC v3.6.0 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+  }, "OPC v3.7.0 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Rojo adaptativo (v3.7.0)"), " \u2014 Hasta v3.6.0 el filtro Rojo aplicaba una transformaci\xF3n fija: multiplicaba el rojo de cada p\xEDxel sin mirar la foto. En una roca rojiza \u2014una arenisca con manchas de hierro, por ejemplo\u2014 enrojec\xEDa la roca y el pigmento por igual, y los trazos no se separaban. Ahora ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "calcula el color de la roca a partir de la propia foto"), " (o de la zona seleccionada), lo lleva a gris y amplifica lo que se aparta de \xE9l, con prioridad para lo que es m\xE1s rojo que la roca. La textura y el relieve no se tocan. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Cambia el resultado del filtro Rojo"), " \u2014 para comparar con material anterior hay que reprocesarlo."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Relieve con escala (v3.7.0)"), " \u2014 Con el filtro Relieve activo aparece un control de ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "escala"), ". En ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Bordes"), " es el mapa de siempre, id\xE9ntico a v3.6.0, \xFAtil para calcar pinturas. Las dem\xE1s opciones, pensadas para ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "grabados"), ", borran lo m\xE1s chico que la escala elegida \u2014en % del lado mayor, hasta 1 %\u2014 y restan el fondo: se van el grano de la roca y la iluminaci\xF3n despareja, y lo picoteado se lee como zona m\xE1s clara u oscura que su entorno. La escala queda en el nombre del archivo (", /*#__PURE__*/React.createElement("code", null, "_e0.25"), "). Trabaja sobre el brillo, no sobre la altura: con luz rasante eso es relieve; con luz difusa, p\xE1tina y picado."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Mapa de pigmentos: hip\xF3tesis, no identificaci\xF3n (v3.7.0)"), " \u2014 El mapa clasifica por color, no por composici\xF3n. El ocre y las manchas de \xF3xido de hierro de la roca caen en la misma zona de color y una foto RGB no puede separarlos. Ahora lo dice la descripci\xF3n del filtro, y con el mapa activo aparece c\xF3mo controlarlo. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "No cambia ning\xFAn resultado.")), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -2922,6 +3316,57 @@ function RockArtEnhancer() {
       color: T.text
     }
   }, "DStretch"), " (J. Harman). OPC es una implementaci\xF3n independiente de c\xF3digo abierto, escrita desde cero a partir de la bibliograf\xEDa publicada, sin c\xF3digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci\xF3n entre herramientas.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Adaptive Red (v3.7.0)"), " \u2014 Up to v3.6.0 the Red filter applied a fixed transformation: it multiplied the redness of every pixel without looking at the photo. On a reddish rock \u2014 a sandstone with iron staining, for instance \u2014 it reddened rock and pigment alike, and the strokes did not separate. It now ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "works out the rock\u2019s color from the photo itself"), " (or from the selected area), takes it to gray and amplifies whatever departs from it, giving priority to what is redder than the rock. Texture and relief are left untouched. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "The Red filter\u2019s results change"), " \u2014 to compare with earlier material you have to reprocess it."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Relief with a scale (v3.7.0)"), " \u2014 With the Relief filter active, a ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "scale"), " control appears. On ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Edges"), " it is the usual map, identical to v3.6.0, useful for tracing paintings. The other options, meant for ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "engravings"), ", erase whatever is smaller than the chosen scale \u2014 as a % of the long side, up to 1 % \u2014 and subtract the background: the rock\u2019s grain and uneven lighting drop out, and pecked areas read as lighter or darker than their surroundings. The scale goes into the file name (", /*#__PURE__*/React.createElement("code", null, "_e0.25"), "). It works on brightness, not on height: under raking light that is relief; under diffuse light, patina and pecking."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Pigment map: a hypothesis, not an identification (v3.7.0)"), " \u2014 The map classifies by color, not by composition. Ochre and the rock\u2019s iron-oxide staining fall in the same color region and an RGB photo cannot separate them. The filter description now says so, and with the map active the panel shows how to check it. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "No result changes.")), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -3565,7 +4010,59 @@ function RockArtEnhancer() {
       cursor: "pointer",
       color: Math.abs(intensity - ip.value) < 0.2 ? T.ac : T.tm
     }
-  }, tr(ip.label, ip.labelEn))))), /*#__PURE__*/React.createElement("div", {
+  }, tr(ip.label, ip.labelEn)))), activePreset === "relief" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontFamily: mono,
+      color: T.td,
+      letterSpacing: "1.5px",
+      textTransform: "uppercase",
+      marginBottom: 4
+    }
+  }, tr("Escala", "Scale"), ": ", reliefScale ? `${reliefScale}%` : tr("bordes", "edges")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 3,
+      flexWrap: "wrap"
+    }
+  }, RELIEF_ESCALAS.map(e => /*#__PURE__*/React.createElement("button", {
+    key: e,
+    onClick: () => setReliefScale(e),
+    disabled: processing,
+    style: {
+      flex: 1,
+      minWidth: 30,
+      padding: "4px 2px",
+      fontSize: 8.5,
+      fontFamily: mono,
+      fontWeight: reliefScale === e ? 700 : 400,
+      background: reliefScale === e ? T.acBg : T.cBg,
+      border: `1px solid ${reliefScale === e ? T.acBd : T.cBd}`,
+      borderRadius: 5,
+      cursor: processing ? "wait" : "pointer",
+      color: reliefScale === e ? T.ac : T.tm
+    }
+  }, e ? e : tr("Bordes", "Edges")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 8,
+      fontFamily: mono,
+      color: T.td,
+      marginTop: 4,
+      lineHeight: 1.4
+    }
+  }, reliefScale ? tr(`Borra lo que mide menos de ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px (${reliefScale}% del lado mayor) y resta el fondo: se van el grano y la iluminación despareja. Si el motivo se empasta, bajá la escala.`, `Erases what measures less than ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px (${reliefScale}% of the long side) and subtracts the background: grain and uneven lighting drop out. If the motif blurs, lower the scale.`) : tr("Mapa de bordes de v3.6: todo detalle por igual, para calcar. Para grabados, probá una escala.", "v3.6 edge map: every detail alike, for tracing. For engravings, try a scale."))), activePreset === "map" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 8,
+      fontFamily: mono,
+      color: T.td,
+      marginTop: 8,
+      lineHeight: 1.5
+    }
+  }, tr("Clasifica por color, no por composición: el ocre y las manchas de óxido de hierro de la roca caen en la misma zona, y una foto RGB no puede separarlos. Usalo como hipótesis y miralo contra un control: si una zona de roca sin pintura también sale roja, ese rojo no distingue pigmento de soporte.", "It classifies by color, not by composition: ochre and the rock’s iron-oxide staining fall in the same region, and an RGB photo cannot separate them. Use it as a hypothesis and check it against a control: if an unpainted area of rock also comes out red, that red does not tell pigment from substrate."))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 4,
       padding: "10px 12px",
@@ -4394,7 +4891,7 @@ function RockArtEnhancer() {
         color: T.text,
         lineHeight: 1.7
       }
-    }, i + 1, ". ", p?.icon, " ", tr(p?.name, p?.nameEn), " \xB7 ", tr("intensidad", "intensity"), " ", step.intensity.toFixed(1), step.frozen && /*#__PURE__*/React.createElement("span", {
+    }, i + 1, ". ", p?.icon, " ", tr(p?.name, p?.nameEn), " \xB7 ", tr("intensidad", "intensity"), " ", step.intensity.toFixed(1), step.opts && step.opts.escala > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, " \xB7 ", tr("escala", "scale"), " ", step.opts.escala, "%"), step.frozen && /*#__PURE__*/React.createElement("span", {
       style: {
         color: T.gn,
         fontSize: 8.5
@@ -4626,7 +5123,7 @@ function RockArtEnhancer() {
       color: T.gn,
       fontWeight: 500
     }
-  }, "OPC"), " \u2013 OpuntiaColor v3.6.0 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+  }, "OPC"), " \u2013 OpuntiaColor v3.7.0 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
       color: T.tm
     }

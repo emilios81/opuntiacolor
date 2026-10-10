@@ -268,14 +268,32 @@ bien en el rango de casos para el que se las calibró y peor fuera de él.
 
 ### Rojo — `enhanceRedPigment`
 
-Amplifica el eje a* (verde ↔ rojo) por la intensidad, el eje b* por
-`1 + 0.3 · (intensidad − 1)`, y ajusta L* según el signo de a*: los píxeles con
-a* > 0 se aclaran, el resto se oscurece. Separa ocres y hematita del soporte,
-que en el NOA suele tener a* bajo pero no nulo.
+Desde v3.7.0 es la excepción del grupo: no aplica una regla fija sino un
+decorrelation stretch en el plano cromático a*-b* de CIE-LAB, calculado con los
+colores de la propia foto.
 
-Es el único filtro de pigmento que no calcula estadísticas: opera píxel a
-píxel con factores fijos. Por eso ignora la selección de zona y el congelado del
-lote.
+1. Media `(μa, μb)` y covarianza 2 × 2 de a* y b* sobre la zona seleccionada (o
+   la imagen completa), **sin los píxeles que caen fuera de las vallas de Tukey**
+   (k = 3) de cada eje. Así la tarjeta de color o una mano no entran en la
+   estimación del color de la roca.
+2. Ejes principales de esa covarianza, en forma cerrada:
+   `θ = ½ · atan2(2·s_ab, s_aa − s_bb)` y desvíos `σ₁, σ₂` con un piso de
+   1.5 unidades LAB (`RED_PISO`).
+3. Cada píxel se centra en la media, se proyecta sobre los dos ejes, cada
+   componente se escala a `10 · intensidad / σₖ` (`RED_SIGMA`) y se vuelve a los
+   ejes a*, b*. Si el resultado tiene a* > 0 —más rojo que la roca— se
+   multiplica por 1.5 (`RED_ENFASIS`).
+4. L* queda como estaba y se vuelve a RGB.
+
+El primer eje sigue la variación dominante del soporte (en una arenisca
+ferruginosa, del ocre claro al naranja); el segundo, su perpendicular, que es
+donde suele quedar el pigmento. Al igualar las dos dispersiones, el pigmento
+gana contra el soporte, y al centrar en la media el color de la roca queda gris
+sea cual sea su dominante.
+
+Hasta v3.6.0 el filtro multiplicaba a* por la intensidad, b* por
+`1 + 0.3 · (intensidad − 1)` y corría L* según el signo de a*, sin estadísticas.
+Sobre un soporte rojizo enrojecía roca y pigmento por igual.
 
 ### Blanco — `enhanceWhitePigment`
 
@@ -336,7 +354,36 @@ los bordes débiles, y se colorea en falso color cálido (R 1.05 ×, G 0.92 ×,
 B 0.78 ×) para que se lea mejor que un gris plano.
 
 Produce algo parecido a un calco digital: líneas claras sobre fondo oscuro.
-Sirve para vectorizar después en un SIG o en un programa de dibujo.
+Sirve para vectorizar después en un SIG o en un programa de dibujo. Es lo que
+hace el filtro con la escala en *Bordes*, la opción por defecto.
+
+#### Con escala — `reliefEscala` (v3.7.0)
+
+Con una escala `e` (en % del lado mayor `M`) el filtro pasa a ser un pasabanda
+sobre la luminancia Rec.601, al modo del *Local Relief Model* que se usa con
+modelos de elevación:
+
+1. **Tendencia.** Se resta la superficie cuadrática
+   `c₀ + c₁u + c₂v + c₃u² + c₄uv + c₅v²` (u, v ∈ [−1, 1]) que mejor ajusta la
+   luminancia por mínimos cuadrados (`quitarTendencia`). Los momentos son
+   separables, así que el ajuste cuesta tres sumas por píxel y un sistema de
+   6 × 6.
+2. **Pasabanda.** `D = S(r) − S(16·r)`, con `r = max(1, round(M · e / 200))` y
+   `S(ρ)` tres pasadas de promedio en caja de radio ρ (`boxBlur`, separable,
+   ventana recortada en los bordes), equivalentes a una gaussiana de σ ≈ ρ.
+3. **Normalización.** Con los cuartiles de D sobre la zona seleccionada (o la
+   imagen completa): centro `(Q1 + Q3)/2` y desvío robusto `(Q3 − Q1)/1.349`.
+   Salida gris: `128 + (D − centro)/desvío · 40 · intensidad/1.5`.
+
+El primer suavizado borra lo menor que la escala; restar el segundo saca el
+fondo. El paso 1 hace falta por los bordes: ahí la ventana del promedio queda
+recortada, el entorno se corre hacia el interior y un gradiente de iluminación
+no se cancela. Sin él, con escala 1 % una franja de un sexto del ancho
+quedaba afectada. En el interior no cambia nada, porque el pasabanda ya anulaba
+ahí cualquier cuadrática.
+
+Memoria: cuatro arreglos `Float32` del tamaño de la imagen (16 B/px), menos que
+los filtros de decorrelación.
 
 ---
 
@@ -500,7 +547,9 @@ Qué se congela en cada filtro:
 | Blanco, Negro | media y desvío de L* |
 | Bicromo, Mapa | media de L* |
 | Micro-relieve | rango de a* y b* |
-| Rojo, Relieve, CLAHE | nada — no dependen de estadísticas globales |
+| Rojo | media de a* y b*, ejes principales y desvíos del plano a*-b* |
+| Relieve con escala | centro y desvío robusto del pasabanda |
+| Relieve en Bordes, CLAHE | nada — no dependen de estadísticas globales |
 
 Cada archivo se guarda con el nombre del original y conserva **su propio**
 EXIF/GPS, incluida la distancia focal que leen Metashape y Meshroom. El flujo

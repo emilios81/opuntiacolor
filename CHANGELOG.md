@@ -4,6 +4,107 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.7.0 (2026-10-10)
+
+Los tres cambios salen de la correspondencia con B. Gunn (ago–sep 2026), que
+probó OPC sobre paneles australianos y lo comparó con DStretch.
+
+### El filtro Rojo pasa a ser adaptativo
+
+**⚠ Cambia los resultados del filtro Rojo.**
+
+- **El problema.** El Rojo aplicaba una transformación fija en CIE-LAB:
+  multiplicaba a* por la intensidad, b* por `1 + 0.3·(intensidad − 1)` y corría
+  L* según el signo de a*, sin mirar la foto. Sobre una arenisca con manchas de
+  hierro —rojiza toda ella— enrojecía la roca y el pigmento por igual. En el
+  panel WLO-3 que mandó Gunn, los trazos que DStretch (crgb) mostraba con
+  claridad no se separaban del soporte.
+
+- **El cambio.** Ahora es un decorrelation stretch en el plano a*-b*. Se toman
+  la media y la covarianza 2×2 de la foto (o de la zona seleccionada), sin los
+  píxeles que caen fuera de las vallas de Tukey de cada eje. Los dos ejes
+  principales se llevan a una dispersión común de `10 · intensidad` unidades LAB
+  y se vuelve a a*, b*. Lo que se aparta hacia +a* se estira además 1.5 veces.
+  El color medio de la roca queda gris; lo que se aparta de él, amplificado. L*
+  no se toca.
+
+- **Qué gana.** En el panel de Gunn los trazos se leen desde la intensidad por
+  defecto, y con 3.0 quedan al nivel de DStretch crgb. En pinturas de La Tunita
+  aparece rojo que el filtro anterior dejaba casi igual que la foto.
+
+- **Qué cuesta.** En un panel sin rojo, el filtro amplifica el grano cromático
+  de la roca, como cualquier decorrelación. El desvío de cada eje tiene un piso
+  de 1.5 unidades LAB para que una roca casi gris no dispare el ruido de
+  compresión.
+
+- **Ahora usa la selección de zona y el congelado del lote**, como los filtros
+  de decorrelación.
+
+- **No hay mapeo que conserve el resultado anterior**: el cambio es el
+  algoritmo. Para reproducir una imagen hecha con el Rojo de v3.6.0 hay que usar
+  esa versión (DOI 10.5281/zenodo.22162329).
+
+### Relieve con escala
+
+**No cambia ningún resultado con los valores por defecto.**
+
+- **El problema.** El Relieve era un mapa de bordes Sobel sin control de qué
+  escalas entran: trata igual un grano de 2 mm que un surco picoteado de 4 cm.
+  Además no resta el fondo, así que un cambio general de iluminación o de altura
+  a lo ancho del panel corre la línea de base. Sirve para calcar pinturas; Gunn
+  lo encontró inútil en petroglifos.
+
+- **El cambio.** Con el Relieve activo aparece un control de escala: Bordes, 0.1,
+  0.25, 0.5 y 1 % del lado mayor. En **Bordes** es el mapa de siempre, byte a
+  byte el de v3.6.0, y hay una prueba que lo fija. Con una escala, la luminancia
+  pasa por un pasabanda: primero se le resta la superficie cuadrática que mejor
+  la ajusta (iluminación general, curvatura de conjunto) y después se resta a un
+  suavizado de radio r otro de radio 16·r. La salida es gris: 128 es el nivel del
+  entorno, y lo que tiene el tamaño elegido sale más claro o más oscuro.
+
+- **La escala es lo más chico que se conserva**: todo lo menor se borra. Por eso
+  el tope es 1 %. Se probó 2 % sobre las fotos de Gunn: en un panel de ~1 m
+  borra todo lo menor de 2 cm, que es el ancho de los propios surcos, y queda
+  una mancha borrosa sin nada que no se lea mejor con una escala menor.
+
+- **La escala es relativa.** Se expresa en % del lado mayor y no en píxeles: la
+  misma foto a 2000 px o a resolución completa da el mismo relieve, y el lote
+  puede reducir las fotos sin cambiar lo que se ve.
+
+- **Por qué la superficie cuadrática.** El promedio en caja recorta la ventana en
+  los bordes de la foto, y ahí un gradiente de iluminación no se cancela. Sin ese
+  paso, con escala 1 % una franja de un sexto del ancho quedaba afectada y la
+  normalización de toda la imagen se corría. Con el paso, un gradiente de 60
+  niveles cambia la salida en ~1 nivel.
+
+- **El nombre del archivo registra la escala** (`_e0.25`) al lado de la
+  intensidad. En Bordes se omite, así que el nombre sale igual que en v3.6.0.
+
+- **Trabaja sobre el brillo, no sobre la altura.** Ver
+  [LIMITACIONES §12](docs/LIMITACIONES.md#12-el-relieve-mide-brillo-no-altura).
+
+### Mapa de pigmentos: hipótesis, no identificación
+
+**No cambia ningún resultado.**
+
+- La descripción del filtro dice ahora «Falso color por firma cromática /
+  hipótesis, no identificación». Con el mapa activo, el panel explica el límite
+  —el ocre y los óxidos de hierro del soporte caen en la misma zona de color— y
+  propone un control: mirar cómo sale una zona de roca sin pintura.
+
+### Pruebas
+
+- 15 pruebas nuevas, 68 en total. **Rojo:** que separe el ocre de una arenisca
+  ferruginosa sintética; que lleve la roca a gris con tres dominantes distintas;
+  que la tarjeta de color no cambie la roca (sin las vallas de Tukey la cambia
+  ~14 niveles); que no toque L*; la selección; el lote; el checksum de la salida
+  por defecto. **Relieve:** que Bordes reproduzca los checksums de v3.6.0; el
+  promedio en caja contra un cálculo por fuerza bruta; la superficie cuadrática;
+  un gradiente de iluminación junto a los bordes; que más escala despegue mejor
+  un motivo del grano; que la escala sea relativa a la resolución; el lote; el
+  checksum con escala. Corridas contra el Rojo de v3.6.0, fallan 6 de las 7 del
+  Rojo.
+
 ## v3.6.0 (2026-08-29)
 
 ### La resolución de trabajo por defecto pasa a ser la completa

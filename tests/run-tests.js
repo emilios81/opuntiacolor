@@ -97,6 +97,7 @@ const CORE = [
   "buildSAT", "satMean",
   "crgbEnhance", "dsLabEnhance", "ldsEnhance", "ybkEnhance",
   "claheEnhance", "applyPostAdjust", "chromaTarget", "applyPickChain",
+  "enhanceRedPigment", "reliefMap", "reliefEscala", "quitarTendencia", "boxBlur",
 ];
 
 // ImageData no existe en Node: se implementa la parte de la API que usa el
@@ -114,7 +115,7 @@ const sandbox = {
 vm.createContext(sandbox);
 // Constantes sueltas que usa el núcleo: se leen del fuente para que la prueba
 // siga al valor real y no a una copia que se pueda desactualizar.
-const CONSTANTES = ["LDS_TUKEY_K"].map(nombre => {
+const CONSTANTES = ["LDS_TUKEY_K", "RED_SIGMA", "RED_PISO", "RED_ENFASIS", "RELIEF_ESCALAS", "RELIEF_FONDO"].map(nombre => {
   const m = source.match(new RegExp("^const " + nombre + " = .+;$", "m"));
   if (!m) throw new Error("no se encontró la constante " + nombre + " en src/app.jsx");
   return m[0];
@@ -127,6 +128,7 @@ const {
   buildSAT, satMean,
   crgbEnhance, dsLabEnhance, ldsEnhance,
   applyPostAdjust, chromaTarget, applyPickChain,
+  enhanceRedPigment, reliefMap, quitarTendencia, boxBlur,
 } = sandbox;
 const ImageData = sandbox.ImageData;
 
@@ -912,7 +914,302 @@ suite("Gotero: cadena de ajustes acumulables", () => {
 });
 
 // ============================================================
-// 11. Correspondencia entre el código fuente y el compilado
+// 10. Rojo adaptativo  (v3.7.0)
+//
+// Hasta v3.6.0 el Rojo era una transformación fija en CIE-LAB: multiplicaba a*
+// sin mirar la foto, así que en una arenisca rojiza enrojecía roca y pigmento
+// por igual. Desde v3.7.0 es una decorrelación en el plano a*-b* calculada con
+// los colores de la propia foto. Lo que tiene que sostenerse: separa el
+// pigmento del soporte, lleva el color de la roca a gris sea cual sea su
+// dominante, no deja que la tarjeta de color decida, y no toca L*.
+// ============================================================
+
+// Arenisca con bandas de hierro —un naranja que va de claro a intenso— y trazos
+// verticales de ocre apenas más rojos y menos amarillos que el soporte: el
+// caso del panel WLO-3 de B. Gunn, que el Rojo de v3.6.0 no separaba.
+function arenisca(w, h, seed, dominante) {
+  const [dr, dg, db] = dominante || [0, 0, 0];
+  const rnd = lcg(seed);
+  const data = new Uint8ClampedArray(w * h * 4), pigmento = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x, banda = Math.sin(x / 5 + y / 9) * 0.5 + 0.5, grano = rnd() * 10 - 5;
+    const p = (x % 12 < 2 && y > h / 4 && y < 3 * h / 4) ? 1 : 0;
+    pigmento[i] = p;
+    data[i*4]   = 200 - 20 * banda + grano + p * 2 + dr;
+    data[i*4+1] = 170 - 45 * banda + grano - p * 8 + dg;
+    data[i*4+2] = 140 - 60 * banda + grano - p * 2 + db;
+    data[i*4+3] = 255;
+  }
+  return { img: new ImageData(data, w, h), pigmento };
+}
+
+// Distancia en a* entre la media del pigmento y la de la roca, en desvíos
+// estándar de la roca: cuánto se despega el trazo del soporte.
+function separacionA(img, pigmento) {
+  const n = img.width * img.height, A = new Float64Array(n);
+  let sp = 0, np = 0, sr = 0, nr = 0;
+  for (let i = 0; i < n; i++) {
+    A[i] = rgb2lab(img.data[i*4], img.data[i*4+1], img.data[i*4+2])[1];
+    if (pigmento[i]) { sp += A[i]; np++; } else { sr += A[i]; nr++; }
+  }
+  const mp = sp / np, mr = sr / nr;
+  let v = 0;
+  for (let i = 0; i < n; i++) if (!pigmento[i]) v += (A[i] - mr) ** 2;
+  return Math.abs(mp - mr) / Math.sqrt(v / nr);
+}
+
+// Media de a* y b* fuera del pigmento: el color de la roca
+function colorRoca(img, pigmento) {
+  let a = 0, b = 0, c = 0;
+  for (let i = 0; i < img.width * img.height; i++) {
+    if (pigmento && pigmento[i]) continue;
+    const lab = rgb2lab(img.data[i*4], img.data[i*4+1], img.data[i*4+2]);
+    a += lab[1]; b += lab[2]; c++;
+  }
+  return [a / c, b / c];
+}
+
+suite("Rojo adaptativo (v3.7.0)", () => {
+  test("separa el ocre de una arenisca ferruginosa", () => {
+    // En la entrada el trazo está a ~1.4 desvíos de la roca en a*; la
+    // decorrelación tiene que despegarlo varias veces más.
+    const { img, pigmento } = arenisca(96, 96, 7);
+    const antes = separacionA(img, pigmento);
+    const despues = separacionA(enhanceRedPigment(cloneImage(img), 1.5, null, null), pigmento);
+    assert(despues > 3 * antes,
+      "el pigmento no se despegó del soporte: separación " + antes.toFixed(2) +
+      " → " + despues.toFixed(2) + " desvíos. Es lo que hacía el Rojo de v3.6.0.");
+  });
+
+  test("lleva el color de la roca a gris, tenga la dominante que tenga", () => {
+    // La propiedad que define al filtro adaptativo: el color de la roca sale
+    // de la foto. Con una transformación fija, una dominante cálida o fría
+    // seguía en la salida.
+    for (const dom of [[0, 0, 0], [14, 2, -10], [-10, 0, 12]]) {
+      const { img, pigmento } = arenisca(96, 96, 7, dom);
+      const ent = colorRoca(img, pigmento);
+      const sal = colorRoca(enhanceRedPigment(cloneImage(img), 1.5, null, null), pigmento);
+      assert(Math.abs(ent[1]) > 15, "el caso de prueba ya no tiene dominante");
+      assert(Math.abs(sal[0]) < 4 && Math.abs(sal[1]) < 4,
+        "con dominante " + dom.join(",") + " la roca salió con a*,b* = " +
+        sal.map(v => v.toFixed(1)).join(",") + " (entrada " + ent.map(v => v.toFixed(1)).join(",") + ")");
+    }
+  });
+
+  test("la tarjeta de color en el encuadre no cambia la roca", () => {
+    // Sin las vallas de Tukey la tarjeta entra en la covarianza y la roca
+    // cambia ~14 niveles en promedio; con las vallas, menos de 1.
+    const { img } = arenisca(96, 96, 7);
+    const conTarjeta = cloneImage(img);
+    for (let y = 88; y < 96; y++) for (let x = 0; x < 96; x++) {
+      const i = (y * 96 + x) * 4, c = x < 32 ? [210, 20, 30] : x < 64 ? [20, 150, 60] : [30, 40, 200];
+      conTarjeta.data[i] = c[0]; conTarjeta.data[i+1] = c[1]; conTarjeta.data[i+2] = c[2];
+    }
+    const a = enhanceRedPigment(cloneImage(img), 1.5, null, null);
+    const b = enhanceRedPigment(conTarjeta, 1.5, null, null);
+    let dif = 0, cnt = 0;
+    for (let i = 0; i < 88 * 96 * 4; i++) if (i % 4 !== 3) { dif += Math.abs(a.data[i] - b.data[i]); cnt++; }
+    assert(dif / cnt < 2,
+      "la tarjeta cambió la roca en " + (dif / cnt).toFixed(2) + " niveles de media: " +
+      "revisar que la covarianza siga excluyendo lo que cae fuera de las vallas");
+  });
+
+  test("no toca la luminosidad L*", () => {
+    const { img } = arenisca(64, 64, 11);
+    const sal = enhanceRedPigment(cloneImage(img), 1.5, null, null);
+    let dif = 0;
+    const n = 64 * 64;
+    for (let i = 0; i < n; i++) {
+      dif += Math.abs(rgb2lab(sal.data[i*4], sal.data[i*4+1], sal.data[i*4+2])[0] -
+                      rgb2lab(img.data[i*4], img.data[i*4+1], img.data[i*4+2])[0]);
+    }
+    assert(dif / n < 0.5, "L* cambió " + (dif / n).toFixed(2) + " de media");
+  });
+
+  test("con una selección, las estadísticas salen de la zona", () => {
+    const { img } = arenisca(64, 64, 21);
+    const mask = new Uint8Array(64 * 64);
+    for (let y = 0; y < 20; y++) for (let x = 0; x < 20; x++) mask[y * 64 + x] = 1;
+    const toda = enhanceRedPigment(cloneImage(img), 1.5, null, null);
+    const zona = enhanceRedPigment(cloneImage(img), 1.5, mask, null);
+    let distintos = 0;
+    for (let i = 0; i < toda.data.length; i++) if (toda.data[i] !== zona.data[i]) distintos++;
+    assert(distintos > 0, "la selección no cambió el resultado");
+    const vacia = enhanceRedPigment(cloneImage(img), 1.5, new Uint8Array(64 * 64), null);
+    assertBytesEqual(vacia.data, toda.data, "una selección vacía tiene que equivaler a toda la imagen");
+  });
+
+  test("en el lote, la referencia congela las estadísticas y la intensidad se sigue aplicando", () => {
+    const ref = arenisca(48, 48, 3).img, otra = arenisca(48, 48, 4, [8, 0, -6]).img;
+    const store = {};
+    enhanceRedPigment(cloneImage(ref), 1.5, null, store);
+    const congelado = JSON.stringify(store.frozen);
+    const enLote = enhanceRedPigment(cloneImage(otra), 1.5, null, store);
+    assert(JSON.stringify(store.frozen) === congelado, "el lote recalculó las estadísticas");
+    const suelta = enhanceRedPigment(cloneImage(otra), 1.5, null, null);
+    let distintos = 0;
+    for (let i = 0; i < enLote.data.length; i++) if (enLote.data[i] !== suelta.data[i]) distintos++;
+    assert(distintos > 0, "la foto del lote salió igual que suelta: no usó lo congelado");
+    const fuerte = enhanceRedPigment(cloneImage(otra), 3, null, { frozen: store.frozen });
+    distintos = 0;
+    for (let i = 0; i < enLote.data.length; i++) if (enLote.data[i] !== fuerte.data[i]) distintos++;
+    assert(distintos > 0, "la intensidad no tuvo efecto con estadísticas congeladas");
+  });
+
+  test("la salida por defecto queda fijada (v3.7.0)", () => {
+    // No actualizar el número sin bump de versión y aviso en el CHANGELOG:
+    // invalida el material ya publicado con esta versión.
+    const salida = enhanceRedPigment(syntheticImage(48, 48, 3300), 1.5, null, null);
+    assert(fnv1a(salida.data) === 2702980345,
+      "la salida por defecto del Rojo cambió (checksum " + fnv1a(salida.data) + ", esperado 2702980345)");
+  });
+});
+
+// ============================================================
+// 11. Relieve por escala  (v3.7.0)
+//
+// Con escala 0 el Relieve tiene que ser el mapa de bordes de v3.0–v3.6, byte a
+// byte. Con escala, un pasabanda sobre la luminancia sin la tendencia general:
+// tiene que borrar los gradientes de iluminación hasta los bordes, ganar
+// señal frente al grano al subir la escala y depender de la escala relativa,
+// no de los píxeles.
+// ============================================================
+
+// Textura gris de grano fino, con un disco central más oscuro (el motivo) y un
+// gradiente horizontal de iluminación opcional.
+function texturaConDisco(w, h, seed, gradiente, profundidad) {
+  const rnd = lcg(seed), data = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4;
+    const disco = ((x - w / 2) ** 2 + (y - h / 2) ** 2) < 144 ? -profundidad : 0;
+    const v = 110 + rnd() * 40 - 20 + disco + gradiente * x / w;
+    data[i] = data[i+1] = data[i+2] = v; data[i+3] = 255;
+  }
+  return new ImageData(data, w, h);
+}
+
+suite("Relieve por escala (v3.7.0)", () => {
+  test("con escala 0 reproduce exactamente el mapa de bordes de v3.6.0", () => {
+    // Checksums tomados de v3.6.0 antes del cambio. Con escala 0 el nombre del
+    // archivo exportado es el mismo que en v3.6, así que el resultado también.
+    const esperado = { 0.5: 1861599918, 1.5: 2509131848, 3: 1330955877 };
+    for (const it of [0.5, 1.5, 3]) {
+      for (const opts of [undefined, null, { escala: 0 }]) {
+        const h = fnv1a(reliefMap(syntheticImage(48, 48, 3300), it, null, null, opts).data);
+        assert(h === esperado[it], "el mapa de bordes cambió con intensidad " + it + " (checksum " + h + ")");
+      }
+    }
+  });
+
+  test("boxBlur coincide con el promedio recortado calculado a mano", () => {
+    const w = 13, h = 7, src = new Float32Array(w * h).map((_, i) => (i * 37) % 101);
+    const dst = new Float32Array(w * h), tmp = new Float32Array(w * h);
+    for (const r of [1, 3, 20]) {
+      boxBlur(src, dst, tmp, w, h, r);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        let s = 0, c = 0;
+        for (let yy = Math.max(0, y - r); yy <= Math.min(h - 1, y + r); yy++)
+          for (let xx = Math.max(0, x - r); xx <= Math.min(w - 1, x + r); xx++) { s += src[yy * w + xx]; c++; }
+        assertClose(dst[y * w + x], s / c, 1e-5, "boxBlur r=" + r + " en (" + x + "," + y + ")");
+      }
+    }
+  });
+
+  test("quitarTendencia anula una superficie cuadrática exacta", () => {
+    const w = 37, h = 23, L = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++)
+      L[y * w + x] = 100 + 0.8 * x - 1.3 * y + 0.02 * x * x + 0.015 * x * y - 0.03 * y * y;
+    quitarTendencia(L, w, h);
+    for (let i = 0; i < L.length; i++) assert(Math.abs(L[i]) < 1e-3, "quedó un residuo de " + L[i] + " en " + i);
+    const fila = new Float32Array(5).fill(7);
+    quitarTendencia(fila, 5, 1);
+    assert(fila.every(v => v === 7), "con una sola fila no hay superficie que ajustar y no debe tocarse");
+  });
+
+  test("un gradiente de iluminación no cambia el resultado, ni junto a los bordes", () => {
+    // Es la queja de B. Gunn: un cambio general a lo ancho del panel tapaba la
+    // señal. Antes de restar la tendencia cuadrática, con escala 1 una franja
+    // de un sexto del ancho cambiaba hasta 100 niveles con este gradiente.
+    const W = 400;
+    for (const escala of [0.25, 1]) {
+      const sin = reliefMap(texturaConDisco(W, W, 5, 0, 0), 1.5, null, null, { escala });
+      const con = reliefMap(texturaConDisco(W, W, 5, 60, 0), 1.5, null, null, { escala });
+      let peor = 0;
+      for (let x = 0; x < W; x++) {
+        let d = 0;
+        for (let y = 0; y < W; y++) d += Math.abs(sin.data[(y * W + x) * 4] - con.data[(y * W + x) * 4]);
+        peor = Math.max(peor, d / W);
+      }
+      assert(peor < 3, "con escala " + escala + " el gradiente cambió una columna " + peor.toFixed(1) + " niveles de media");
+    }
+  });
+
+  test("subir la escala separa mejor el motivo del grano", () => {
+    // Disco de 24 px, 4 niveles más oscuro, sobre grano de ±20: invisible
+    // píxel a píxel. A más escala, más se despega del fondo.
+    const W = 400;
+    const razon = (escala) => {
+      const o = reliefMap(texturaConDisco(W, W, 5, 0, 4), 1.5, null, null, { escala });
+      let sd = 0, cd = 0;
+      const F = [];
+      for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+        const v = o.data[(y * W + x) * 4], q = (x - W / 2) ** 2 + (y - W / 2) ** 2;
+        if (q < 64) { sd += v; cd++; } else if (q > 900 && q < 6400) F.push(v);
+      }
+      const mf = F.reduce((a, b) => a + b, 0) / F.length;
+      const sf = Math.sqrt(F.reduce((a, b) => a + (b - mf) ** 2, 0) / F.length);
+      return Math.abs(sd / cd - mf) / sf;
+    };
+    const fina = razon(0.5), gruesa = razon(1);
+    assert(gruesa > 1.5 * fina && gruesa > 2.5,
+      "el motivo no se despegó al subir la escala: " + fina.toFixed(2) + " → " + gruesa.toFixed(2) + " desvíos");
+  });
+
+  test("la escala es relativa: la misma foto al doble de resolución da el mismo relieve", () => {
+    // Por eso se expresa en % del lado mayor: trabajar en 2000 px o en
+    // resolución completa, o reducir en el lote, no cambia lo que se ve.
+    // 200 px y 400 px con escala 1 %: radio 1 y radio 2, exactamente el doble.
+    const base = texturaConDisco(200, 200, 9, 30, 6);
+    const doble = new ImageData(new Uint8ClampedArray(400 * 400 * 4), 400, 400);
+    for (let y = 0; y < 400; y++) for (let x = 0; x < 400; x++)
+      for (let k = 0; k < 4; k++) doble.data[(y * 400 + x) * 4 + k] = base.data[((y >> 1) * 200 + (x >> 1)) * 4 + k];
+    const a = reliefMap(base, 1.5, null, null, { escala: 1 });
+    const b = reliefMap(doble, 1.5, null, null, { escala: 1 });
+    const xs = [], ys = [];
+    for (let y = 0; y < 200; y++) for (let x = 0; x < 200; x++) {
+      xs.push(a.data[(y * 200 + x) * 4]);
+      const g = (p, q) => b.data[(q * 400 + p) * 4];
+      ys.push((g(2*x, 2*y) + g(2*x+1, 2*y) + g(2*x, 2*y+1) + g(2*x+1, 2*y+1)) / 4);
+    }
+    const mx = xs.reduce((s, v) => s + v, 0) / xs.length, my = ys.reduce((s, v) => s + v, 0) / ys.length;
+    let sxy = 0, sxx = 0, syy = 0;
+    for (let i = 0; i < xs.length; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; syy += (ys[i] - my) ** 2; }
+    const r = sxy / Math.sqrt(sxx * syy);
+    assert(r > 0.95, "la correlación entre las dos resoluciones fue " + r.toFixed(3));
+  });
+
+  test("en el lote, la referencia congela el centro y el desvío", () => {
+    const store = {};
+    reliefMap(texturaConDisco(64, 64, 1, 0, 8), 1.5, null, store, { escala: 1 });
+    assert(store.frozen && typeof store.frozen.mid === "number" && store.frozen.sig > 0,
+      "el Relieve con escala no congeló sus estadísticas");
+    const otra = texturaConDisco(64, 64, 2, 40, 8);
+    const enLote = reliefMap(cloneImage(otra), 1.5, null, { frozen: store.frozen }, { escala: 1 });
+    const suelta = reliefMap(cloneImage(otra), 1.5, null, null, { escala: 1 });
+    let distintos = 0;
+    for (let i = 0; i < enLote.data.length; i++) if (enLote.data[i] !== suelta.data[i]) distintos++;
+    assert(distintos > 0, "la foto del lote salió igual que suelta: no usó lo congelado");
+  });
+
+  test("la salida con escala queda fijada (v3.7.0)", () => {
+    const salida = reliefMap(syntheticImage(48, 48, 3300), 1.5, null, null, { escala: 0.5 });
+    assert(fnv1a(salida.data) === 3661302561,
+      "la salida del Relieve con escala 0.5 cambió (checksum " + fnv1a(salida.data) + ", esperado 3661302561)");
+  });
+});
+
+// ============================================================
+// 12. Correspondencia entre el código fuente y el compilado
 //
 // Es la prueba que faltaba: en julio de 2026 se publicó un app.js que no
 // correspondía a src/app.jsx (primero el compilado sin la fuente, después la

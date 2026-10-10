@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.6.0
+# OPC – OpuntiaColor v3.7.0
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -80,15 +80,21 @@ change processing results.
 - **YBK** — Amplificación de crominancia YCbCr con ecualización estadística.
 
 **Pigmentos** — Rojo, Blanco, Negro y Bicromo: realce selectivo en CIE-LAB. El
+Rojo se adapta a cada foto desde v3.7.0: estima el color de la roca (o de la zona
+seleccionada) con una decorrelación en el plano a*-b*, lo lleva a gris y amplifica
+lo que se aparta de él, con prioridad para lo más rojo que la roca. El
 filtro de blancos está orientado a pigmentos claros sobre soporte oscuro, el
 caso inverso al que optimizan la mayoría de las herramientas disponibles.
 
 **Grabados** — Micro-relieve (contraste local multi-escala con imagen integral
-más detección de bordes Sobel) y Relieve (mapa de bordes multi-escala, genera un
-calco digital).
+más detección de bordes Sobel) y Relieve. El Relieve tiene un control de escala
+(v3.7.0): en *Bordes* es el mapa de bordes multi-escala de siempre, para calcar;
+con una escala, conserva solo las estructuras de ese tamaño y resta el fondo
+(iluminación despareja, pendiente general de la roca), pensado para grabados.
 
 **Técnico** — CLAHE (Zuiderveld 1994) y Mapa de pigmentos (clasificación por
-falso color; ver las limitaciones antes de usarlo).
+falso color por firma cromática: es una hipótesis, no una identificación; ver
+las limitaciones antes de usarlo).
 
 ## Herramientas
 
@@ -223,7 +229,7 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.6.0)
+para el realce digital de pigmentos y grabados en arte rupestre* (v3.7.0)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://doi.org/10.5281/zenodo.21796290
 

@@ -30,12 +30,12 @@ cada caso, porque en algunos la respuesta es lineal y en otros no.
 | **DS-LAB** | Igual que CRGB | Igual que CRGB |
 | **LDS** | Exponente de blanqueo `γ = intensidad/1.5` | Creciente, **topa en intensidad 3.0** |
 | **YBK** | Amplificación de croma (`3 ×`) y contraste de luma (`0.6 ×`) | Lineal |
-| **Rojo** | Factor sobre a*, y sobre b* al 30 % | Lineal |
+| **Rojo** | Dispersión objetivo en el plano a*-b*: `σ = 10 · intensidad` unidades LAB | Lineal |
 | **Blanco** | Amplificación del puntaje z de L* (5 × arriba, 2 × abajo) | Lineal |
 | **Negro** | Oscurecimiento de los oscuros (18 ×) y reducción de croma | Lineal |
 | **Bicromo** | Factores de a* y de separación claro/oscuro | Lineal |
 | **Micro-relieve** | Contraste local (2.5 × / 1.2 ×), bordes (0.25 ×) y croma (3 ×) | Lineal, **satura rápido** |
-| **Relieve** | Ganancia de bordes antes de la gamma 0.7 | Satura: por encima de ~2.5 casi todo queda blanco |
+| **Relieve** | Bordes: ganancia antes de la gamma 0.7. Con escala: `40 · intensidad/1.5` niveles por desvío robusto | Bordes: satura por encima de ~2.5. Con escala: lineal |
 | **CLAHE** | Límite de recorte: `clip = (1 + 2·intensidad) · n/256` | Lineal, **inversa en el efecto** |
 
 ### Rangos útiles en la práctica
@@ -227,6 +227,34 @@ persona reproduzca la imagen.
 
 ---
 
+## Escala del Relieve
+
+**Bordes, 0.1, 0.25, 0.5 o 1 % del lado mayor; por defecto Bordes.** Aparece
+solo con el filtro Relieve activo.
+
+- **Bordes** es el mapa de bordes de v3.0–v3.6, idéntico byte a byte: todo
+  detalle por igual. Sirve para calcar pinturas.
+- **Una escala** borra todo lo que es más chico que ella y resta el fondo
+  —iluminación despareja, pendiente general de la roca—. Sirve para grabados:
+  lo picoteado se lee como más claro o más oscuro que su entorno.
+
+La escala es un **porcentaje del lado mayor**, no un número de píxeles, así que
+la misma foto a 2000 px o a resolución completa da el mismo relieve. Debajo de
+los botones el panel muestra a cuántos píxeles corresponde en la foto abierta.
+
+Para elegirla, pensar en lo que se quiere **borrar**, no en el motivo: la
+escala tiene que ser más grande que el grano de la roca y bastante más chica que
+el ancho del surco. En una foto de panel de ~1 m, 0.25 % son 2.5 mm y 0.5 %,
+5 mm; con surcos de 1 a 2 cm, esas dos suelen ser las que mejor se leen. Si
+vuelve el grano, subir; si el motivo se empasta con su entorno, bajar. El tope
+es 1 %: con 2 %, en esa misma foto se borraba todo lo menor de 2 cm —los propios
+surcos— y quedaba una mancha borrosa.
+
+El nombre del archivo exportado la registra al lado de la intensidad
+(`IMG_0421_OPC_relief_i1.5_e0.25.png`). En Bordes se omite, como en v3.6.
+
+---
+
 ## Zona de selección
 
 Rectángulo, círculo o mano alzada.
@@ -243,8 +271,10 @@ la sombra del alero.
 
 Si la selección queda vacía, se usa la imagen completa.
 
-**No la usan** los filtros Rojo, Relieve y CLAHE: los tres operan con factores
-fijos o locales y no calculan estadísticas globales.
+**No la usan** CLAHE ni el Relieve en *Bordes*: operan con factores fijos o
+locales y no calculan estadísticas globales. Desde v3.7.0 el **Rojo** sí la usa
+(el color de la roca sale de la zona) y el **Relieve con escala** toma de ella el
+centro y el desvío con que normaliza.
 
 ---
 
