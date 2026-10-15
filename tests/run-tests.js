@@ -115,7 +115,7 @@ const sandbox = {
 vm.createContext(sandbox);
 // Constantes sueltas que usa el núcleo: se leen del fuente para que la prueba
 // siga al valor real y no a una copia que se pueda desactualizar.
-const CONSTANTES = ["LDS_TUKEY_K", "RED_SIGMA", "RED_PISO", "RED_ENFASIS", "RELIEF_ESCALAS", "RELIEF_FONDO"].map(nombre => {
+const CONSTANTES = ["SRGB_LINEAL", "LDS_TUKEY_K", "RED_SIGMA", "RED_PISO", "RED_ENFASIS", "RELIEF_ESCALAS", "RELIEF_FONDO"].map(nombre => {
   const m = source.match(new RegExp("^const " + nombre + " = .+;$", "m"));
   if (!m) throw new Error("no se encontró la constante " + nombre + " en src/app.jsx");
   return m[0];
@@ -230,6 +230,24 @@ suite("Conversiones de color", () => {
     assertClose(Lr, 53.2408, 1e-3, "L* del rojo");
     assertClose(ar, 80.0925, 1e-3, "a* del rojo");
     assertClose(br, 67.2032, 1e-3, "b* del rojo");
+  });
+
+  test("la tabla sRGB → lineal da lo mismo que la fórmula, en los 16,7 millones de colores (v3.7.1)", () => {
+    // Desde v3.7.1 rgb2lab toma el sRGB lineal de una tabla de 256 valores en
+    // vez de calcular la potencia en cada píxel. Si la tabla se apartara de la
+    // fórmula aunque sea en el último bit, cambiarían los resultados de todos
+    // los filtros LAB: acá se la compara contra la versión anterior, completa.
+    const lin = (v) => { const c = v / 255; return c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92; };
+    const f = (t) => t > 0.008856 ? Math.cbrt(t) : (7.787 * t + 16 / 116);
+    for (let r = 0; r < 256; r++) for (let g = 0; g < 256; g++) for (let b = 0; b < 256; b++) {
+      const rr = lin(r), gg = lin(g), bb = lin(b);
+      const x = f((rr * 0.4124564 + gg * 0.3575761 + bb * 0.1804375) / 0.95047);
+      const y = f(rr * 0.2126729 + gg * 0.7151522 + bb * 0.0721750);
+      const z = f((rr * 0.0193339 + gg * 0.1191920 + bb * 0.9503041) / 1.08883);
+      const [L, A, B] = rgb2lab(r, g, b);
+      if (L !== 116 * y - 16 || A !== 500 * (x - y) || B !== 200 * (y - z))
+        throw new Error("rgb2lab(" + r + "," + g + "," + b + ") se aparta de la fórmula directa");
+    }
   });
 
   test("rgb2lab → lab2rgb: ida y vuelta sin deriva", () => {

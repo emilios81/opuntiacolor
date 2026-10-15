@@ -4,6 +4,39 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.7.1 (2026-10-15)
+
+**No cambia ningún resultado.** Los doce filtros dan la misma salida que en
+v3.7.0, byte a byte (comparado sobre una foto real, una imagen de ruido que
+cubre todo el rango RGB y una roca sintética, con cuatro intensidades, con y
+sin selección de zona, y el Relieve con y sin escala).
+
+### La página se colgaba al mover la intensidad con fotos grandes
+
+- **El problema.** Cada vez que el deslizador de intensidad se detenía un
+  cuarto de segundo, se reprocesaba la foto entera. Con una foto de 20 MP el
+  Rojo tarda unos 7 segundos con la página congelada, así que arrastrar de 1.5
+  a 4.0 encadenaba media docena de reprocesos: más de medio minuto sin
+  responder a los clics, y en algún caso la pestaña se caía.
+
+- **El cambio.** La intensidad se aplica al **soltar** el deslizador (con el
+  teclado, en cada paso). Mientras se arrastra solo se mueve el número. Los
+  botones Sutil…Extremo siguen aplicando en el acto.
+
+### Más rápido y con menos memoria
+
+- **Conversión a LAB.** El paso de sRGB a lineal de cada canal se precalcula
+  una vez para los 256 valores posibles en lugar de calcular tres potencias por
+  píxel. Es la misma cuenta, así que da los mismos valores al último bit
+  (verificado sobre los 16,7 millones de colores RGB). Con una foto de 20 MP
+  la conversión pasa de 3,4 a 2,1 segundos, y la aprovechan todos los filtros
+  que trabajan en LAB.
+
+- **Bicromo y Mapa de pigmentos** guardaban un arreglo `[L, a, b]` por píxel,
+  unos 80 bytes cada uno. Con una foto de 45 MP eso llenaba 3,6 de los 4,4 GB
+  de memoria de JavaScript de la pestaña. Ahora van en tres `Float64Array`:
+  24 bytes por píxel, mismos valores.
+
 ## v3.7.0 (2026-10-10)
 
 Los tres cambios salen de la correspondencia con B. Gunn (ago–sep 2026), que

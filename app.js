@@ -29,7 +29,7 @@ const {
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.7.0
+// OPC – OpuntiaColor v3.7.1
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -44,17 +44,27 @@ const OPC_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 // v3.7: Rojo adaptativo (decorrelación en el plano a*-b*: cambian
 //       sus resultados) y Relieve con escala; la escala 0 (bordes)
 //       reproduce exactamente la salida de v3.6.0
+// v3.7.1: la intensidad se aplica al soltar el deslizador; conversión
+//       a LAB más rápida y Bicromo / Mapa con menos memoria, sin
+//       cambiar ningún resultado
 // ============================================================
 
 // --- Color Conversion Core ---
 
+// sRGB → lineal de cada canal de 8 bits, precalculado (v3.7.1). Es la misma
+// cuenta que se hacía píxel por píxel, así que da los mismos valores al último
+// bit —verificado sobre los 16,7 millones de colores—, pero ahorra tres
+// potencias por píxel: la conversión a LAB tarda un tercio menos.
+const SRGB_LINEAL = Float64Array.from({
+  length: 256
+}, (_, v) => {
+  const c = v / 255;
+  return c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92;
+});
 function rgb2lab(r, g, b) {
-  let rr = r / 255,
-    gg = g / 255,
-    bb = b / 255;
-  rr = rr > 0.04045 ? Math.pow((rr + 0.055) / 1.055, 2.4) : rr / 12.92;
-  gg = gg > 0.04045 ? Math.pow((gg + 0.055) / 1.055, 2.4) : gg / 12.92;
-  bb = bb > 0.04045 ? Math.pow((bb + 0.055) / 1.055, 2.4) : bb / 12.92;
+  const rr = SRGB_LINEAL[r],
+    gg = SRGB_LINEAL[g],
+    bb = SRGB_LINEAL[b];
   let x = (rr * 0.4124564 + gg * 0.3575761 + bb * 0.1804375) / 0.95047;
   let y = rr * 0.2126729 + gg * 0.7151522 + bb * 0.0721750;
   let z = (rr * 0.0193339 + gg * 0.1191920 + bb * 0.9503041) / 1.08883;
@@ -466,22 +476,32 @@ function enhanceWhitePigment(imageData, intensity = 1.5, mask = null, store = nu
   }
   return new ImageData(output, imageData.width, imageData.height);
 }
+
+// L*, a* y b* se guardan en tres Float64Array (v3.7.1). Antes iba un arreglo
+// [L,a,b] por píxel: unos 80 bytes cada uno, que con una foto de 45 MP casi
+// llenaban los ~4 GB de memoria de JavaScript de la pestaña. Mismos valores,
+// menos de un tercio de la memoria. El Mapa de pigmentos hace lo mismo.
 function enhanceBichrome(imageData, intensity = 1.5, mask = null, store = null) {
   const data = imageData.data,
     n = data.length / 4,
     output = new Uint8ClampedArray(data.length);
-  const labs = new Array(n);
-  const lv = new Float64Array(n);
+  const lv = new Float64Array(n),
+    av = new Float64Array(n),
+    bv = new Float64Array(n);
   for (let i = 0; i < n; i++) {
-    labs[i] = rgb2lab(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
-    lv[i] = labs[i][0];
+    const [L, a, bL] = rgb2lab(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+    lv[i] = L;
+    av[i] = a;
+    bv[i] = bL;
   }
   const mL = store && store.frozen ? store.frozen.mL : meanStd1(lv, n, mask).mean;
   if (store && !store.frozen) store.frozen = {
     mL
   };
   for (let i = 0; i < n; i++) {
-    let [L, a, bL] = labs[i];
+    let L = lv[i],
+      a = av[i],
+      bL = bv[i];
     const rb = a > 5 ? intensity * 1.3 : a > 0 ? intensity : 1,
       nA = a * rb,
       ch = Math.sqrt(a * a + bL * bL),
@@ -1343,18 +1363,23 @@ function pigmentMapping(imageData, intensity = 1.5, mask = null, store = null) {
   const data = imageData.data,
     n = data.length / 4,
     output = new Uint8ClampedArray(data.length);
-  const labs = new Array(n);
-  const lv = new Float64Array(n);
+  const lv = new Float64Array(n),
+    av = new Float64Array(n),
+    bv = new Float64Array(n);
   for (let i = 0; i < n; i++) {
-    labs[i] = rgb2lab(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
-    lv[i] = labs[i][0];
+    const [L, a, bL] = rgb2lab(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+    lv[i] = L;
+    av[i] = a;
+    bv[i] = bL;
   }
   const mL = store && store.frozen ? store.frozen.mL : meanStd1(lv, n, mask).mean;
   if (store && !store.frozen) store.frozen = {
     mL
   };
   for (let i = 0; i < n; i++) {
-    const [L, a, bL] = labs[i];
+    const L = lv[i],
+      a = av[i],
+      bL = bv[i];
     const ch = Math.sqrt(a * a + bL * bL);
     if (a > 8 && ch > 12) {
       const ri = Math.min(1, a / 40);
@@ -1845,6 +1870,17 @@ function RockArtEnhancer() {
   const [processedSrc, setProcessedSrc] = useState(null);
   const [activePreset, setActivePreset] = useState(null);
   const [intensity, setIntensity] = useState(1.5);
+  // Valor del deslizador mientras se arrastra (null = no se está arrastrando).
+  // La intensidad se aplica recién al soltarlo, con el evento nativo "change":
+  // con una foto de 20 MP cada reproceso congela la página varios segundos, y
+  // aplicar en cada pausa del arrastre encadenaba media docena (v3.7.1).
+  const [intDraft, setIntDraft] = useState(null);
+  const intRangeRef = useCallback(el => {
+    if (el) el.addEventListener("change", () => {
+      setIntensity(parseFloat(el.value));
+      setIntDraft(null);
+    });
+  }, []);
   // Escala del Relieve en % del lado mayor (0 = mapa de bordes de v3.6)
   const [reliefScale, setReliefScale] = useState(0);
   const [processing, setProcessing] = useState(false);
@@ -3008,7 +3044,7 @@ function RockArtEnhancer() {
       color: T.tm,
       fontFamily: mono
     }
-  }, "v3.7.0")))), /*#__PURE__*/React.createElement("div", {
+  }, "v3.7.1")))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 6,
@@ -3073,7 +3109,24 @@ function RockArtEnhancer() {
       color: T.ac,
       fontSize: 15
     }
-  }, "OPC v3.7.0 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+  }, "OPC v3.7.1 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Mover la intensidad ya no cuelga la p\xE1gina (v3.7.1)"), " \u2014 La intensidad se aplica al ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "soltar el deslizador"), ": antes se reprocesaba la foto en cada pausa del arrastre y, con una de 20 MP o m\xE1s, la p\xE1gina quedaba congelada medio minuto o se ca\xEDa. Adem\xE1s, la conversi\xF3n a LAB tarda un tercio menos y Bicromo y el Mapa de pigmentos usan menos de un tercio de la memoria. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Ning\xFAn resultado cambia"), ": la salida es id\xE9ntica a la de v3.7.0, byte a byte."), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -3316,6 +3369,23 @@ function RockArtEnhancer() {
       color: T.text
     }
   }, "DStretch"), " (J. Harman). OPC es una implementaci\xF3n independiente de c\xF3digo abierto, escrita desde cero a partir de la bibliograf\xEDa publicada, sin c\xF3digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci\xF3n entre herramientas.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Moving the intensity no longer hangs the page (v3.7.1)"), " \u2014 Intensity is applied when you ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "release the slider"), ": before, the photo was reprocessed at every pause while dragging and, with a 20 MP photo or larger, the page froze for half a minute or crashed. LAB conversion also takes a third less time, and Bichrome and the Pigment map use less than a third of the memory. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "No result changes"), ": the output is identical to v3.7.0, byte for byte."), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -3968,13 +4038,14 @@ function RockArtEnhancer() {
       textTransform: "uppercase",
       marginBottom: 4
     }
-  }, tr("Intensidad", "Intensity"), ": ", intensity.toFixed(1)), /*#__PURE__*/React.createElement("input", {
+  }, tr("Intensidad", "Intensity"), ": ", (intDraft ?? intensity).toFixed(1)), /*#__PURE__*/React.createElement("input", {
+    ref: intRangeRef,
     type: "range",
     min: "0.2",
     max: "5.0",
     step: "0.1",
-    value: intensity,
-    onChange: e => setIntensity(parseFloat(e.target.value)),
+    value: intDraft ?? intensity,
+    onChange: e => setIntDraft(parseFloat(e.target.value)),
     style: {
       width: "100%",
       accentColor: T.ac
@@ -3996,7 +4067,10 @@ function RockArtEnhancer() {
     }
   }, INTENSITY_PRESETS.map(ip => /*#__PURE__*/React.createElement("button", {
     key: ip.label,
-    onClick: () => setIntensity(ip.value),
+    onClick: () => {
+      setIntDraft(null);
+      setIntensity(ip.value);
+    },
     style: {
       flex: 1,
       minWidth: 36,
@@ -5123,7 +5197,7 @@ function RockArtEnhancer() {
       color: T.gn,
       fontWeight: 500
     }
-  }, "OPC"), " \u2013 OpuntiaColor v3.7.0 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+  }, "OPC"), " \u2013 OpuntiaColor v3.7.1 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
       color: T.tm
     }

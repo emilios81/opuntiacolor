@@ -21,7 +21,7 @@ código que se publica**, no contra una copia que puede quedar desactualizada.
 
 | Sección | Qué comprueba |
 |---|---|
-| **Conversiones de color** | Valores de referencia sRGB/D65 para blanco, negro, gris 128 y rojo primario; ida y vuelta RGB↔LAB y RGB↔YCbCr sobre 4000 colores, con tolerancia de 1 nivel de 255 |
+| **Conversiones de color** | Valores de referencia sRGB/D65 para blanco, negro, gris 128 y rojo primario; ida y vuelta RGB↔LAB y RGB↔YCbCr sobre 4000 colores, con tolerancia de 1 nivel de 255; que la tabla sRGB→lineal de `rgb2lab` (v3.7.1) dé al último bit lo mismo que la fórmula directa en los 16,7 millones de colores |
 | **Eigendescomposición** | Eigenvalores contra soluciones de forma cerrada y contra la solución analítica del polinomio característico en 500 covarianzas al azar; conservación de la traza; `A·v = λ·v`; ortonormalidad de los eigenvectores; orden descendente por varianza |
 | **Máscara de selección** | Que las estadísticas sobre la máscara coincidan con calcularlas solo sobre esos píxeles; que una máscara vacía caiga de vuelta a la imagen completa; que la selección efectivamente cambie el resultado del filtro |
 | **Imagen integral** | Que `satMean` coincida con el promedio calculado a mano en varias ventanas |

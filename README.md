@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.7.0
+# OPC – OpuntiaColor v3.7.1
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -229,7 +229,7 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.7.0)
+para el realce digital de pigmentos y grabados en arte rupestre* (v3.7.1)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://doi.org/10.5281/zenodo.21796290
 
