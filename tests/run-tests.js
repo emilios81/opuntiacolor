@@ -1294,14 +1294,209 @@ suite("Correspondencia src/app.jsx ↔ app.js", () => {
 });
 
 // ============================================================
+// 13. Procesador de fondo (v3.7.2)
+//
+// Desde v3.7.2 los filtros corren en un Web Worker que carga el mismo app.js.
+// Acá se carga app.js en contextos aislados que imitan los dos casos: como
+// worker (sin React ni documento) y como página (con un Worker simulado), para
+// comprobar que el camino por el worker devuelve los mismos bytes que llamar
+// al filtro directamente, y que la cancelación y el plan B funcionan.
+// ============================================================
 
-console.log(
-  "\n" + (failed === 0 ? "\x1b[32m" : "\x1b[31m") +
-  passed + " prueba(s) OK, " + failed + " fallida(s)\x1b[0m\n"
-);
-if (failed > 0) {
-  console.log("Fallaron:");
-  for (const f of failures) console.log("  · " + f.name);
-  console.log("");
+const APP_JS = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+
+function cargarApp(extra) {
+  const ctx = {
+    Math, Float64Array, Float32Array, Int32Array, Uint8ClampedArray, Uint8Array, Array, Number, Object, JSON,
+    console, setTimeout, clearTimeout, ImageData, ...extra,
+  };
+  ctx.self = ctx;
+  vm.createContext(ctx);
+  vm.runInContext(APP_JS, ctx);
+  return ctx;
 }
-process.exit(failed === 0 ? 0 : 1);
+
+// app.js como worker: lo que devuelve con postMessage queda en .salida
+function cargarWorker() {
+  const salida = [];
+  const ctx = cargarApp({ postMessage: (m) => salida.push(m) });
+  ctx.salida = salida;
+  return ctx;
+}
+
+// app.js como página, con un Worker simulado que delega en cargarWorker().
+// modo.falla: el constructor tira, como con index.html abierto como archivo.
+// modo.cae: el worker arranca pero se cae al recibir el pedido.
+function cargarPagina(modo) {
+  const lanzados = [];
+  class WorkerSimulado {
+    constructor() {
+      if (modo.falla) throw new Error("no se permite el worker (simulado)");
+      this.vivo = true; this.w = cargarWorker(); lanzados.push(this);
+    }
+    postMessage(msg) {
+      setTimeout(() => {
+        if (!this.vivo) return;
+        if (modo.cae) { if (this.onerror) this.onerror({ preventDefault() {} }); return; }
+        Promise.resolve(this.w.self.onmessage({ data: msg })).then(() => {
+          const r = this.w.salida.shift();
+          if (this.vivo && this.onmessage) this.onmessage({ data: r });
+        });
+      }, 0);
+    }
+    terminate() { this.vivo = false; }
+  }
+  const ctx = cargarApp({
+    document: { currentScript: { src: "app.js" }, getElementById: () => ({}) },
+    React: { createElement: () => null },
+    ReactDOM: { createRoot: () => ({ render() {} }) },
+    Worker: WorkerSimulado,
+  });
+  ctx.lanzados = lanzados;
+  return ctx;
+}
+
+// El filtro llamado directamente, sin worker de por medio. Con selección, el
+// resultado se combina con la foto como lo hacía applyWithMask hasta v3.7.1:
+// el filtro dentro de la zona, la foto afuera, alfa opaco en toda la imagen.
+function directo(ctx, presetId, img, intensity, mask, frozen, opts) {
+  const fn = vm.runInContext("(id) => PRESETS.find(p => p.id === id).fn", ctx)(presetId);
+  const store = frozen ? { frozen } : {};
+  const r = fn(cloneImage(img), intensity, mask, store, opts);
+  let data = r.data;
+  if (mask) {
+    data = new Uint8ClampedArray(img.data);
+    for (let i = 0; i < img.width * img.height; i++) {
+      if (mask[i]) { data[i*4] = r.data[i*4]; data[i*4+1] = r.data[i*4+1]; data[i*4+2] = r.data[i*4+2]; }
+      data[i*4+3] = 255;
+    }
+  }
+  return { data, frozen: store.frozen || null };
+}
+
+function mismaSalida(a, b, msg) {
+  assertBytesEqual(a.data, b.data, msg);
+  assert(JSON.stringify(a.frozen) === JSON.stringify(b.frozen), msg + " — las estadísticas congeladas difieren");
+}
+
+function mascaraCentro(w, h) {
+  const m = new Uint8Array(w * h);
+  for (let y = h >> 2; y < (3 * h) >> 2; y++) for (let x = w >> 2; x < (3 * w) >> 2; x++) m[y * w + x] = 1;
+  return m;
+}
+
+async function testAsync(name, fn) {
+  current = name;
+  try {
+    await fn();
+    passed++;
+    console.log("  \x1b[32m✓\x1b[0m " + name);
+  } catch (e) {
+    failed++;
+    failures.push({ name, message: e.message });
+    console.log("  \x1b[31m✗\x1b[0m " + name);
+    console.log("    \x1b[31m" + e.message.split("\n").join("\n    ") + "\x1b[0m");
+  }
+}
+
+(async () => {
+  console.log("\n\x1b[1mProcesador de fondo (v3.7.2)\x1b[0m");
+
+  await testAsync("app.js cargado como worker no toca React ni el documento y queda escuchando", () => {
+    const w = cargarWorker();
+    assert(typeof w.self.onmessage === "function", "app.js como worker no instaló el receptor de pedidos");
+  });
+
+  await testAsync("el worker devuelve los mismos bytes que el filtro llamado directamente, en los doce filtros", async () => {
+    const w = cargarWorker();
+    const ids = vm.runInContext("PRESETS.map(p => p.id)", w);
+    assert(ids.length === 12, "se esperaban 12 filtros y hay " + ids.length);
+    const img = syntheticImage(40, 30, 4242);
+    for (const id of ids) {
+      for (const mask of [null, mascaraCentro(40, 30)]) {
+        const opts = id === "relief" ? { escala: 0.25 } : null;
+        const esperado = directo(w, id, img, 2.2, mask, null, opts);
+        await w.self.onmessage({ data: { id: 7, presetId: id, data: new Uint8ClampedArray(img.data), w: 40, h: 30,
+          intensity: 2.2, mask, frozen: null, opts } });
+        const r = w.salida.pop();
+        assert(r && r.id === 7 && !r.error, id + ": el worker no respondió bien (" + (r && r.error) + ")");
+        mismaSalida(r, esperado, id + (mask ? " con máscara" : ""));
+      }
+    }
+  });
+
+  await testAsync("con estadísticas congeladas, el worker usa las de la referencia", async () => {
+    const w = cargarWorker();
+    const ref = syntheticImage(32, 24, 11), otra = syntheticImage(32, 24, 12);
+    for (const id of ["red", "lds", "crgb", "dslab", "bichrome"]) {
+      const { frozen } = directo(w, id, ref, 1.5, null, null, null);
+      assert(frozen, id + ": la referencia no dejó estadísticas congeladas");
+      const esperado = directo(w, id, otra, 1.5, null, frozen, null);
+      await w.self.onmessage({ data: { id: 1, presetId: id, data: new Uint8ClampedArray(otra.data), w: 32, h: 24,
+        intensity: 1.5, mask: null, frozen, opts: null } });
+      mismaSalida(w.salida.pop(), esperado, id + " con lo congelado");
+    }
+  });
+
+  await testAsync("un error dentro del filtro vuelve como mensaje y no tira abajo el worker", async () => {
+    const w = cargarWorker();
+    await w.self.onmessage({ data: { id: 3, presetId: "no-existe", data: new Uint8ClampedArray(16), w: 2, h: 2, intensity: 1 } });
+    const r = w.salida.pop();
+    assert(r && r.id === 3 && r.error, "el error no volvió como mensaje");
+  });
+
+  const pedido = (img, presetId, intensity, mask = null) => ({ presetId, origen: img.data, w: img.width, h: img.height,
+    intensity, mask, frozen: null, opts: null });
+
+  await testAsync("la página obtiene el mismo resultado por el worker que sin él", async () => {
+    const img = syntheticImage(36, 28, 77);
+    for (const modo of [{}, { falla: true }, { cae: true }]) {
+      const pag = cargarPagina(modo);
+      const proc = vm.runInContext("crearProcesador", pag)();
+      const camino = modo.falla ? "sin worker" : modo.cae ? "con el worker caído" : "por el worker";
+      for (const mask of [null, mascaraCentro(36, 28)]) {
+        const r = await proc.correr(pedido(img, "red", 2.0, mask));
+        mismaSalida(r, directo(pag, "red", img, 2.0, mask, null, null), camino + (mask ? " con selección" : ""));
+      }
+      if (!modo.falla && !modo.cae) assert(pag.lanzados.length >= 1, "no se usó el worker");
+      // la imagen original no se toca: lo que viaja al worker es una copia
+      assertBytesEqual(img.data, syntheticImage(36, 28, 77).data, "la imagen de origen cambió");
+    }
+  });
+
+  await testAsync("un pedido nuevo cancela el anterior y termina su worker", async () => {
+    const pag = cargarPagina({});
+    const proc = vm.runInContext("crearProcesador", pag)();
+    const CANCELADO = vm.runInContext("PROC_CANCELADO", pag);
+    const img = syntheticImage(36, 28, 5);
+    const primero = proc.correr(pedido(img, "red", 1.0));
+    const segundo = proc.correr(pedido(img, "lds", 3.0));
+    let motivo = null;
+    try { await primero; } catch (e) { motivo = e; }
+    assert(motivo === CANCELADO, "el primer pedido no se canceló (motivo: " + motivo + ")");
+    assert(pag.lanzados[0].vivo === false, "el worker del pedido cancelado sigue vivo");
+    mismaSalida(await segundo, directo(pag, "lds", img, 3.0, null, null, null), "el segundo pedido");
+  });
+
+  await testAsync("sin worker, un pedido cancelado tampoco llega a calcularse", async () => {
+    const pag = cargarPagina({ falla: true });
+    const proc = vm.runInContext("crearProcesador", pag)();
+    const img = syntheticImage(20, 20, 9);
+    const primero = proc.correr(pedido(img, "red", 1.0));
+    proc.cancelar();
+    let motivo = null;
+    try { await primero; } catch (e) { motivo = e; }
+    assert(motivo === vm.runInContext("PROC_CANCELADO", pag), "el pedido no se canceló");
+  });
+
+  console.log(
+    "\n" + (failed === 0 ? "\x1b[32m" : "\x1b[31m") +
+    passed + " prueba(s) OK, " + failed + " fallida(s)\x1b[0m\n"
+  );
+  if (failed > 0) {
+    console.log("Fallaron:");
+    for (const f of failures) console.log("  · " + f.name);
+    console.log("");
+  }
+  process.exit(failed === 0 ? 0 : 1);
+})();

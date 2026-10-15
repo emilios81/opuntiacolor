@@ -20,16 +20,21 @@
  * with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Este mismo archivo se carga dos veces: como página y como Web Worker, que
+// corre los filtros en un hilo aparte (v3.7.2). En el worker no hay React ni
+// documento: solo se usan las funciones de procesamiento y PRESETS.
 const {
   useState,
   useRef,
   useCallback,
   useEffect
-} = React;
+} = typeof React !== "undefined" ? React : {};
+// Dirección de app.js, para lanzar el worker con exactamente el mismo código
+const APP_SRC = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : null;
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.7.1
+// OPC – OpuntiaColor v3.7.2
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -47,6 +52,8 @@ const OPC_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 // v3.7.1: la intensidad se aplica al soltar el deslizador; conversión
 //       a LAB más rápida y Bicromo / Mapa con menos memoria, sin
 //       cambiar ningún resultado
+// v3.7.2: los filtros corren en un Web Worker; la página no se congela
+//       mientras procesa y un pedido nuevo cancela el anterior
 // ============================================================
 
 // --- Color Conversion Core ---
@@ -1861,6 +1868,154 @@ const INTENSITY_PRESETS = [{
 }];
 
 // ============================================================
+// PROCESADOR DE FONDO (v3.7.2)
+// ============================================================
+// Con una foto de 29 MP un filtro tarda unos 8 segundos. Corriéndolo en el
+// hilo de la página, en ese tiempo no había ni redibujado ni clics: la página
+// parecía colgada. Ahora corre en un Web Worker que carga este mismo app.js.
+// Un pedido nuevo cancela el que esté en curso (se termina el worker y se
+// lanza otro), así que cambiar de filtro o de intensidad nunca hace esperar
+// al cálculo anterior.
+//
+// Si el worker no puede arrancar —por ejemplo, con index.html abierto como
+// archivo local, donde el navegador no lo permite— el filtro corre en la
+// página como hasta v3.7.1. El resultado es el mismo en los dos caminos.
+const PROC_CANCELADO = "cancelado";
+
+// Combina el resultado del filtro con la foto de origen (datos RGBA de n
+// píxeles): dentro de la selección va el filtro; afuera, la foto tal cual.
+// Sin selección devuelve el resultado sin tocarlo. La usan el worker y el
+// cálculo en la página, así que los dos caminos combinan igual.
+function aplicarMascara(origen, resultado, mask, n) {
+  if (!mask) return resultado;
+  const out = new Uint8ClampedArray(origen);
+  for (let i = 0; i < n; i++) {
+    if (mask[i]) {
+      out[i * 4] = resultado[i * 4];
+      out[i * 4 + 1] = resultado[i * 4 + 1];
+      out[i * 4 + 2] = resultado[i * 4 + 2];
+    }
+    out[i * 4 + 3] = 255;
+  }
+  return out;
+}
+function crearProcesador() {
+  let worker = null,
+    enCurso = null,
+    localPend = null,
+    n = 0;
+  let usable = typeof Worker !== "undefined" && !!APP_SRC;
+  // El mismo cálculo, en el hilo de la página. t.origen no se transfiere
+  // nunca, así que sigue disponible si el worker falla a mitad de camino.
+  const local = t => {
+    const p = PRESETS.find(x => x.id === t.presetId);
+    const store = t.frozen ? {
+      frozen: t.frozen
+    } : {};
+    const r = p.fn(new ImageData(new Uint8ClampedArray(t.origen), t.w, t.h), t.intensity, t.mask, store, t.opts);
+    return {
+      data: aplicarMascara(t.origen, r.data, t.mask, t.w * t.h),
+      frozen: store.frozen || null,
+      png: null
+    };
+  };
+  const resolverLocal = t => {
+    try {
+      t.resolve(local(t));
+    } catch (err) {
+      t.reject(err);
+    }
+  };
+  const arrancar = () => {
+    try {
+      worker = new Worker(APP_SRC);
+    } catch (e) {
+      usable = false;
+      worker = null;
+      return;
+    }
+    worker.onmessage = e => {
+      const t = enCurso;
+      if (!t || e.data.id !== t.id) return;
+      enCurso = null;
+      // Un error dentro del worker se repite en la página, donde queda a la vista
+      if (e.data.error) resolverLocal(t);else t.resolve({
+        data: e.data.data,
+        frozen: e.data.frozen,
+        png: e.data.png
+      });
+    };
+    worker.onerror = e => {
+      // No se pudo cargar o se cayó: de acá en más, todo en la página
+      if (e && e.preventDefault) e.preventDefault();
+      usable = false;
+      if (worker) {
+        worker.terminate();
+        worker = null;
+      }
+      const t = enCurso;
+      enCurso = null;
+      if (t) resolverLocal(t);
+    };
+  };
+  const cancelar = () => {
+    if (localPend) {
+      const t = localPend;
+      localPend = null;
+      t.reject(PROC_CANCELADO);
+    }
+    if (!enCurso) return;
+    const t = enCurso;
+    enCurso = null;
+    if (worker) {
+      worker.terminate();
+      worker = null;
+    }
+    t.reject(PROC_CANCELADO);
+  };
+  // t: { presetId, origen (Uint8ClampedArray RGBA), w, h, intensity, mask, frozen, opts }
+  // Devuelve { data: RGBA ya combinado con la selección, frozen, png: Blob o null }
+  const correr = t => new Promise((resolve, reject) => {
+    cancelar();
+    const job = {
+      ...t,
+      id: ++n,
+      resolve,
+      reject
+    };
+    if (usable && !worker) arrancar();
+    if (!usable) {
+      localPend = job;
+      setTimeout(() => {
+        if (localPend !== job) return;
+        localPend = null;
+        resolverLocal(job);
+      }, 0);
+      return;
+    }
+    enCurso = job;
+    // Se transfiere una copia de los píxeles: pasa al worker sin duplicarse
+    const copia = new Uint8ClampedArray(t.origen);
+    worker.postMessage({
+      id: job.id,
+      presetId: t.presetId,
+      data: copia,
+      w: t.w,
+      h: t.h,
+      intensity: t.intensity,
+      mask: t.mask,
+      frozen: t.frozen,
+      opts: t.opts,
+      png: true
+    }, [copia.buffer]);
+  });
+  return {
+    correr,
+    cancelar
+  };
+}
+
+// ============================================================
 // MAIN COMPONENT
 // ============================================================
 
@@ -1965,6 +2120,11 @@ function RockArtEnhancer() {
   const [pickSrc, setPickSrc] = useState(null); // vista previa con el gotero
   const [pickCoverage, setPickCoverage] = useState(0);
   const processedDataRef = useRef(null); // resultado del filtro, sin gotero
+  // Procesador de fondo (worker) y número del último pedido: un resultado que
+  // llega con un número viejo se descarta
+  const procRef = useRef(null);
+  if (!procRef.current) procRef.current = crearProcesador();
+  const jobRef = useRef(0);
   const pickBaseRef = useRef(null); // + ajustes fijados: de acá se muestrea
 
   const [selTool, setSelTool] = useState("none"); // none|rect|circle|free
@@ -2220,6 +2380,7 @@ function RockArtEnhancer() {
         setImageSize(computeSize(img, fullRes));
         setImage(img);
         setImageSrc(e.target.result);
+        cancelarProceso();
         setProcessedSrc(null);
         setActivePreset(null);
         setStackMode(false);
@@ -2256,6 +2417,7 @@ function RockArtEnhancer() {
     setFullRes(nv);
     if (image) {
       setImageSize(computeSize(image, nv));
+      cancelarProceso();
       setProcessedSrc(null);
       setActivePreset(null);
       setSelData(null);
@@ -2270,14 +2432,20 @@ function RockArtEnhancer() {
     }
   };
 
-  // processImage: soporta stacking y máscara de selección
+  // processImage: soporta stacking y máscara de selección. El filtro corre en
+  // el procesador de fondo (v3.7.2): la página sigue respondiendo y un pedido
+  // nuevo —otro filtro, otra intensidad— cancela el que estaba en curso.
   const processImage = useCallback((preset, int) => {
     if (!image) return;
+    const job = ++jobRef.current;
+    procRef.current.cancelar();
     setProcessing(true);
     setActivePreset(preset.id);
+    const apilar = stackMode && !!processedSrc;
     // setTimeout directo (no requestAnimationFrame): rAF se pausa si la
     // pestaña pierde visibilidad y el procesamiento quedaba colgado
-    setTimeout(() => {
+    setTimeout(async () => {
+      if (job !== jobRef.current) return;
       try {
         const cv = document.createElement("canvas"),
           ctx = cv.getContext("2d"),
@@ -2287,19 +2455,6 @@ function RockArtEnhancer() {
           } = imageSize;
         cv.width = w;
         cv.height = h;
-        const applyWithMask = (sourceData, resultData, mask) => {
-          if (!mask) return resultData;
-          const merged = new ImageData(new Uint8ClampedArray(sourceData.data), w, h);
-          for (let i = 0; i < w * h; i++) {
-            if (mask[i]) {
-              merged.data[i * 4] = resultData.data[i * 4];
-              merged.data[i * 4 + 1] = resultData.data[i * 4 + 1];
-              merged.data[i * 4 + 2] = resultData.data[i * 4 + 2];
-            }
-            merged.data[i * 4 + 3] = 255;
-          }
-          return merged;
-        };
         const mask = generateMask(selData, w, h);
         // Parámetros propios de un filtro; viajan también al pipeline del lote
         const opts = preset.id === "relief" ? {
@@ -2307,59 +2462,71 @@ function RockArtEnhancer() {
         } : null;
 
         // Si stackMode y hay resultado previo, usar ese como fuente
-        if (stackMode && processedSrc) {
-          const tmpImg = new Image();
-          tmpImg.onload = () => {
-            try {
-              ctx.drawImage(tmpImg, 0, 0, w, h);
-              const sourceData = ctx.getImageData(0, 0, w, h);
-              const id = new ImageData(new Uint8ClampedArray(sourceData.data), w, h);
-              const store = {};
-              const result = preset.fn(id, int, mask, store, opts);
-              const final = applyWithMask(sourceData, result, mask);
-              processedDataRef.current = final; // fuente del gotero: el filtro sin ajustes post
-              ctx.putImageData(final, 0, 0);
-              setProcessedSrc(cv.toDataURL("image/png"));
-              // Registrar el paso acumulado en el pipeline del lote
-              pipelineRef.current.push({
-                presetId: preset.id,
-                intensity: int,
-                frozen: store.frozen || null,
-                opts
-              });
-            } catch (err) {
-              console.error(err);
-            }
-            setProcessing(false);
-          };
-          tmpImg.onerror = () => setProcessing(false);
-          tmpImg.src = processedSrc;
-          return;
+        let fuente = image;
+        if (apilar) {
+          fuente = await new Promise((ok, mal) => {
+            const im = new Image();
+            im.onload = () => ok(im);
+            im.onerror = mal;
+            im.src = processedSrc;
+          });
+          if (job !== jobRef.current) return;
         }
-        ctx.drawImage(image, 0, 0, w, h);
+        ctx.drawImage(fuente, 0, 0, w, h);
         const sourceData = ctx.getImageData(0, 0, w, h);
-        const id = new ImageData(new Uint8ClampedArray(sourceData.data), w, h);
         // La máscara también se pasa al filtro: las estadísticas se calculan
         // sobre la zona seleccionada (decorrelación local, como DStretch)
-        const store = {};
-        const result = preset.fn(id, int, mask, store, opts);
-        const final = applyWithMask(sourceData, result, mask);
+        const r = await procRef.current.correr({
+          presetId: preset.id,
+          origen: sourceData.data,
+          w,
+          h,
+          intensity: int,
+          mask,
+          frozen: null,
+          opts
+        });
+        if (job !== jobRef.current) return; // llegó otro pedido mientras tanto
+        // Ya viene combinado con la selección (aplicarMascara)
+        const final = new ImageData(r.data, w, h);
         processedDataRef.current = final; // fuente del gotero: el filtro sin ajustes post
-        ctx.putImageData(final, 0, 0);
-        setProcessedSrc(cv.toDataURL("image/png"));
-        // Aplicación fresca → el pipeline arranca de cero con este paso
-        pipelineRef.current = [{
+        if (r.png) setProcessedSrc(URL.createObjectURL(r.png));else {
+          ctx.putImageData(final, 0, 0);
+          setProcessedSrc(cv.toDataURL("image/png"));
+        }
+        const paso = {
           presetId: preset.id,
           intensity: int,
-          frozen: store.frozen || null,
+          frozen: r.frozen,
           opts
-        }];
+        };
+        // Acumulado → se suma al pipeline del lote; aplicación fresca → arranca de cero
+        if (apilar) pipelineRef.current.push(paso);else pipelineRef.current = [paso];
       } catch (e) {
+        if (e === PROC_CANCELADO) return;
         console.error(e);
       }
-      setProcessing(false);
+      if (job === jobRef.current) setProcessing(false);
     }, 50);
   }, [image, imageSize, stackMode, processedSrc, selData, generateMask, reliefScale]);
+
+  // Descarta el cálculo en curso: al cambiar de foto, de resolución o de
+  // selección, un resultado que llegue tarde ya no corresponde a lo que se ve
+  const cancelarProceso = () => {
+    jobRef.current++;
+    procRef.current.cancelar();
+    setProcessing(false);
+  };
+
+  // El PNG del worker llega como Blob: cada resultado reemplazado se libera
+  // (unos 75 MB con 29 MP). Con demora, por si una descarga o el modo
+  // Acumular todavía lo están leyendo.
+  useEffect(() => {
+    const u = processedSrc;
+    return () => {
+      if (u && u.startsWith("blob:")) setTimeout(() => URL.revokeObjectURL(u), 30000);
+    };
+  }, [processedSrc]);
   useEffect(() => {
     // En modo acumular NO se reaplica automáticamente al mover la intensidad:
     // cada reaplicación tomaría el resultado previo como fuente y el filtro
@@ -2814,6 +2981,7 @@ function RockArtEnhancer() {
     return () => clearTimeout(t);
   }, [processedSrc, pickSteps, pickColor, pickTol, pickFeather, pickGain]);
   const handleReset = () => {
+    cancelarProceso();
     setImage(null);
     setImageSrc(null);
     setProcessedSrc(null);
@@ -2852,6 +3020,7 @@ function RockArtEnhancer() {
 
   // --- Herramientas de selección ---
   const clearSelection = () => {
+    cancelarProceso();
     setSelData(null);
     setSelTool("none");
     setProcessedSrc(null);
@@ -3044,7 +3213,7 @@ function RockArtEnhancer() {
       color: T.tm,
       fontFamily: mono
     }
-  }, "v3.7.1")))), /*#__PURE__*/React.createElement("div", {
+  }, "v3.7.2")))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 6,
@@ -3109,7 +3278,24 @@ function RockArtEnhancer() {
       color: T.ac,
       fontSize: 15
     }
-  }, "OPC v3.7.1 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+  }, "OPC v3.7.2 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "La p\xE1gina ya no se congela mientras procesa (v3.7.2)"), " \u2014 Los filtros corren en un ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "hilo aparte"), " (Web Worker). Con una foto de 29 MP el Rojo sigue tardando unos 8 segundos, pero mientras tanto la p\xE1gina responde, y si cambi\xE1s de filtro o de intensidad, el c\xE1lculo anterior se cancela y arranca el nuevo. Antes la p\xE1gina quedaba congelada todo ese tiempo y no tomaba los clics. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Ning\xFAn resultado cambia.")), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -3369,6 +3555,23 @@ function RockArtEnhancer() {
       color: T.text
     }
   }, "DStretch"), " (J. Harman). OPC es una implementaci\xF3n independiente de c\xF3digo abierto, escrita desde cero a partir de la bibliograf\xEDa publicada, sin c\xF3digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci\xF3n entre herramientas.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "The page no longer freezes while processing (v3.7.2)"), " \u2014 Filters run in a ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "separate thread"), " (Web Worker). With a 29 MP photo the Red filter still takes about 8 seconds, but the page keeps responding meanwhile, and if you switch filter or intensity, the previous computation is cancelled and the new one starts. Before, the page stayed frozen the whole time and ignored clicks. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "No result changes.")), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -3877,7 +4080,6 @@ function RockArtEnhancer() {
   }, tr("Filtros", "Filters")), PRESETS.map(p => /*#__PURE__*/React.createElement("button", {
     key: p.id,
     onClick: () => processImage(p, intensity),
-    disabled: processing,
     style: {
       display: "flex",
       alignItems: "center",
@@ -3887,11 +4089,10 @@ function RockArtEnhancer() {
       background: activePreset === p.id ? T.acBg : T.cBg,
       border: `1px solid ${activePreset === p.id ? T.acBd : T.cBd}`,
       borderRadius: 7,
-      cursor: processing ? "wait" : "pointer",
+      cursor: "pointer",
       transition: "all 0.2s",
       textAlign: "left",
       color: T.text,
-      opacity: processing ? 0.6 : 1,
       marginBottom: 2
     }
   }, /*#__PURE__*/React.createElement("span", {
@@ -3974,6 +4175,7 @@ function RockArtEnhancer() {
   }].map(t => /*#__PURE__*/React.createElement("button", {
     key: t.id,
     onClick: () => {
+      cancelarProceso();
       setSelData(null);
       setProcessedSrc(null);
       setPanTool(false);
@@ -4106,7 +4308,6 @@ function RockArtEnhancer() {
   }, RELIEF_ESCALAS.map(e => /*#__PURE__*/React.createElement("button", {
     key: e,
     onClick: () => setReliefScale(e),
-    disabled: processing,
     style: {
       flex: 1,
       minWidth: 30,
@@ -4117,7 +4318,7 @@ function RockArtEnhancer() {
       background: reliefScale === e ? T.acBg : T.cBg,
       border: `1px solid ${reliefScale === e ? T.acBd : T.cBd}`,
       borderRadius: 5,
-      cursor: processing ? "wait" : "pointer",
+      cursor: "pointer",
       color: reliefScale === e ? T.ac : T.tm
     }
   }, e ? e : tr("Bordes", "Edges")))), /*#__PURE__*/React.createElement("div", {
@@ -5197,7 +5398,7 @@ function RockArtEnhancer() {
       color: T.gn,
       fontWeight: 500
     }
-  }, "OPC"), " \u2013 OpuntiaColor v3.7.1 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+  }, "OPC"), " \u2013 OpuntiaColor v3.7.2 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
       color: T.tm
     }
@@ -5228,4 +5429,47 @@ function RockArtEnhancer() {
     }
   }));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(RockArtEnhancer));
+if (typeof document !== "undefined") {
+  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(RockArtEnhancer));
+} else if (typeof self !== "undefined" && typeof self.postMessage === "function") {
+  // Cargado como Web Worker: atiende pedidos de filtros y nada más. Corre las
+  // mismas funciones que la página, así que el resultado es el mismo byte a byte.
+  self.onmessage = async e => {
+    const t = e.data;
+    try {
+      const p = PRESETS.find(x => x.id === t.presetId);
+      const store = t.frozen ? {
+        frozen: t.frozen
+      } : {};
+      // Con selección se guarda la foto: fuera de la zona queda tal cual
+      const origen = t.mask ? new Uint8ClampedArray(t.data) : null;
+      const r = p.fn(new ImageData(t.data, t.w, t.h), t.intensity, t.mask, store, t.opts);
+      const data = aplicarMascara(origen, r.data, t.mask, t.w * t.h);
+      // El PNG para mostrar también se arma acá: con 29 MP, codificarlo en la
+      // página la congelaba un segundo más. Si no se puede, lo hace la página.
+      let png = null;
+      if (t.png && typeof OffscreenCanvas !== "undefined") {
+        try {
+          const oc = new OffscreenCanvas(t.w, t.h);
+          oc.getContext("2d").putImageData(new ImageData(data, t.w, t.h), 0, 0);
+          png = await oc.convertToBlob({
+            type: "image/png"
+          });
+        } catch (err) {
+          png = null;
+        }
+      }
+      self.postMessage({
+        id: t.id,
+        data,
+        frozen: store.frozen || null,
+        png
+      }, [data.buffer]);
+    } catch (err) {
+      self.postMessage({
+        id: t.id,
+        error: String(err && err.message || err)
+      });
+    }
+  };
+}

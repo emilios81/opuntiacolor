@@ -4,6 +4,46 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.7.2 (2026-10-15)
+
+**No cambia ningún resultado.** Los filtros son las mismas funciones; cambia
+dónde corren.
+
+### Los filtros corren en un hilo aparte
+
+- **El problema.** La v3.7.1 evitó que mover la intensidad encadenara
+  reprocesos, pero cada uno seguía corriendo en el hilo de la página. Con una
+  foto de 29 MP (6222 × 4666, un panorama de La Sixtina) el Rojo tarda unos
+  8 segundos, y en ese tiempo la página no se redibujaba ni tomaba clics:
+  parecía colgada, y los botones de los otros filtros no respondían.
+
+- **El cambio.** Los filtros corren en un **Web Worker** que carga el mismo
+  `app.js`, así que el cálculo es idéntico. El worker también combina el
+  resultado con la selección y codifica el PNG que se muestra. Con la foto de
+  29 MP la página se congela una sola vez, menos de medio segundo, al leer los
+  píxeles. Antes eran unos 9 segundos seguidos.
+
+- **Un pedido nuevo cancela el anterior.** Si mientras procesa se elige otro
+  filtro, otra intensidad u otra escala del Relieve, el cálculo en curso se
+  corta y arranca el nuevo. Los botones de filtro ya no se deshabilitan
+  mientras procesa. Al cambiar de foto, de resolución o de selección, un
+  resultado que llegue tarde se descarta.
+
+- **Plan B.** Si el navegador no permite el worker —por ejemplo, con
+  `index.html` abierto como archivo local con `OpuntiaColor.bat`— el filtro
+  corre en la página como hasta v3.7.1.
+
+- **Verificado.** En el navegador, con la foto de 29 MP, el worker y el filtro
+  corrido en la página dan los mismos bytes (Rojo con y sin selección, LDS y
+  Bicromo), y el PNG que arma el worker tiene exactamente esos píxeles. Siete
+  pruebas nuevas cargan `app.js` como worker y como página, y comprueban que
+  los doce filtros dan lo mismo por los dos caminos, con y sin selección y con
+  estadísticas congeladas, y que la cancelación y el plan B funcionan.
+
+- **Queda pendiente.** El gotero cromático y el procesado por lote siguen
+  corriendo en la página: con fotos grandes, ajustar el gotero todavía congela
+  unos segundos.
+
 ## v3.7.1 (2026-10-15)
 
 **No cambia ningún resultado.** Los doce filtros dan la misma salida que en
