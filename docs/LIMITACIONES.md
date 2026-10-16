@@ -190,7 +190,8 @@ cuáles fueron.
 ## 7. La resolución de trabajo cambia el resultado
 
 Por defecto se trabaja a la resolución completa de la foto, hasta 8192 px en el
-lado mayor; se puede bajar a 2000 px si la máquina se arrastra.
+lado mayor. Una foto de más de 16 MP abre con un cartel que propone bajarla a
+16 MP; desde el panel se puede elegir también 12 u 8 MP, o 2000 px.
 
 Los resultados **no son idénticos** entre una y otra:
 
@@ -202,8 +203,8 @@ Los resultados **no son idénticos** entre una y otra:
 - **Decorrelación y pigmentos** son por píxel; sus estadísticas apenas se mueven,
   pero el remuestreo previo altera algo los valores.
 
-**En la práctica:** trabajar en resolución completa. Si hizo falta bajar a 2000 px
-para explorar, **rehacer el resultado final** en completa con los parámetros ya
+**En la práctica:** trabajar en resolución completa, o en la más alta que la
+máquina aguante. Si hizo falta bajar para explorar, **rehacer el resultado final** en completa con los parámetros ya
 elegidos y revisarlo, en vez de asumir que es el mismo más grande. Consignar la
 resolución de trabajo en cualquier publicación.
 
@@ -239,7 +240,7 @@ de contraste y saturación (`IMG_0421_OPC_crgb_i1.8_c10.png`). Eso cubre lo
 básico, pero **no** queda registrado:
 
 - la **versión de OPC** usada (y las versiones cambian resultados: ver §10);
-- la **resolución de trabajo** (2000 px o completa);
+- la **resolución de trabajo** (completa, 16, 12 u 8 MP, o 2000 px);
 - la **zona de selección**, que puede cambiar el resultado por completo;
 - la **cadena de filtros** si se usó el modo Acumular (desde v3.7.0 la escala
   del Relieve sí queda en el nombre, como `_e0.25`);

@@ -4,6 +4,40 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.7.3 (2026-10-15)
+
+**No cambia ningún resultado** a resolución completa ni en 2000 px: dan
+exactamente el mismo tamaño de trabajo que antes (prueba sobre 5000 tamaños
+al azar). Las resoluciones intermedias son nuevas.
+
+### Fotos grandes: se elige la resolución al abrirlas
+
+- **El problema.** Con el panorama de 29 MP de La Sixtina (6222 × 4666) la
+  página seguía sin responder en Chrome aun con el worker de v3.7.2. La única
+  alternativa era bajar a 2000 px, que es demasiado: un tercio de cada lado.
+
+- **El cambio.** Una foto de más de **16 MP** (medida con el tope de 8192 px)
+  abre con un cartel que dice su tamaño y propone tres opciones:
+  - **16 MP, recomendada**: conserva tres cuartos de cada lado.
+  - **12 MP**: más rápida.
+  - **Completa**.
+
+  El foco queda en la recomendada. El cartel recuerda que la resolución cambia
+  el resultado y que conviene anotarla al publicar.
+
+- **Medido** con esa foto en una PC de escritorio. El filtro más lento
+  (Blanco/Negro) tarda 8,5 s a 29 MP, 4,7 s a 16 MP y 3,6 s a 12 MP. El Rojo
+  tarda 6,8 s a 29 MP, 4,0 s a 16 MP y 2,8 s a 12 MP.
+
+- **En el panel**, la resolución de trabajo pasa a ser un menú desplegable con
+  más escalones: completa, 16, 12 y 8 MP, y 2000 px. Solo se ofrecen los que
+  achican la foto. Debajo se ve el tamaño que se procesa. Los escalones
+  intermedios limitan los megapíxeles y no el lado, así que un panorama
+  alargado no queda angosto.
+
+- Fotos de hasta 16 MP (por ejemplo 4608 × 3456 o 4032 × 3024) abren como
+  siempre, a resolución completa y sin cartel.
+
 ## v3.7.2 (2026-10-15)
 
 **No cambia ningún resultado.** Los filtros son las mismas funciones; cambia

@@ -1489,6 +1489,59 @@ async function testAsync(name, fn) {
     assert(motivo === vm.runInContext("PROC_CANCELADO", pag), "el pedido no se canceló");
   });
 
+  console.log("\n\x1b[1mResolución de trabajo (v3.7.3)\x1b[0m");
+  const app = cargarWorker();
+  const tamano = vm.runInContext("tamanoTrabajo", app), opciones = vm.runInContext("opcionesResolucion", app);
+  const esGrande = vm.runInContext("esFotoGrande", app);
+
+  await testAsync("«Completa» y «2000 px» dan exactamente el mismo tamaño que hasta v3.7.2", () => {
+    // computeSize de v3.7.2, copiado tal cual
+    const viejo = (w, h, full) => { const mx = full ? 8192 : 2000; if (w > mx || h > mx) { const s = mx / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); } return { w, h }; };
+    const rnd = lcg(31);
+    for (let k = 0; k < 5000; k++) {
+      const w = 50 + Math.floor(rnd() * 20000), h = 50 + Math.floor(rnd() * 20000);
+      for (const [id, full] of [["full", true], ["2000", false]]) {
+        const a = tamano(w, h, id), b = viejo(w, h, full);
+        assert(a.w === b.w && a.h === b.h, id + " con " + w + "×" + h + ": " + a.w + "×" + a.h + " en vez de " + b.w + "×" + b.h);
+      }
+    }
+  });
+
+  await testAsync("las intermedias respetan sus megapíxeles, conservan la proporción y nunca agrandan", () => {
+    const rnd = lcg(32);
+    for (let k = 0; k < 5000; k++) {
+      const w0 = 50 + Math.floor(rnd() * 20000), h0 = 50 + Math.floor(rnd() * 20000);
+      for (const [id, mp] of [["16mp", 16], ["12mp", 12], ["8mp", 8]]) {
+        const t = tamano(w0, h0, id), c = tamano(w0, h0, "full");
+        assert(t.w <= c.w && t.h <= c.h, id + " agrandó " + w0 + "×" + h0);
+        assert(t.w * t.h <= mp * 1e6 * 1.002, id + " con " + w0 + "×" + h0 + " da " + (t.w * t.h / 1e6).toFixed(2) + " MP");
+        assert(Math.abs(t.w / t.h - c.w / c.h) <= (c.w / c.h) * 0.01 + 1 / t.h, id + " deformó " + w0 + "×" + h0);
+      }
+    }
+  });
+
+  await testAsync("con el panorama de 29 MP: 16 MP da 4619 × 3464 y 12 MP da 4000 × 3000", () => {
+    const a = tamano(6222, 4666, "16mp"), b = tamano(6222, 4666, "12mp");
+    assert(a.w === 4619 && a.h === 3464, "16 MP dio " + a.w + "×" + a.h);
+    assert(b.w === 4000 && b.h === 3000, "12 MP dio " + b.w + "×" + b.h);
+  });
+
+  await testAsync("el cartel aparece desde los 16 MP, contando el tope de 8192 px", () => {
+    assert(esGrande(6222, 4666), "29 MP no abrió el cartel");
+    assert(esGrande(11090, 5872), "un panorama de 11090 × 5872 no abrió el cartel");
+    assert(!esGrande(4608, 3456), "una foto de 15,9 MP abrió el cartel");
+    assert(!esGrande(4032, 3024), "una foto de 12 MP abrió el cartel");
+  });
+
+  await testAsync("el menú solo ofrece escalones que achican: a una foto de 12 MP, ni «16 MP» ni «12 MP»", () => {
+    const ids = opciones(4032, 3024).map(o => o.id);
+    assert(ids.join(",") === "full,8mp,2000", "opciones para 12 MP: " + ids.join(", "));
+    const chica = opciones(1800, 1200).map(o => o.id);
+    assert(chica.length === 1 && chica[0] === "full", "a una foto de 1800 px se le ofrece " + chica.join(", "));
+    const grande = opciones(6222, 4666).map(o => o.id);
+    assert(grande.join(",") === "full,16mp,12mp,8mp,2000", "opciones para 29 MP: " + grande.join(", "));
+  });
+
   console.log(
     "\n" + (failed === 0 ? "\x1b[32m" : "\x1b[31m") +
     passed + " prueba(s) OK, " + failed + " fallida(s)\x1b[0m\n"

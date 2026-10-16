@@ -11,7 +11,7 @@ Rangos, valores por defecto y efecto real de cada control.
 | Intensidad | 0.2 – 5.0 | 0.1 | **1.5** |
 | Contraste | −80 – +80 | 5 | **0** |
 | Saturación | −100 – +100 | 5 | **0** |
-| Resolución de trabajo | completa (hasta 8192 px) / 2000 px | — | **completa** |
+| Resolución de trabajo | completa (hasta 8192 px) / 16 MP / 12 MP / 8 MP / 2000 px | — | **completa** (con más de 16 MP se pregunta al abrir; recomendada 16 MP) |
 | Resolución del lote | 2000 / 4000 / 8192 px | — | **8192 px** |
 
 ---
@@ -196,13 +196,22 @@ el color que produjo el filtro, no la composición del pigmento. Ver
 
 ## Resolución de trabajo
 
-**Resolución completa por defecto, hasta 8192 px; se puede bajar a 2000 px.**
+**Resolución completa por defecto, hasta 8192 px. Con fotos de más de 16 MP se
+pregunta al abrirlas.**
+
+Desde v3.7.3, una foto que pasa de 16 MP (medida ya con el tope de 8192 px) abre
+con un cartel que propone **16 MP (recomendada)**, **12 MP** o la **completa**. Con
+un panorama de 29 MP, el filtro más lento tarda 8,5 s a resolución completa,
+4,7 s a 16 MP y 3,6 s a 12 MP; 16 MP conserva tres cuartos de cada lado.
 
 El control está **arriba de todo en el panel izquierdo, antes de la lista de
-filtros**, y aparece solo si la foto supera los 2000 px en su lado mayor. Muestra
-las dos opciones juntas —completa o 2000 px— y debajo el tamaño en píxeles que se
+filtros**, y aparece solo si la foto supera los 2000 px en su lado mayor. Es un
+menú con los escalones que achican la foto: completa, 16, 12 y 8 MP, y 2000 px.
+Los escalones en megapíxeles limitan la cantidad de píxeles y no el lado, así que
+un panorama alargado no queda angosto. Debajo se ve el tamaño en píxeles que se
 va a procesar; mientras se trabaja reducido, el recuadro y esa cifra quedan en
-rojo. Está ahí porque la resolución se decide **antes** de elegir filtro, y porque
+rojo. Completa y 2000 px dan exactamente el mismo tamaño que en versiones
+anteriores. Está ahí porque la resolución se decide **antes** de elegir filtro, y porque
 no debería pasar inadvertida: es la diferencia entre una imagen de exploración y
 una publicable.
 
@@ -216,10 +225,10 @@ píxeles o en fracción de la imagen, así que cambian con la escala. Los filtro
 decorrelación y de pigmento son por píxel y sus estadísticas apenas se mueven,
 pero el remuestreo previo altera algo los valores.
 
-Criterio práctico: **trabajar en resolución completa** y bajar a 2000 px solo si
-la máquina se arrastra. Si se exploró en 2000 px, rehacer el resultado final en
-resolución completa con los parámetros ya elegidos y revisarlo antes de darlo por
-bueno.
+Criterio práctico: **trabajar en resolución completa** y, con fotos grandes,
+bajar lo justo: 16 MP antes que 12 MP, y 2000 px solo para explorar. Si se exploró
+reducido, rehacer el resultado final en la resolución más alta que la máquina
+aguante, con los parámetros ya elegidos, y revisarlo antes de darlo por bueno.
 
 Para una publicación conviene consignar la resolución de trabajo junto con la
 versión, el filtro y la intensidad: son los cuatro datos necesarios para que otra

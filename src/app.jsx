@@ -29,7 +29,7 @@ const APP_SRC = typeof document !== "undefined" && document.currentScript ? docu
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.7.2
+// OPC – OpuntiaColor v3.7.3
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -49,6 +49,8 @@ const OPC_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 //       cambiar ningún resultado
 // v3.7.2: los filtros corren en un Web Worker; la página no se congela
 //       mientras procesa y un pedido nuevo cancela el anterior
+// v3.7.3: una foto de más de 16 MP abre con un cartel que propone bajarla
+//       un poco (16 MP recomendada); más escalones de resolución
 // ============================================================
 
 // --- Color Conversion Core ---
@@ -1029,6 +1031,49 @@ function clampView(v) {
 }
 
 // ============================================================
+// RESOLUCIÓN DE TRABAJO (v3.7.3)
+// ============================================================
+// «Completa» es la foto tal cual, con el tope de 8192 px de siempre, y
+// «2000 px» es la opción reducida que había hasta v3.7.2: las dos dan
+// exactamente el mismo tamaño que entonces. Las intermedias limitan los
+// megapíxeles y no el lado, para que un panorama alargado no quede angosto.
+const RESOLUCIONES = [{ id: "full", lado: 8192 }, { id: "16mp", mp: 16 }, { id: "12mp", mp: 12 }, { id: "8mp", mp: 8 }, { id: "2000", lado: 2000 }];
+// Una foto de más de FOTO_GRANDE_MP abre con un cartel que propone bajarla a
+// RES_RECOMENDADA. Medido con un panorama de 29 MP (6222 × 4666) en una PC de
+// escritorio: el filtro más lento tarda 8,5 s a resolución completa, 4,7 s a
+// 16 MP y 3,6 s a 12 MP. 16 MP conserva tres cuartos de cada lado y tarda
+// alrededor de la mitad.
+const FOTO_GRANDE_MP = 16;
+const RES_RECOMENDADA = "16mp";
+
+function tamanoTrabajo(w0, h0, resId) {
+  const r = RESOLUCIONES.find(x => x.id === resId) || RESOLUCIONES[0];
+  const lado = r.lado || 8192;
+  let w = w0, h = h0;
+  if (w > lado || h > lado) { const s = lado / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+  if (r.mp && w * h > r.mp * 1e6) { const s = Math.sqrt(r.mp * 1e6 / (w * h)); w = Math.round(w * s); h = Math.round(h * s); }
+  return { w, h };
+}
+
+// ¿Abre con el cartel? Se mide la foto ya con el tope de 8192 px.
+function esFotoGrande(w0, h0) {
+  const c = tamanoTrabajo(w0, h0, "full");
+  return c.w * c.h > FOTO_GRANDE_MP * 1e6;
+}
+
+// Opciones que tienen sentido para una foto: la completa y las que la achican
+// de verdad, al menos un 10 % de píxeles respecto de cada opción anterior. En
+// una foto de 12 MP, «16 MP» sería la completa y «12 MP» le sacaría un 2 %.
+function opcionesResolucion(w0, h0) {
+  const out = [];
+  for (const r of RESOLUCIONES) {
+    const t = tamanoTrabajo(w0, h0, r.id);
+    if (!out.some(o => t.w * t.h > o.w * o.h * 0.9)) out.push({ id: r.id, w: t.w, h: t.h });
+  }
+  return out;
+}
+
+// ============================================================
 // PRESETS (con categorías)
 // ============================================================
 
@@ -1193,10 +1238,24 @@ function RockArtEnhancer() {
   const [exifData, setExifData] = useState(null);
   // Segmento EXIF crudo (APP1) para reinyectar en el JPG exportado
   const [exifRaw, setExifRaw] = useState(null);
-  // Resolución de trabajo: completa por defecto (hasta 8192px). Se puede bajar
-  // a 2000px desde el panel si la máquina no da abasto; la elección persiste
-  // mientras dure la sesión, y el botón queda marcado para que no pase inadvertida.
-  const [fullRes, setFullRes] = useState(true);
+  // Resolución de trabajo: completa por defecto (hasta 8192 px). Una foto de
+  // más de FOTO_GRANDE_MP abre con un cartel que propone bajarla un poco
+  // (v3.7.3); también se elige desde el panel. La elección persiste mientras
+  // dure la sesión, y el panel queda marcado cuando no es la completa, para
+  // que no pase inadvertida.
+  const [resId, setResId] = useState("full");
+  const [preguntaRes, setPreguntaRes] = useState(false);   // cartel de foto grande
+  // «16 MP · 4619 × 3464»; la completa lleva además sus megapíxeles
+  const etiquetaRes = (id, t) => {
+    const r = RESOLUCIONES.find(x => x.id === id);
+    const nombre = id === "full" ? tr("Completa", "Full") : r.mp ? `${r.mp} MP` : `${r.lado} px`;
+    return `${nombre} \u00B7 ${t.w} \u00D7 ${t.h}` + (id === "full" ? ` \u00B7 ${Math.round(t.w * t.h / 1e6)} MP` : "");
+  };
+  // En el desplegable del panel, sin medidas: «Completa (29 MP)», «16 MP»
+  const etiquetaResCorta = (id, t) => {
+    const r = RESOLUCIONES.find(x => x.id === id);
+    return id === "full" ? `${tr("Completa", "Full")} (${Math.round(t.w * t.h / 1e6)} MP)` : r.mp ? `${r.mp} MP` : `${r.lado} px`;
+  };
   // NUEVO: modo acumular (stacking)
   const [stackMode, setStackMode] = useState(false);
   // NUEVO: ajustes post-procesamiento
@@ -1367,14 +1426,6 @@ function RockArtEnhancer() {
   // navegador inventa detalle y en un panel rupestre eso se confunde con textura.
   const zoomPx = view.z >= 3 ? "pixelated" : "auto";
 
-  // Tamaño de trabajo: resolución completa por defecto (hasta 8192px), 2000px opcional
-  const computeSize = (img, full) => {
-    const mx = full ? 8192 : 2000;
-    let w = img.naturalWidth, h = img.naturalHeight;
-    if (w > mx || h > mx) { const s = mx / Math.max(w,h); w = Math.round(w*s); h = Math.round(h*s); }
-    return { w, h };
-  };
-
   const handleFile = useCallback((file) => {
     if (!file || !file.type.startsWith("image/")) return;
     setFileName(file.name); setExifData(null); setExifRaw(null);
@@ -1385,18 +1436,25 @@ function RockArtEnhancer() {
     dr.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        setImageSize(computeSize(img, fullRes)); setImage(img); setImageSrc(e.target.result); cancelarProceso(); setProcessedSrc(null); setActivePreset(null); setStackMode(false); setSelData(null); setSelTool("none"); setContrast(0); setSaturation(0); setPickColor(null); setPickSteps([]); setPicking(false); setPickSrc(null); processedDataRef.current=null; pickBaseRef.current=null; drawRef.current={active:false,tool:"",start:null,pts:[]}; pipelineRef.current=[]; setView({z:1,tx:0,ty:0}); setPanTool(false);
+        // Si la resolución elegida antes no tiene sentido para esta foto (no
+        // la achica, o casi nada), se vuelve a la completa, que es lo que el
+        // menú del panel va a mostrar
+        const rid = opcionesResolucion(img.naturalWidth, img.naturalHeight).some(o => o.id === resId) ? resId : "full";
+        setResId(rid);
+        setPreguntaRes(esFotoGrande(img.naturalWidth, img.naturalHeight));
+        setImageSize(tamanoTrabajo(img.naturalWidth, img.naturalHeight, rid)); setImage(img); setImageSrc(e.target.result); cancelarProceso(); setProcessedSrc(null); setActivePreset(null); setStackMode(false); setSelData(null); setSelTool("none"); setContrast(0); setSaturation(0); setPickColor(null); setPickSteps([]); setPicking(false); setPickSrc(null); processedDataRef.current=null; pickBaseRef.current=null; drawRef.current={active:false,tool:"",start:null,pts:[]}; pipelineRef.current=[]; setView({z:1,tx:0,ty:0}); setPanTool(false);
       };
       img.src = e.target.result;
     };
     dr.readAsDataURL(file);
-  }, [fullRes]);
+  }, [resId]);
 
   const setWorkingRes = (nv) => {
-    if (nv === fullRes) return;
-    setFullRes(nv);
+    setPreguntaRes(false);
+    if (nv === resId) return;
+    setResId(nv);
     if (image) {
-      setImageSize(computeSize(image, nv));
+      setImageSize(tamanoTrabajo(image.naturalWidth, image.naturalHeight, nv));
       cancelarProceso(); setProcessedSrc(null); setActivePreset(null); setSelData(null); setSelTool("none");
       drawRef.current={active:false,tool:"",start:null,pts:[]}; pipelineRef.current=[];
     }
@@ -1845,7 +1903,7 @@ function RockArtEnhancer() {
             <h1 style={{ margin:0,fontSize:18,fontWeight:700,color:T.text,display:"flex",alignItems:"baseline",gap:6 }}>
               <span style={{ color:T.gn,fontFamily:mono,fontSize:11,fontWeight:500,background:T.gnBg,padding:"1px 6px",borderRadius:4,border:`1px solid ${T.gnBd}` }}>OPC</span>
               Opuntia<span style={{ color:T.ac,fontWeight:700 }}>Color</span>
-              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v3.7.2</span>
+              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v3.7.3</span>
             </h1>
           </div>
         </div>
@@ -1865,8 +1923,9 @@ function RockArtEnhancer() {
       {/* INFO PANEL */}
       {showInfo && (
         <div style={{ margin:"0 20px",padding:20,background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:10,fontSize:13,lineHeight:1.7,position:"relative",zIndex:10 }}>
-          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v3.7.2 &mdash; {tr("Novedades","What\u2019s new")}</h3>
+          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v3.7.3 &mdash; {tr("Novedades","What\u2019s new")}</h3>
           {lang === "es" ? (<>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Fotos grandes: se elige la resoluci&oacute;n al abrirlas (v3.7.3)</strong> &mdash; Una foto de m&aacute;s de 16 MP abre con un cartel que propone trabajarla a <strong style={{color:T.text}}>16 MP</strong>: conserva tres cuartos de cada lado y cada filtro tarda alrededor de la mitad. Tambi&eacute;n se puede elegir 12 MP o la completa. En el panel, la resoluci&oacute;n de trabajo pasa a ser un men&uacute; con m&aacute;s escalones (completa, 16, 12 y 8 MP, 2000 px). A resoluci&oacute;n completa y en 2000 px <strong style={{color:T.text}}>nada cambia</strong>: dan el mismo tama&ntilde;o que antes.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>La p&aacute;gina ya no se congela mientras procesa (v3.7.2)</strong> &mdash; Los filtros corren en un <strong style={{color:T.text}}>hilo aparte</strong> (Web Worker). Con una foto de 29 MP el Rojo sigue tardando unos 8 segundos, pero mientras tanto la p&aacute;gina responde, y si cambi&aacute;s de filtro o de intensidad, el c&aacute;lculo anterior se cancela y arranca el nuevo. Antes la p&aacute;gina quedaba congelada todo ese tiempo y no tomaba los clics. <strong style={{color:T.text}}>Ning&uacute;n resultado cambia.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Mover la intensidad ya no cuelga la p&aacute;gina (v3.7.1)</strong> &mdash; La intensidad se aplica al <strong style={{color:T.text}}>soltar el deslizador</strong>: antes se reprocesaba la foto en cada pausa del arrastre y, con una de 20 MP o m&aacute;s, la p&aacute;gina quedaba congelada medio minuto o se ca&iacute;a. Adem&aacute;s, la conversi&oacute;n a LAB tarda un tercio menos y Bicromo y el Mapa de pigmentos usan menos de un tercio de la memoria. <strong style={{color:T.text}}>Ning&uacute;n resultado cambia</strong>: la salida es id&eacute;ntica a la de v3.7.0, byte a byte.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Rojo adaptativo (v3.7.0)</strong> &mdash; Hasta v3.6.0 el filtro Rojo aplicaba una transformaci&oacute;n fija: multiplicaba el rojo de cada p&iacute;xel sin mirar la foto. En una roca rojiza &mdash;una arenisca con manchas de hierro, por ejemplo&mdash; enrojec&iacute;a la roca y el pigmento por igual, y los trazos no se separaban. Ahora <strong style={{color:T.text}}>calcula el color de la roca a partir de la propia foto</strong> (o de la zona seleccionada), lo lleva a gris y amplifica lo que se aparta de &eacute;l, con prioridad para lo que es m&aacute;s rojo que la roca. La textura y el relieve no se tocan. <strong style={{color:T.text}}>Cambia el resultado del filtro Rojo</strong> &mdash; para comparar con material anterior hay que reprocesarlo.</p>
@@ -1887,6 +1946,7 @@ function RockArtEnhancer() {
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Exportaci&oacute;n con metadatos</strong> &mdash; El nombre del archivo registra filtro e intensidad; el JPG conserva el EXIF/GPS original. TIFF v&aacute;lido seg&uacute;n spec 6.0.</p>
           <p style={{ margin:"0 0 8px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Reconocimiento</strong> &mdash; El decorrelation stretch (Gillespie et al. 1986) fue popularizado en arte rupestre por <strong style={{color:T.text}}>DStretch</strong> (J. Harman). OPC es una implementaci&oacute;n independiente de c&oacute;digo abierto, escrita desde cero a partir de la bibliograf&iacute;a publicada, sin c&oacute;digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci&oacute;n entre herramientas.</p>
           </>) : (<>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Large photos: pick the resolution when opening them (v3.7.3)</strong> &mdash; A photo over 16 MP opens with a notice that suggests working at <strong style={{color:T.text}}>16 MP</strong>: it keeps three quarters of each side and each filter takes about half the time. 12 MP or full resolution can also be chosen. In the panel, the working resolution becomes a menu with more steps (full, 16, 12 and 8 MP, 2000 px). At full resolution and at 2000 px <strong style={{color:T.text}}>nothing changes</strong>: they give the same size as before.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>The page no longer freezes while processing (v3.7.2)</strong> &mdash; Filters run in a <strong style={{color:T.text}}>separate thread</strong> (Web Worker). With a 29 MP photo the Red filter still takes about 8 seconds, but the page keeps responding meanwhile, and if you switch filter or intensity, the previous computation is cancelled and the new one starts. Before, the page stayed frozen the whole time and ignored clicks. <strong style={{color:T.text}}>No result changes.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Moving the intensity no longer hangs the page (v3.7.1)</strong> &mdash; Intensity is applied when you <strong style={{color:T.text}}>release the slider</strong>: before, the photo was reprocessed at every pause while dragging and, with a 20 MP photo or larger, the page froze for half a minute or crashed. LAB conversion also takes a third less time, and Bichrome and the Pigment map use less than a third of the memory. <strong style={{color:T.text}}>No result changes</strong>: the output is identical to v3.7.0, byte for byte.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Adaptive Red (v3.7.0)</strong> &mdash; Up to v3.6.0 the Red filter applied a fixed transformation: it multiplied the redness of every pixel without looking at the photo. On a reddish rock &mdash; a sandstone with iron staining, for instance &mdash; it reddened rock and pigment alike, and the strokes did not separate. It now <strong style={{color:T.text}}>works out the rock&rsquo;s color from the photo itself</strong> (or from the selected area), takes it to gray and amplifies whatever departs from it, giving priority to what is redder than the rock. Texture and relief are left untouched. <strong style={{color:T.text}}>The Red filter&rsquo;s results change</strong> &mdash; to compare with earlier material you have to reprocess it.</p>
@@ -1953,25 +2013,27 @@ function RockArtEnhancer() {
                   panel pasaba inadvertida: se terminaba analizando en baja sin
                   querer. Las dos opciones se muestran juntas para que se vea que
                   hay una elección y cuál está activa. */}
-              {image && Math.max(image.naturalWidth,image.naturalHeight) > 2000 && (
-                <div style={{ marginBottom:4,padding:"8px 10px",background:T.cBg,border:`1px solid ${fullRes?T.cBd:T.acBd}`,borderRadius:8 }}>
+              {image && Math.max(image.naturalWidth,image.naturalHeight) > 2000 && (() => {
+                const grande = esFotoGrande(image.naturalWidth, image.naturalHeight);
+                return (
+                <div style={{ marginBottom:4,padding:"8px 10px",background:T.cBg,border:`1px solid ${resId==="full"?T.cBd:T.acBd}`,borderRadius:8 }}>
                   <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:4 }}>{tr("Resoluci\u00F3n de trabajo","Working resolution")}</div>
-                  <div style={{ display:"flex",gap:3 }}>
-                    {[{ v:true, l:tr("Completa","Full") },{ v:false, l:"2000 px" }].map(o => (
-                      <button key={String(o.v)} onClick={()=>setWorkingRes(o.v)}
-                        title={o.v?tr("Procesar la foto en su resoluci\u00F3n real, con un tope de 8192 px","Process the photo at its real resolution, capped at 8192 px"):tr("M\u00E1s r\u00E1pido, pero se procesa menos detalle","Faster, but less detail is processed")}
-                        style={{ flex:1,padding:"5px 4px",fontSize:9.5,fontFamily:mono,fontWeight:fullRes===o.v?700:400,background:fullRes===o.v?T.acBg:T.bBg,border:`1px solid ${fullRes===o.v?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:fullRes===o.v?T.ac:T.tm }}>{o.l}</button>
+                  <select value={resId} onChange={e=>setWorkingRes(e.target.value)} title={tr("Menos p\u00EDxeles: cada filtro tarda menos, pero se procesa menos detalle","Fewer pixels: each filter takes less time, but less detail is processed")}
+                    style={{ width:"100%",padding:"5px 6px",fontSize:9.5,fontFamily:mono,background:T.bBg,color:resId==="full"?T.text:T.ac,fontWeight:resId==="full"?400:700,border:`1px solid ${resId==="full"?T.cBd:T.acBd}`,borderRadius:5,cursor:"pointer" }}>
+                    {opcionesResolucion(image.naturalWidth, image.naturalHeight).map(o => (
+                      <option key={o.id} value={o.id}>{etiquetaResCorta(o.id, o)}{grande && o.id===RES_RECOMENDADA ? ` \u00B7 ${tr("recomendada","recommended")}` : ""}</option>
                     ))}
-                  </div>
-                  <div style={{ fontSize:8,fontFamily:mono,color:fullRes?T.td:T.ac,marginTop:4,lineHeight:1.4 }}>
-                    {imageSize.w} &times; {imageSize.h} px {!fullRes
+                  </select>
+                  <div style={{ fontSize:8,fontFamily:mono,color:resId==="full"?T.td:T.ac,marginTop:4,lineHeight:1.4 }}>
+                    {imageSize.w} &times; {imageSize.h} px {resId!=="full"
                       ? tr(`\u00B7 reducida de ${image.naturalWidth}\u00D7${image.naturalHeight}`,`\u00B7 reduced from ${image.naturalWidth}\u00D7${image.naturalHeight}`)
                       : Math.max(image.naturalWidth,image.naturalHeight) > 8192
                         ? tr(`\u00B7 tope de 8192 px (orig. ${image.naturalWidth}\u00D7${image.naturalHeight})`,`\u00B7 capped at 8192 px (orig. ${image.naturalWidth}\u00D7${image.naturalHeight})`)
                         : tr("\u00B7 la resoluci\u00F3n real de la foto","\u00B7 the photo\u2019s real resolution")}
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* Filtros */}
               <div style={{ fontSize:8.5,fontFamily:mono,color:T.ac,letterSpacing:"1.5px",textTransform:"uppercase",margin:"4px 0 3px 4px",fontWeight:600 }}>{tr("Filtros","Filters")}</div>
@@ -2298,7 +2360,7 @@ function RockArtEnhancer() {
 
       {/* FOOTER */}
       <footer style={{ padding:"14px 20px",borderTop:`1px solid ${T.fBd}`,textAlign:"center",fontSize:10,color:T.fTx,fontFamily:mono,position:"relative",zIndex:5,lineHeight:1.8 }}>
-        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v3.7.2 &middot; {tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline","12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")}</div>
+        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v3.7.3 &middot; {tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline","12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")}</div>
         <div><span style={{color:T.tm}}>Dr. Emilio A. Villafa&ntilde;ez</span> &middot; <span style={{color:T.tm}}>LATDAA</span> &middot; <span style={{color:T.tm}}>Fund. F&eacute;lix de Azara</span> &middot; <span style={{color:T.tm}}>Universidad Nacional de Catamarca (UNCA), Argentina</span></div>
       </footer>
 
@@ -2311,6 +2373,39 @@ function RockArtEnhancer() {
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:${T.sT};border-radius:2px}
       `}</style>
+      {/* Cartel de foto grande (v3.7.3): se elige la resolución antes de procesar */}
+      {preguntaRes && image && (() => {
+        const completa = tamanoTrabajo(image.naturalWidth, image.naturalHeight, "full");
+        const opciones = [
+          { id: RES_RECOMENDADA, rec: true, nota: tr("Conserva casi todo el detalle y cada filtro tarda alrededor de la mitad.", "Keeps nearly all the detail and each filter takes about half the time.") },
+          { id: "12mp", nota: tr("M\u00E1s r\u00E1pida, con algo menos de detalle.", "Faster, with somewhat less detail.") },
+          { id: "full", nota: tr("Todo el detalle. Cada filtro tarda casi el doble, y en algunas computadoras el navegador se traba.", "All the detail. Each filter takes nearly twice as long, and on some computers the browser hangs.") },
+        ];
+        return (
+          <div style={{ position:"fixed",inset:0,zIndex:60,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
+            <div role="dialog" aria-modal="true" aria-label={tr("Foto grande","Large photo")} style={{ width:"100%",maxWidth:430,background:T.bg,border:`1px solid ${T.acBd}`,borderRadius:12,padding:"18px 18px 14px",color:T.text,fontFamily:mono,boxShadow:"0 12px 40px rgba(0,0,0,0.45)" }}>
+              <div style={{ fontSize:14,fontWeight:700,color:T.ac,marginBottom:6 }}>{tr("Foto grande","Large photo")}</div>
+              <div style={{ fontSize:11,color:T.tm,lineHeight:1.55,marginBottom:12 }}>
+                {tr(`Esta foto tiene ${Math.round(completa.w * completa.h / 1e6)} MP (${completa.w} \u00D7 ${completa.h} px). A ese tama\u00F1o cada filtro tarda varios segundos. \u00BFCon qu\u00E9 resoluci\u00F3n quer\u00E9s trabajar?`,
+                    `This photo has ${Math.round(completa.w * completa.h / 1e6)} MP (${completa.w} \u00D7 ${completa.h} px). At that size each filter takes several seconds. Which resolution do you want to work at?`)}
+              </div>
+              {opciones.map(o => {
+                const t = tamanoTrabajo(image.naturalWidth, image.naturalHeight, o.id);
+                return (
+                  <button key={o.id} autoFocus={o.rec} onClick={()=>setWorkingRes(o.id)} style={{ display:"block",width:"100%",textAlign:"left",padding:"9px 11px",marginBottom:6,background:o.rec?T.acBg:T.cBg,border:`1px solid ${o.rec?T.acBd:T.cBd}`,borderRadius:8,cursor:"pointer",color:T.text,fontFamily:mono }}>
+                    <div style={{ fontSize:11.5,fontWeight:700 }}>{etiquetaRes(o.id, t)}{o.rec && <span style={{ color:T.ac }}>{" \u00B7 " + tr("recomendada","recommended")}</span>}</div>
+                    <div style={{ fontSize:9.5,color:T.tm,marginTop:2,lineHeight:1.4 }}>{o.nota}</div>
+                  </button>
+                );
+              })}
+              <div style={{ fontSize:9,color:T.td,lineHeight:1.5,marginTop:6 }}>
+                {tr("Se puede cambiar despu\u00E9s en \u00ABResoluci\u00F3n de trabajo\u00BB. La resoluci\u00F3n cambia el resultado del filtro: si vas a publicar la imagen, anotala junto con el filtro y la intensidad.",
+                    "It can be changed later under \u201CWorking resolution\u201D. The resolution changes the filter\u2019s result: if you are going to publish the image, record it together with the filter and the intensity.")}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       <canvas ref={canvasRef} style={{display:"none"}} />
     </div>
   );

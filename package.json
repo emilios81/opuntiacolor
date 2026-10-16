@@ -1,6 +1,6 @@
 {
   "name": "opuntiacolor",
-  "version": "3.7.2",
+  "version": "3.7.3",
   "description": "OPC – OpuntiaColor: realce digital de pigmentos y grabados en arte rupestre. Decorrelation stretch (RGB y CIE-LAB), CLAHE, micro-relieve. 100% local en el navegador.",
   "keywords": [
     "rock-art",

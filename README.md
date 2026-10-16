@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.7.2
+# OPC – OpuntiaColor v3.7.3
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -116,8 +116,9 @@ las limitaciones antes de usarlo).
   idioma y la elección queda guardada. En la primera visita se toma la del
   navegador.
 - **Modo Solar** — interfaz de alto contraste para trabajo de campo bajo luz directa.
-- **Resolución completa** — es el modo por defecto, hasta 8192 px; se puede bajar
-  a 2000 px si la máquina se arrastra.
+- **Resolución completa** — es el modo por defecto, hasta 8192 px. Una foto de más
+  de 16 MP abre con un cartel que propone trabajarla a 16 MP (recomendada), 12 MP
+  o completa; desde el panel también se puede elegir 8 MP o 2000 px.
 
 ## Procesado por lote para fotogrametría
 
@@ -229,7 +230,7 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.7.2)
+para el realce digital de pigmentos y grabados en arte rupestre* (v3.7.3)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://doi.org/10.5281/zenodo.21796290
 
