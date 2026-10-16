@@ -13,6 +13,11 @@
   <!--
     app.js se genera desde src/app.jsx con "node build.js" (o build.bat).
     Para modificar la aplicación, editar src/app.jsx y recompilar.
+
+    El ?v= lleva la versión y cambia en cada una: así el navegador baja el
+    app.js nuevo apenas ve esta página nueva. Sin eso, un F5 reusaba el
+    app.js viejo hasta 10 minutos (la caché de GitHub Pages) y la pestaña
+    decía una versión y la aplicación otra.
   -->
-  <script src="app.js"></script>
+  <script src="app.js?v=3.7.3"></script>
 </body></html>

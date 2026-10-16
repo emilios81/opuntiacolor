@@ -1272,7 +1272,8 @@ suite("Correspondencia src/app.jsx ↔ app.js", () => {
     const html = leer("index.html"), readme = leer("README.md"), cff = leer("CITATION.cff");
     const zenodo = JSON.parse(leer(".zenodo.json"));
 
-    // Un bump de versión toca ocho lugares. En v3.6.0 se olvidaron dos del
+    // Un bump de versión toca diez lugares (el último, la dirección de app.js
+    // en index.html, desde v3.7.3). En v3.6.0 se olvidaron dos del
     // README y nadie se enteró hasta revisarlo a mano: de ahí esta prueba.
     const donde = {
       "src/app.jsx (cabecera)":      (source.match(/OPC – OpuntiaColor v([\d.]+)/) || [])[1],
@@ -1280,6 +1281,9 @@ suite("Correspondencia src/app.jsx ↔ app.js", () => {
       "src/app.jsx (h3 de novedades)": (source.match(/OPC v([\d.]+) &mdash;/) || [])[1],
       "src/app.jsx (pie)":           (source.match(/&ndash; OpuntiaColor v([\d.]+) &middot;/) || [])[1],
       "index.html":                  (html.match(/OpuntiaColor v([\d.]+)/) || [])[1],
+      // Desde v3.7.3: la versión en la dirección de app.js obliga al navegador
+      // a bajar el programa nuevo; si queda vieja, se carga el app.js anterior
+      "index.html (app.js?v=)":      (html.match(/src="app\.js\?v=([\d.]+)"/) || [])[1],
       "README.md (título)":          (readme.match(/^# OPC – OpuntiaColor v([\d.]+)/m) || [])[1],
       "README.md (cómo citar)":      (readme.match(/arte rupestre\* \(v([\d.]+)\)/) || [])[1],
       "CITATION.cff":                (cff.match(/^version: "([\d.]+)"/m) || [])[1],
