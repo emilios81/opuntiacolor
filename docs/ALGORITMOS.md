@@ -21,6 +21,7 @@ Los nombres de archivo y de función remiten a `src/app.jsx`.
 - [Técnico](#técnico) — CLAHE, Mapa de pigmentos
 - [Ajustes posteriores](#ajustes-posteriores) — contraste, saturación, gotero cromático
 - [Procesado por lote](#procesado-por-lote-estadísticas-congeladas)
+- [Registro de sesión](#registro-de-sesión) — huellas y reproducción (v3.8.0)
 
 ---
 
@@ -435,7 +436,7 @@ iluminación, al balance de blancos ni al tipo de roca. Ver
 `applyPostAdjust(imageData, contraste, saturación)` — se aplica después del
 filtro, sobre el resultado.
 
-Reproduce exactamente los filtros CSS `contrast()` y `saturate()`, es decir la
+Sigue las fórmulas de los filtros CSS `contrast()` y `saturate()`, es decir la
 matriz `feColorMatrix type="saturate"` con coeficientes Rec.709
 (0.213 / 0.715 / 0.072):
 
@@ -447,6 +448,13 @@ s  = 1 + saturación/100         salida = luma·(1−s) + s · canal'
 En el lote **no** se usa `ctx.filter` para esto. Con fotos grandes el navegador
 cae al render por software: minutos por foto —parece un cuelgue— y el pico de
 memoria se duplica. Fue el motivo del arreglo de v3.2.1.
+
+La descarga suelta, en cambio, sí usa el filtro del navegador. Los dos caminos no
+dan exactamente lo mismo: el navegador recorta a 0–255 entre el contraste y la
+saturación, y `applyPostAdjust` aplica las dos fórmulas seguidas, sin recortar
+en el medio. Con un solo ajuste la diferencia es de 1 nivel, por redondeo. Con
+contraste positivo y saturación juntos llega a 26–31 niveles (medido en v3.8.0,
+Chrome 152). El registro de sesión anota cuál de los dos se usó.
 
 ### Gotero cromático — `chromaTarget`
 
@@ -559,6 +567,57 @@ fotografías originales y reconstruir la textura con las realzadas.
 Las pruebas automáticas verifican que el congelado se aplica de verdad: que la
 matriz no cambia a lo largo del lote, y que una foto procesada dentro del lote
 sale distinta de la misma foto procesada suelta.
+
+---
+
+## Registro de sesión
+
+Desde v3.8.0, cada imagen exportada lleva adentro un registro de sesión. Los
+campos y los formatos están en
+[PARAMETROS.md](PARAMETROS.md#registro-de-sesión). Acá va lo que hace falta
+saber para confiar en una reproducción.
+
+**Huellas.** `sha256Hex` implementa SHA-256 según FIPS 180-4. Las pruebas lo
+comparan con los vectores de la norma y con el de Node en todos los largos de 0
+a 300 bytes, que cubren los dos casos de relleno. Cuando el navegador tiene el
+suyo (`crypto.subtle`, solo en contextos seguros), se usa ese, que es más
+rápido. La huella de los píxeles se calcula sobre RGB de 8 bits, fila por fila,
+sin el alfa: `pixelesRGB`.
+
+**Reproducción.** Fuera del lote, cada filtro se **recalcula** desde la foto
+con la zona de su paso, igual que la primera vez. Si la foto y los parámetros
+son los mismos, las estadísticas salen iguales al último bit. No se usan las
+guardadas, que quedan como documentación. En el lote, en cambio, cada foto se
+rehace con las estadísticas **congeladas** del registro, que es como se hizo:
+salieron de la foto de referencia, no de esa foto. Las estadísticas pasan por
+JSON sin perder nada. Hay una prueba con los doce filtros, con y sin selección.
+
+**Por qué puede no salir igual.** El filtro es determinista. Lo que puede
+cambiar es la entrada, por cómo decodifica cada navegador el JPG o cómo reduce
+la foto cuando no se trabaja a resolución completa. Por eso el registro guarda
+también la huella de los píxeles de entrada: si esa ya no coincide, la
+diferencia está antes del filtro.
+
+Incluso en un mismo navegador hay dos maneras de leer la foto. El lote usa
+`createImageBitmap` y la vista un `<img>`, y Chrome decodifica distinto el mismo
+JPG por cada camino: hay diferencias de 1 nivel en alrededor del 0,5 % de los
+valores. Por eso un registro del lote se rehace leyendo la foto con
+`createImageBitmap`, y uno de la vista con un `<img>`.
+
+**Escala métrica.** `pxPorMM` mide la distancia entre los dos puntos en
+píxeles de una imagen de ancho w y alto h, con el ancho y el alto por separado,
+√((Δx·w)² + (Δy·h)²), y la divide por los milímetros. Como los puntos están en
+fracción de la imagen, la misma calibración da los píxeles por milímetro de la
+foto original y los de la resolución de trabajo. No interviene en ningún filtro.
+
+**Informe en PDF.** `informePDF` arma el informe con un escritor de PDF 1.4
+propio (`armarPDF`), sin bibliotecas. Usa las fuentes estándar del formato,
+que todo lector de PDF trae y no hace falta incrustar, con la codificación
+WinAnsi: los acentos del castellano entran, y los signos que no existen en
+ella (≈, →) se cambian por equivalentes. Los renglones se cortan con los
+anchos de letra de Helvetica publicados por Adobe. Las imágenes van en JPEG,
+tal como las da el navegador (filtro DCTDecode), sin volver a comprimirlas.
+No interviene en el procesamiento.
 
 ---
 

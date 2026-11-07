@@ -13,6 +13,7 @@ Rangos, valores por defecto y efecto real de cada control.
 | Saturación | −100 – +100 | 5 | **0** |
 | Resolución de trabajo | completa (hasta 8192 px) / 16 MP / 12 MP / 8 MP / 2000 px | — | **completa** (con más de 16 MP se pregunta al abrir; recomendada 16 MP) |
 | Resolución del lote | 2000 / 4000 / 8192 px | — | **8192 px** |
+| Escala métrica | dos puntos sobre la escala de la foto y los mm entre ellos | — | **sin escala** |
 
 ---
 
@@ -116,8 +117,8 @@ decorrelación efectiva deja de crecer por encima de γ ≈ 1.3.
 
 **Contraste: −80 a +80. Saturación: −100 a +100. Ambos por defecto en 0.**
 
-Se aplican **después** del filtro, sobre el resultado, y son equivalentes exactos
-a los filtros CSS `contrast()` y `saturate()`. No modifican el algoritmo: son
+Se aplican **después** del filtro, sobre el resultado, y siguen las fórmulas de
+los filtros CSS `contrast()` y `saturate()`. No modifican el algoritmo: son
 ajustes de presentación.
 
 ```
@@ -135,6 +136,13 @@ Casos particulares que conviene conocer:
   irreversible: la información recortada no está en el archivo exportado.
 - **Se aplican también en el lote**, con los mismos valores para todas las
   fotos.
+- **La descarga suelta y el lote no dan exactamente lo mismo.** La descarga
+  suelta usa el filtro del navegador; el lote, `applyPostAdjust`, que aplica las
+  mismas fórmulas por píxel. Con un solo ajuste difieren en 1 nivel, por
+  redondeo. Con contraste positivo y saturación juntos, hasta 26–31 niveles: el
+  navegador recorta a 0–255 entre los dos ajustes y `applyPostAdjust` no.
+  Medido en v3.8.0; los dos caminos siguen como estaban y el registro de sesión
+  anota cuál se usó.
 
 Un detalle importante para la reproducibilidad: **el nombre del archivo
 exportado registra los tres valores**
@@ -249,7 +257,9 @@ solo con el filtro Relieve activo.
 
 La escala es un **porcentaje del lado mayor**, no un número de píxeles, así que
 la misma foto a 2000 px o a resolución completa da el mismo relieve. Debajo de
-los botones el panel muestra a cuántos píxeles corresponde en la foto abierta.
+los botones el panel muestra a cuántos píxeles corresponde en la foto abierta
+y, si la foto está calibrada ([Escala métrica](#escala-métrica)), a cuántos
+milímetros.
 
 Para elegirla, pensar en lo que se quiere **borrar**, no en el motivo: la
 escala tiene que ser más grande que el grano de la roca y bastante más chica que
@@ -261,6 +271,48 @@ surcos— y quedaba una mancha borrosa.
 
 El nombre del archivo exportado la registra al lado de la intensidad
 (`IMG_0421_OPC_relief_i1.5_e0.25.png`). En Bordes se omite, como en v3.6.
+
+---
+
+## Escala métrica
+
+**Desde v3.8.0. Sin escala por defecto.** No cambia ningún resultado: ningún
+filtro la usa.
+
+Si la foto tiene una escala métrica a la vista, se puede calibrar:
+
+1. **Calibrar con la regla**, en el recuadro *Escala métrica* del panel.
+2. Tocar el comienzo de un tramo conocido de la escala (A) y después el final
+   (B). Una **lupa** sigue al puntero y aumenta cuatro veces lo que se ve; la
+   rueda del mouse acerca la imagen. Mientras se marca, una línea muestra el
+   largo del tramo en píxeles. Un tercer toque vuelve a empezar; **Esc**
+   cancela.
+3. Elegir el largo del tramo (1 cm, 5 cm, 10 cm, 50 cm o 1 m) o escribirlo en
+   mm (acepta coma decimal), y **Listo**. Antes de confirmar, el panel muestra
+   cuántos píxeles por milímetro va a dar.
+
+El panel muestra entonces cuántos píxeles mide un milímetro a la resolución de
+trabajo, y cuántos milímetros mide un píxel. Los puntos se guardan en fracción
+del ancho y del alto, como la selección: si se cambia la resolución de trabajo,
+la calibración sigue valiendo y los números se recalculan. Se borra al abrir
+otra foto. **Recalibrar** la rehace y **Quitar** la borra.
+
+Sobre la imagen aparece una **barra de escala**, como la de un mapa: el largo
+redondo más grande que entra (1 cm, 2 cm, 5 cm…), que cambia con el zoom. Se
+apaga con el interruptor del recuadro. Solo se ve en pantalla: no entra en la
+imagen exportada.
+
+Con una foto calibrada, la [escala del Relieve](#escala-del-relieve) se
+muestra también en milímetros.
+
+**Qué tramo elegir:** el más largo de la escala que se vea entero. Un error de
+1 px en cada extremo es un 0,2 % sobre un tramo de 1000 px y un 2 % sobre uno
+de 100 px.
+
+La escala queda en el registro de sesión, en el campo `escala`. En el lote no
+se registra, porque cada foto tiene su propio encuadre. Vale en el plano de la
+escala métrica; fuera de él es una aproximación
+([LIMITACIONES.md §13](LIMITACIONES.md#13-la-escala-métrica-vale-en-un-plano)).
 
 ---
 
@@ -300,8 +352,9 @@ Advertencia metodológica: cada pasada amplifica también el ruido y los artefac
 de la anterior. Después de dos o tres filtros encadenados, lo que se ve puede ser
 tanto pigmento como el rastro amplificado de la compresión JPEG. Si un rasgo solo
 aparece con tres filtros encadenados, conviene tratarlo como hipótesis y no como
-observación. El nombre del archivo exportado **no** registra la cadena completa,
-así que hay que anotarla aparte.
+observación. El nombre del archivo exportado **no** registra la cadena completa;
+desde v3.8.0 la registra el registro de sesión, paso por paso y con la zona
+seleccionada en cada uno.
 
 ---
 
@@ -321,3 +374,139 @@ las 200 fotos siguientes.
 
 Ver [ALGORITMOS.md](ALGORITMOS.md#procesado-por-lote-estadísticas-congeladas)
 para el detalle de qué se congela en cada filtro.
+
+Desde v3.8.0, cada foto del lote lleva su propio registro de sesión, y al
+terminar se guardan un `.csv` con una fila por foto y un `.json` con la
+configuración común (ver abajo).
+
+---
+
+## Registro de sesión
+
+**Desde v3.8.0. No tiene parámetros: se escribe siempre.**
+
+Cada imagen exportada lleva adentro un registro con todo lo que hace falta para
+rehacerla:
+
+- **PNG:** un bloque `iTXt` con la clave `OPC-registro`.
+- **JPG:** uno o más segmentos de comentario que empiezan con
+  `OPC-registro k/N`. Un segmento admite 65 533 bytes, y una selección a mano
+  alzada larga puede pasarse.
+- **TIFF:** la etiqueta 270, `ImageDescription`. Es ASCII, así que los acentos
+  van como `ó`, que sigue siendo JSON válido.
+
+Con `+JSON` (prendido por defecto), el mismo contenido baja además aparte como
+`.json`, con el mismo nombre que la imagen. Ver [Qué baja y dónde](#qué-baja-y-dónde).
+
+### Campos
+
+| Campo | Qué guarda |
+|---|---|
+| `formato`, `version_formato` | `"OPC-registro"` y `1`. Identifican el archivo como registro de OPC |
+| `opc.version` | Versión de OPC que hizo la imagen |
+| `fecha` | Fecha y hora de la exportación, en UTC (ISO 8601) |
+| `entrada` | Foto original: `archivo`, `bytes`, `sha256` del archivo, `ancho` y `alto` en píxeles |
+| `trabajo` | `resolucion` (`full`, `16mp`, `12mp`, `8mp`, `2000`) o, en el lote, `lado_max`; `ancho` y `alto` de trabajo; `sha256_pixeles` de la foto a ese tamaño |
+| `escala` | `null` si no se calibró. Si no: `distancia_mm`, `puntos` (los dos extremos en fracción, 0–1), `puntos_px_original`, `px_por_mm_original`, `px_por_mm_trabajo` (el de la imagen exportada) y `mm_por_px_trabajo`. Al reproducir se usan `puntos` y `distancia_mm`; lo demás es para leer a ojo |
+| `pasos[]` | Un elemento por filtro, en orden: `filtro` (el id interno: `crgb`, `relief`…), `intensidad`, `opciones` (`{"escala": 0.25}` en el Relieve), `seleccion` y `estadisticas` |
+| `pasos[].seleccion` | `null`, o `tipo` (`rect`, `circle`, `free`) con `x1, y1, x2, y2` o `puntos` en **fracción** del ancho y del alto (0–1). `caja_px` es la caja en píxeles de trabajo, solo para leerla a ojo |
+| `pasos[].estadisticas` | Lo que el filtro calculó de la foto o de la zona: medias, matriz de decorrelación, recortes. Son las que el lote congela |
+| `gotero[]` | Cada ajuste, en orden: `r, g, b` muestreados, `tolerancia`, `suavizado`, `ganancia` |
+| `ajustes` | `contraste`, `saturacion` y `metodo`: `filtro_css` en la descarga suelta, `por_pixel` en el lote (ver [Contraste y saturación](#contraste-y-saturación)) |
+| `salida` | `archivo`, `formato` y `sha256_pixeles` de la imagen exportada. En el `.json` aparte, además, `sha256` del archivo |
+| `lote` | `null` fuera del lote. En el lote: `referencia` (archivo, huella y tamaño de trabajo de la foto de referencia), `lado_max`, `formato` y `estadisticas_congeladas: true` |
+
+### Las dos huellas
+
+Las huellas son SHA-256 en hexadecimal.
+
+- **La del archivo** (`entrada.sha256`, `salida.sha256`) identifica un archivo
+  exacto, byte a byte.
+- **La de los píxeles** (`sha256_pixeles`) es la que sirve para comparar
+  resultados. Dos navegadores pueden guardar los mismos píxeles en dos PNG
+  distintos, porque comprimen distinto. Se calcula sobre los valores RGB de
+  8 bits, fila por fila, sin el alfa. En Python da lo mismo que:
+
+  ```python
+  import hashlib, numpy as np
+  from PIL import Image
+  hashlib.sha256(np.asarray(Image.open("salida.png").convert("RGB")).tobytes()).hexdigest()
+  ```
+
+  En el JPG, la huella es la de los píxeles **antes** de comprimir, así que no
+  coincide con lo que se lee del archivo.
+
+### Reproducir un registro
+
+Primero se carga la foto original. Después, **↺ Reproducir un registro…** abre
+el `.json` o la imagen exportada. OPC rehace la imagen así:
+
+1. Toma la foto al tamaño de trabajo del registro.
+2. Aplica cada paso. Fuera del lote, cada filtro se recalcula desde cero con la
+   zona de ese paso, como se hizo la primera vez. En el lote, cada paso va con
+   las estadísticas congeladas del registro y sobre la foto entera.
+3. Aplica el gotero y los ajustes, por el mismo camino que se usó al exportar.
+
+Después informa:
+
+- si la versión es otra, y si entre medio cambió el resultado de algún filtro
+  usado;
+- si el archivo de la foto es el mismo;
+- si los píxeles de entrada coinciden;
+- si la imagen rehecha es idéntica, píxel a píxel, a la exportada.
+
+La interfaz queda con el filtro, la intensidad, la escala del Relieve, la zona,
+el gotero, los ajustes y la escala métrica del registro, lista para seguir
+trabajando.
+
+### CSV del lote
+
+`OPC_lote_<fecha>_<hora>.csv`, separado por comas (RFC 4180), con una fila por
+foto. Tiene estas columnas:
+
+- `archivo_entrada`, `sha256_entrada`;
+- `ancho_original`, `alto_original`, `ancho_trabajo`, `alto_trabajo`;
+- `archivo_salida`, `sha256_pixeles_salida`, `sha256_salida`;
+- `estado`: `ok` o `error`.
+
+Al lado queda `OPC_lote_<fecha>_<hora>.json`, con la configuración común y la
+foto de referencia.
+
+### Qué baja y dónde
+
+| `+JSON` | `+PDF` | Qué baja |
+|---|---|---|
+| apagado | apagado | Solo la imagen, como una descarga común |
+| prendido | apagado | Un `.zip` con una carpeta adentro: la imagen y el `.json` |
+| apagado | prendido | Un `.zip` con una carpeta adentro: la imagen y el informe |
+| prendido | prendido | Un `.zip` con una carpeta adentro: los tres (por defecto) |
+
+El `.zip` y la carpeta llevan el nombre de la exportación, y el `.zip` baja
+donde bajan siempre las descargas, sin preguntar. Windows lo abre como una
+carpeta más; con «Extraer todo» queda la carpeta suelta. Va en `.zip` porque
+una página web no puede crear carpetas en Descargas: el navegador solo le deja
+bajar archivos sueltos.
+
+En todos los casos el registro va adentro de la imagen: aunque no se baje el
+`.json`, la imagen se puede reproducir.
+
+### Informe en PDF
+
+**Prendido por defecto; se apaga con `+PDF`, al lado de PNG, JPG y TIFF.** La
+elección se recuerda entre visitas.
+
+Con `+PDF`, cada descarga suelta lleva además un informe en PDF con el mismo
+nombre. Es para leer, imprimir o adjuntar; para rehacer la imagen hacen falta
+el `.json` o la propia imagen exportada. Tiene:
+
+- el original y el resultado lado a lado, con la zona en rojo, el tramo
+  calibrado y la barra de escala;
+- la foto de entrada, la resolución de trabajo y sus huellas;
+- cada paso, cada ajuste del gotero (con una muestra del color), el contraste
+  y la saturación;
+- la escala métrica, si se calibró;
+- el archivo de salida y sus huellas;
+- cómo reproducirlo y cómo citar OPC.
+
+Sale en el idioma de la interfaz, en A4. Si la foto tiene GPS, el informe dice
+que lo tiene pero no copia las coordenadas. El lote no hace informes.

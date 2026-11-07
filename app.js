@@ -1,3 +1,4 @@
+function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 /*
  * OPC – OpuntiaColor
  * Herramienta de procesamiento digital para realce de pigmentos y grabados
@@ -31,10 +32,12 @@ const {
 } = typeof React !== "undefined" ? React : {};
 // Dirección de app.js, para lanzar el worker con exactamente el mismo código
 const APP_SRC = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : null;
+// Versión que se anota en el registro de cada exportación (v3.8.0)
+const OPC_VERSION = "3.8.0";
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.7.3
+// OPC – OpuntiaColor v3.8.0
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -56,6 +59,9 @@ const OPC_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 //       mientras procesa y un pedido nuevo cancela el anterior
 // v3.7.3: una foto de más de 16 MP abre con un cartel que propone bajarla
 //       un poco (16 MP recomendada); más escalones de resolución
+// v3.8.0: registro de sesión dentro de cada exportación y en un .json
+//       aparte (y un .csv por lote); un registro se puede reproducir y
+//       comprobar píxel a píxel. No cambia ningún resultado
 // ============================================================
 
 // --- Color Conversion Core ---
@@ -1682,6 +1688,1131 @@ function formatGPSCoord(decimal, isLat) {
 }
 
 // ============================================================
+// REGISTRO DE SESIÓN (v3.8.0)
+// ============================================================
+// Cada imagen exportada lleva adentro un registro con todo lo necesario para
+// rehacerla: versión, foto de entrada y su huella, resolución de trabajo,
+// cadena de filtros con sus parámetros, zona seleccionada, gotero y ajustes.
+// Va también al lado, como .json, y el lote agrega un .csv con una fila por
+// foto. Cargando la foto original y el registro, OPC rehace la imagen y
+// comprueba que salga igual (docs/LIMITACIONES.md §9).
+//
+// Las huellas son SHA-256. Se guardan dos de cada imagen:
+//   - la del archivo, que identifica la foto exacta que se usó;
+//   - la de los píxeles (RGB de 8 bits, fila por fila, sin alfa), que es la
+//     que importa para comparar resultados: dos navegadores pueden guardar los
+//     mismos píxeles en dos PNG distintos, porque comprimen distinto. Es la
+//     misma cuenta que hashlib.sha256(np.asarray(img.convert("RGB")).tobytes())
+//     en Python, así que se puede verificar fuera de OPC.
+
+// SHA-256 (FIPS 180-4) en JavaScript puro. El navegador tiene uno propio
+// (crypto.subtle), más rápido, pero solo en contextos seguros: abierto como
+// archivo local puede faltar. Este da exactamente el mismo resultado.
+function sha256Hex(bytes) {
+  const K = sha256Hex.K || (sha256Hex.K = new Uint32Array([0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]));
+  const H = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+  const W = new Uint32Array(64);
+  const bloque = (b, o) => {
+    for (let t = 0; t < 16; t++) W[t] = b[o + 4 * t] << 24 | b[o + 4 * t + 1] << 16 | b[o + 4 * t + 2] << 8 | b[o + 4 * t + 3];
+    for (let t = 16; t < 64; t++) {
+      const x = W[t - 15],
+        y = W[t - 2];
+      const s0 = (x >>> 7 | x << 25) ^ (x >>> 18 | x << 14) ^ x >>> 3;
+      const s1 = (y >>> 17 | y << 15) ^ (y >>> 19 | y << 13) ^ y >>> 10;
+      W[t] = W[t - 16] + s0 + W[t - 7] + s1 | 0;
+    }
+    let a = H[0],
+      bb = H[1],
+      c = H[2],
+      d = H[3],
+      e = H[4],
+      f = H[5],
+      g = H[6],
+      h = H[7];
+    for (let t = 0; t < 64; t++) {
+      const S1 = (e >>> 6 | e << 26) ^ (e >>> 11 | e << 21) ^ (e >>> 25 | e << 7);
+      const t1 = h + S1 + (e & f ^ ~e & g) + K[t] + W[t] | 0;
+      const S0 = (a >>> 2 | a << 30) ^ (a >>> 13 | a << 19) ^ (a >>> 22 | a << 10);
+      const t2 = S0 + (a & bb ^ a & c ^ bb & c) | 0;
+      h = g;
+      g = f;
+      f = e;
+      e = d + t1 | 0;
+      d = c;
+      c = bb;
+      bb = a;
+      a = t1 + t2 | 0;
+    }
+    H[0] += a;
+    H[1] += bb;
+    H[2] += c;
+    H[3] += d;
+    H[4] += e;
+    H[5] += f;
+    H[6] += g;
+    H[7] += h;
+  };
+  const n = bytes.length,
+    completos = n - n % 64;
+  for (let o = 0; o < completos; o += 64) bloque(bytes, o);
+  // Cola: lo que sobra, el bit 1, ceros y el largo en bits (64 bits, big-endian)
+  const cola = new Uint8Array(n % 64 < 56 ? 64 : 128);
+  cola.set(bytes.subarray(completos));
+  cola[n % 64] = 0x80;
+  const bits = n * 8,
+    hi = Math.floor(bits / 4294967296),
+    lo = bits >>> 0,
+    L = cola.length;
+  cola[L - 8] = hi >>> 24;
+  cola[L - 7] = hi >>> 16;
+  cola[L - 6] = hi >>> 8;
+  cola[L - 5] = hi;
+  cola[L - 4] = lo >>> 24;
+  cola[L - 3] = lo >>> 16;
+  cola[L - 2] = lo >>> 8;
+  cola[L - 1] = lo;
+  for (let o = 0; o < L; o += 64) bloque(cola, o);
+  let s = "";
+  for (let i = 0; i < 8; i++) s += H[i].toString(16).padStart(8, "0");
+  return s;
+}
+
+// Los píxeles RGB de una imagen RGBA, sin el alfa: lo que entra en la huella
+function pixelesRGB(rgba) {
+  const n = rgba.length >> 2,
+    out = new Uint8Array(n * 3);
+  for (let i = 0, j = 0; i < n; i++, j += 3) {
+    out[j] = rgba[i * 4];
+    out[j + 1] = rgba[i * 4 + 1];
+    out[j + 2] = rgba[i * 4 + 2];
+  }
+  return out;
+}
+
+// CRC-32 de los bloques PNG (ISO 3309, polinomio 0xEDB88320)
+function crc32(bytes) {
+  let T = crc32.T;
+  if (!T) {
+    T = crc32.T = new Uint32Array(256);
+    for (let k = 0; k < 256; k++) {
+      let c = k;
+      for (let j = 0; j < 8; j++) c = c & 1 ? 0xEDB88320 ^ c >>> 1 : c >>> 1;
+      T[k] = c >>> 0;
+    }
+  }
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = T[(c ^ bytes[i]) & 0xFF] ^ c >>> 8;
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+// Nombre con que el registro va dentro de cada formato (bloque iTXt del PNG,
+// segmentos de comentario del JPG) y valor del campo «formato» del JSON
+const REGISTRO_CLAVE = "OPC-registro";
+
+// PNG: el registro va en un bloque iTXt (texto UTF-8 sin comprimir), justo
+// antes del IEND. Los visores lo ignoran; exiftool y similares lo muestran.
+function pngConRegistro(png, texto) {
+  const clave = new TextEncoder().encode(REGISTRO_CLAVE),
+    cuerpo = new TextEncoder().encode(texto);
+  // clave \0, sin compresión (0, 0), idioma "" \0, clave traducida "" \0, texto
+  const datos = new Uint8Array(clave.length + 5 + cuerpo.length);
+  datos.set(clave, 0);
+  datos.set(cuerpo, clave.length + 5);
+  const tipoYDatos = new Uint8Array(4 + datos.length);
+  tipoYDatos.set([0x69, 0x54, 0x58, 0x74], 0);
+  tipoYDatos.set(datos, 4); // "iTXt"
+  const bloque = new Uint8Array(12 + datos.length),
+    v = new DataView(bloque.buffer);
+  v.setUint32(0, datos.length);
+  bloque.set(tipoYDatos, 4);
+  v.setUint32(8 + datos.length, crc32(tipoYDatos));
+  // Posición del IEND: se recorren los bloques desde la firma de 8 bytes
+  const dv = new DataView(png.buffer, png.byteOffset, png.byteLength);
+  let o = 8,
+    iend = -1;
+  while (o + 8 <= png.length) {
+    const largo = dv.getUint32(o),
+      tipo = String.fromCharCode(png[o + 4], png[o + 5], png[o + 6], png[o + 7]);
+    if (tipo === "IEND") {
+      iend = o;
+      break;
+    }
+    o += 12 + largo;
+  }
+  if (iend < 0) throw new Error("PNG sin IEND");
+  const out = new Uint8Array(png.length + bloque.length);
+  out.set(png.subarray(0, iend), 0);
+  out.set(bloque, iend);
+  out.set(png.subarray(iend), iend + bloque.length);
+  return out;
+}
+
+// JPG: un segmento de comentario (COM) tiene como máximo 65 533 bytes, así que
+// el registro se reparte en varios si hace falta —una selección a mano alzada
+// puede tener miles de puntos—. Cada uno empieza con «OPC-registro k/N» y un
+// salto de línea. Van después de los segmentos APPn del principio (EXIF, JFIF).
+function jpegConRegistro(jpg, texto) {
+  const cuerpo = new TextEncoder().encode(texto),
+    TROZO = 65000;
+  const total = Math.max(1, Math.ceil(cuerpo.length / TROZO)),
+    segs = [];
+  for (let k = 0; k < total; k++) {
+    const cab = new TextEncoder().encode(`${REGISTRO_CLAVE} ${k + 1}/${total}\n`);
+    const trozo = cuerpo.subarray(k * TROZO, (k + 1) * TROZO);
+    const seg = new Uint8Array(4 + cab.length + trozo.length);
+    seg[0] = 0xFF;
+    seg[1] = 0xFE;
+    const largo = 2 + cab.length + trozo.length;
+    seg[2] = largo >> 8;
+    seg[3] = largo & 0xFF;
+    seg.set(cab, 4);
+    seg.set(trozo, 4 + cab.length);
+    segs.push(seg);
+  }
+  if (jpg[0] !== 0xFF || jpg[1] !== 0xD8) throw new Error("JPG sin SOI");
+  let o = 2;
+  while (o + 4 <= jpg.length && jpg[o] === 0xFF && jpg[o + 1] >= 0xE0 && jpg[o + 1] <= 0xEF) o += 2 + (jpg[o + 2] << 8 | jpg[o + 3]);
+  const extra = segs.reduce((s, x) => s + x.length, 0),
+    out = new Uint8Array(jpg.length + extra);
+  out.set(jpg.subarray(0, o), 0);
+  let p = o;
+  for (const s of segs) {
+    out.set(s, p);
+    p += s.length;
+  }
+  out.set(jpg.subarray(o), p);
+  return out;
+}
+
+// TIFF RGB de 8 bits sin comprimir, una sola tira. Sin descripción da el mismo
+// archivo que el codificador de v3.1–v3.7.3; con ella agrega la etiqueta 270
+// (ImageDescription), que es ASCII: lo que no lo es se escribe como \uXXXX, que
+// sigue siendo un JSON válido.
+function tiffRGB(rgba, w, h, descripcion) {
+  let desc = null;
+  if (descripcion) {
+    const ascii = descripcion.replace(/[^\x20-\x7e\n]/g, c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
+    desc = new Uint8Array(ascii.length + 1);
+    for (let i = 0; i < ascii.length; i++) desc[i] = ascii.charCodeAt(i);
+  }
+  const pixelBytes = w * h * 3;
+  const ifdOffset = 8,
+    ifdEntries = desc ? 13 : 12,
+    ifdSize = 2 + ifdEntries * 12 + 4;
+  // Área de valores fuera de línea (BitsPerSample necesita 3 SHORTs,
+  // X/YResolution son RATIONAL de 8 bytes según spec TIFF 6.0)
+  const bitsOffset = ifdOffset + ifdSize;
+  const xresOffset = bitsOffset + 8; // 6 bytes + 2 de alineación
+  const yresOffset = xresOffset + 8;
+  const descOffset = yresOffset + 8;
+  const stripOffset = descOffset + (desc ? desc.length + (desc.length & 1) : 0);
+  const buf = new ArrayBuffer(stripOffset + pixelBytes),
+    view = new DataView(buf),
+    u8 = new Uint8Array(buf);
+  // Header: little-endian TIFF
+  view.setUint16(0, 0x4949, false);
+  view.setUint16(2, 42, true);
+  view.setUint32(4, ifdOffset, true);
+  let off = ifdOffset;
+  view.setUint16(off, ifdEntries, true);
+  off += 2;
+  const writeIFD = (tag, type, count, value) => {
+    view.setUint16(off, tag, true);
+    view.setUint16(off + 2, type, true);
+    view.setUint32(off + 4, count, true);
+    view.setUint32(off + 8, value, true);
+    off += 12;
+  };
+  // Las etiquetas van en orden creciente, como pide la especificación
+  writeIFD(256, 3, 1, w); // ImageWidth
+  writeIFD(257, 3, 1, h); // ImageLength
+  writeIFD(258, 3, 3, bitsOffset); // BitsPerSample [8,8,8]
+  writeIFD(259, 3, 1, 1); // Compression: none
+  writeIFD(262, 3, 1, 2); // PhotometricInterpretation: RGB
+  if (desc) writeIFD(270, 2, desc.length, descOffset); // ImageDescription
+  writeIFD(273, 4, 1, stripOffset); // StripOffsets
+  writeIFD(277, 3, 1, 3); // SamplesPerPixel
+  writeIFD(278, 4, 1, h); // RowsPerStrip
+  writeIFD(279, 4, 1, pixelBytes); // StripByteCounts
+  writeIFD(282, 5, 1, xresOffset); // XResolution: RATIONAL 72/1
+  writeIFD(283, 5, 1, yresOffset); // YResolution: RATIONAL 72/1
+  writeIFD(296, 3, 1, 2); // ResolutionUnit: pulgadas
+  view.setUint32(off, 0, true); // no hay otro IFD
+  view.setUint16(bitsOffset, 8, true);
+  view.setUint16(bitsOffset + 2, 8, true);
+  view.setUint16(bitsOffset + 4, 8, true);
+  view.setUint32(xresOffset, 72, true);
+  view.setUint32(xresOffset + 4, 1, true);
+  view.setUint32(yresOffset, 72, true);
+  view.setUint32(yresOffset + 4, 1, true);
+  if (desc) u8.set(desc, descOffset);
+  let pOff = stripOffset;
+  for (let i = 0; i < w * h; i++) {
+    u8[pOff++] = rgba[i * 4];
+    u8[pOff++] = rgba[i * 4 + 1];
+    u8[pOff++] = rgba[i * 4 + 2];
+  }
+  return u8;
+}
+
+// Lee el registro de un .json, o de un PNG, JPG o TIFF exportados por OPC.
+// Devuelve el objeto, o null si el archivo no trae ninguno.
+function leerRegistro(bytes) {
+  const comoRegistro = texto => {
+    try {
+      const r = JSON.parse(texto);
+      return r && r.formato === REGISTRO_CLAVE ? r : null;
+    } catch (e) {
+      return null;
+    }
+  };
+  const dec = new TextDecoder("utf-8");
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  // PNG
+  if (bytes.length > 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+    let o = 8;
+    while (o + 8 <= bytes.length) {
+      const largo = dv.getUint32(o),
+        tipo = String.fromCharCode(bytes[o + 4], bytes[o + 5], bytes[o + 6], bytes[o + 7]);
+      if (tipo === "iTXt") {
+        const d = bytes.subarray(o + 8, o + 8 + largo);
+        let z = d.indexOf(0);
+        if (z > 0 && dec.decode(d.subarray(0, z)) === REGISTRO_CLAVE && d[z + 1] === 0) {
+          let p = z + 3; // flag y método de compresión
+          p = d.indexOf(0, p) + 1; // idioma
+          p = d.indexOf(0, p) + 1; // clave traducida
+          if (p > 0) return comoRegistro(dec.decode(d.subarray(p)));
+        }
+      }
+      if (tipo === "IEND") break;
+      o += 12 + largo;
+    }
+    return null;
+  }
+  // JPG: se juntan los segmentos de comentario del registro, en orden
+  if (bytes.length > 4 && bytes[0] === 0xFF && bytes[1] === 0xD8) {
+    const trozos = [];
+    let o = 2;
+    while (o + 4 <= bytes.length && bytes[o] === 0xFF) {
+      const m = bytes[o + 1];
+      if (m === 0xDA || m === 0xD9) break; // empieza la imagen: no hay más metadatos
+      const largo = bytes[o + 2] << 8 | bytes[o + 3];
+      if (m === 0xFE) {
+        const d = bytes.subarray(o + 4, o + 2 + largo),
+          nl = d.indexOf(10);
+        const cab = nl > 0 ? dec.decode(d.subarray(0, nl)) : "";
+        const mm = cab.match(/^OPC-registro (\d+)\/(\d+)$/);
+        if (mm) trozos.push({
+          k: +mm[1],
+          datos: d.subarray(nl + 1)
+        });
+      }
+      o += 2 + largo;
+    }
+    if (!trozos.length) return null;
+    trozos.sort((a, b) => a.k - b.k);
+    const total = trozos.reduce((s, t) => s + t.datos.length, 0),
+      todo = new Uint8Array(total);
+    let p = 0;
+    for (const t of trozos) {
+      todo.set(t.datos, p);
+      p += t.datos.length;
+    }
+    return comoRegistro(dec.decode(todo));
+  }
+  // TIFF (II o MM): la etiqueta 270 del primer IFD
+  if (bytes.length > 8 && (bytes[0] === 0x49 && bytes[1] === 0x49 || bytes[0] === 0x4D && bytes[1] === 0x4D)) {
+    const le = bytes[0] === 0x49,
+      ifd = dv.getUint32(4, le),
+      cuenta = dv.getUint16(ifd, le);
+    for (let i = 0; i < cuenta; i++) {
+      const e = ifd + 2 + i * 12;
+      if (dv.getUint16(e, le) !== 270) continue;
+      const n = dv.getUint32(e + 4, le),
+        off = n > 4 ? dv.getUint32(e + 8, le) : e + 8;
+      let s = "";
+      for (let j = 0; j < n && bytes[off + j]; j++) s += String.fromCharCode(bytes[off + j]);
+      return comoRegistro(s);
+    }
+    return null;
+  }
+  // JSON suelto (con o sin BOM)
+  let i = 0;
+  if (bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) i = 3;
+  while (i < bytes.length && (bytes[i] === 0x20 || bytes[i] === 0x09 || bytes[i] === 0x0A || bytes[i] === 0x0D)) i++;
+  return bytes[i] === 0x7B ? comoRegistro(dec.decode(bytes.subarray(i))) : null;
+}
+
+// Selección del visor → registro. Las coordenadas van en fracción del ancho y
+// del alto (0–1), que es como las guarda la aplicación: la máscara se vuelve a
+// trazar a la resolución de trabajo. caja_px es solo para leerla a ojo.
+function seleccionARegistro(sel, w, h) {
+  if (!sel) return null;
+  if (sel.type === "free") {
+    const xs = sel.points.map(p => p.x),
+      ys = sel.points.map(p => p.y);
+    return {
+      tipo: "free",
+      puntos: sel.points.map(p => [p.x, p.y]),
+      caja_px: [Math.round(Math.min(...xs) * w), Math.round(Math.min(...ys) * h), Math.round(Math.max(...xs) * w), Math.round(Math.max(...ys) * h)]
+    };
+  }
+  return {
+    tipo: sel.type,
+    x1: sel.x1,
+    y1: sel.y1,
+    x2: sel.x2,
+    y2: sel.y2,
+    caja_px: [Math.round(Math.min(sel.x1, sel.x2) * w), Math.round(Math.min(sel.y1, sel.y2) * h), Math.round(Math.max(sel.x1, sel.x2) * w), Math.round(Math.max(sel.y1, sel.y2) * h)]
+  };
+}
+function seleccionDesdeRegistro(s) {
+  if (!s) return null;
+  if (s.tipo === "free") return {
+    type: "free",
+    points: s.puntos.map(([x, y]) => ({
+      x,
+      y
+    }))
+  };
+  return {
+    type: s.tipo,
+    x1: s.x1,
+    y1: s.y1,
+    x2: s.x2,
+    y2: s.y2
+  };
+}
+
+// Arma el registro a partir del estado de la aplicación. d:
+//   version, fecha, entrada {archivo, bytes, sha256, ancho, alto},
+//   trabajo {resolucion o lado_max, ancho, alto, sha256_pixeles},
+//   pasos [{presetId, intensity, opts, frozen, sel}] (el pipeline),
+//   gotero [{r, g, b, tol, feather, gain}], contraste, saturacion,
+//   metodoAjustes ("filtro_css" en la descarga suelta, "por_pixel" en el lote),
+//   salida {archivo, formato, sha256_pixeles}, lote (o null),
+//   tamSeleccion {ancho, alto}: tamaño sobre el que se dibujó la selección,
+//   si no es el de trabajo (en el lote, el de la foto de referencia),
+//   escala: la escala métrica (escalaARegistro) o null
+function armarRegistro(d) {
+  const ts = d.tamSeleccion || d.trabajo,
+    tw = ts ? ts.ancho : 0,
+    th = ts ? ts.alto : 0;
+  return {
+    formato: REGISTRO_CLAVE,
+    version_formato: 1,
+    opc: {
+      version: d.version,
+      sitio: "https://emilios81.github.io/opuntiacolor/"
+    },
+    fecha: d.fecha,
+    entrada: d.entrada || null,
+    trabajo: d.trabajo || null,
+    escala: d.escala || null,
+    pasos: d.pasos.map(p => ({
+      filtro: p.presetId,
+      intensidad: p.intensity,
+      opciones: p.opts || null,
+      seleccion: seleccionARegistro(p.sel, tw, th),
+      estadisticas: p.frozen || null
+    })),
+    gotero: (d.gotero || []).map(a => ({
+      r: a.r,
+      g: a.g,
+      b: a.b,
+      tolerancia: a.tol,
+      suavizado: a.feather,
+      ganancia: a.gain
+    })),
+    ajustes: {
+      contraste: d.contraste || 0,
+      saturacion: d.saturacion || 0,
+      metodo: d.metodoAjustes
+    },
+    salida: d.salida || null,
+    lote: d.lote || null
+  };
+}
+
+// Lo inverso, para rehacer la imagen: el pipeline y la cadena del gotero
+function pasosDesdeRegistro(r) {
+  return r.pasos.map(p => ({
+    presetId: p.filtro,
+    intensity: p.intensidad,
+    opts: p.opciones || null,
+    frozen: p.estadisticas || null,
+    sel: seleccionDesdeRegistro(p.seleccion)
+  }));
+}
+function goteroDesdeRegistro(r) {
+  return (r.gotero || []).map(a => ({
+    r: a.r,
+    g: a.g,
+    b: a.b,
+    tol: a.tolerancia,
+    feather: a.suavizado,
+    gain: a.ganancia
+  }));
+}
+
+// Escala métrica (v3.8.0): dos puntos marcados sobre la escala de la foto y
+// los milímetros que hay entre ellos. Los puntos van en fracción del ancho y
+// del alto (0–1), como la selección, así que la calibración vale a cualquier
+// resolución de trabajo: los píxeles por milímetro se recalculan con el tamaño
+// de cada una. No toca el procesamiento; solo queda en el registro y en los
+// textos del panel. cal: {p1: {x, y}, p2: {x, y}, mm}
+function pxPorMM(cal, w, h) {
+  if (!cal || !cal.p1 || !cal.p2 || !(cal.mm > 0) || !(w > 0) || !(h > 0)) return 0;
+  const d = Math.hypot((cal.p2.x - cal.p1.x) * w, (cal.p2.y - cal.p1.y) * h);
+  return d > 0 ? d / cal.mm : 0;
+}
+
+// original y trabajo: {ancho, alto}. Los puntos en píxeles de la foto original
+// y los valores redondeados son para leer a ojo; para rehacer se usan los
+// puntos en fracción y distancia_mm.
+function escalaARegistro(cal, original, trabajo) {
+  const po = pxPorMM(cal, original.ancho, original.alto),
+    pt = pxPorMM(cal, trabajo.ancho, trabajo.alto);
+  if (!po || !pt) return null;
+  const red = (v, n) => Math.round(v * Math.pow(10, n)) / Math.pow(10, n);
+  const px = p => [red(p.x * original.ancho, 1), red(p.y * original.alto, 1)];
+  return {
+    distancia_mm: cal.mm,
+    puntos: [[cal.p1.x, cal.p1.y], [cal.p2.x, cal.p2.y]],
+    puntos_px_original: [px(cal.p1), px(cal.p2)],
+    px_por_mm_original: red(po, 4),
+    px_por_mm_trabajo: red(pt, 4),
+    mm_por_px_trabajo: red(1 / pt, 6)
+  };
+}
+function escalaDesdeRegistro(e) {
+  if (!e || !Array.isArray(e.puntos) || e.puntos.length !== 2 || !(e.distancia_mm > 0)) return null;
+  const [[x1, y1], [x2, y2]] = e.puntos;
+  const cal = {
+    p1: {
+      x: x1,
+      y: y1
+    },
+    p2: {
+      x: x2,
+      y: y2
+    },
+    mm: e.distancia_mm
+  };
+  return pxPorMM(cal, 1, 1) ? cal : null;
+}
+
+// Los milímetros que se escriben en el panel: acepta coma decimal ("12,5").
+// Devuelve 0 si no es un número positivo.
+function leerMM(texto) {
+  const v = parseFloat(String(texto == null ? "" : texto).trim().replace(",", "."));
+  return isFinite(v) && v > 0 ? v : 0;
+}
+
+// Cifras para leer en el panel: tres o cuatro significativas
+function numCorto(v) {
+  return v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toPrecision(2);
+}
+
+// ============================================================
+// INFORME EN PDF (v3.8.0)
+// El registro .json es para que OPC rehaga la imagen; el informe es para
+// leer, imprimir o adjuntar a una publicación. Lo arma un escritor de PDF
+// mínimo, sin bibliotecas: las fuentes estándar del formato (no se
+// incrustan), imágenes JPEG tal como las da el canvas y trazos simples. No
+// usa el documento ni React, así que también se puede probar en Node.
+// ============================================================
+
+// WinAnsiEncoding (cp1252) coincide con Latin-1 entre 0xA0 y 0xFF. Los demás
+// signos que pueden aparecer van por tabla; lo que no existe en la
+// codificación se cambia por un equivalente, o por «?».
+const WINANSI_EXTRA = {
+  0x20AC: 0x80,
+  0x201A: 0x82,
+  0x0192: 0x83,
+  0x201E: 0x84,
+  0x2026: 0x85,
+  0x2020: 0x86,
+  0x2021: 0x87,
+  0x02C6: 0x88,
+  0x2030: 0x89,
+  0x0160: 0x8A,
+  0x2039: 0x8B,
+  0x0152: 0x8C,
+  0x017D: 0x8E,
+  0x2018: 0x91,
+  0x2019: 0x92,
+  0x201C: 0x93,
+  0x201D: 0x94,
+  0x2022: 0x95,
+  0x2013: 0x96,
+  0x2014: 0x97,
+  0x02DC: 0x98,
+  0x2122: 0x99,
+  0x0161: 0x9A,
+  0x203A: 0x9B,
+  0x0153: 0x9C,
+  0x017E: 0x9E,
+  0x0178: 0x9F
+};
+const WINANSI_EQUIV = {
+  0x2248: "~",
+  0x2192: "->",
+  0x2190: "<-",
+  0x2264: "<=",
+  0x2265: ">=",
+  0x2212: "-",
+  0x2713: ""
+};
+function aWinAnsi(s) {
+  const out = [];
+  for (const ch of String(s)) {
+    const u = ch.codePointAt(0);
+    if (u < 0x80 || u >= 0xA0 && u <= 0xFF) out.push(u);else if (WINANSI_EXTRA[u]) out.push(WINANSI_EXTRA[u]);else if (WINANSI_EQUIV[u] !== undefined) {
+      for (const c of WINANSI_EQUIV[u]) out.push(c.charCodeAt(0));
+    } else out.push(0x3F);
+  }
+  return out;
+}
+
+// Cadena literal de PDF solo con ASCII imprimible: lo demás va en octal
+function cadenaPDF(s) {
+  let r = "(";
+  for (const b of aWinAnsi(s)) {
+    if (b === 0x28 || b === 0x29 || b === 0x5C) r += "\\" + String.fromCharCode(b);else if (b < 0x20 || b > 0x7E) r += "\\" + b.toString(8).padStart(3, "0");else r += String.fromCharCode(b);
+  }
+  return r + ")";
+}
+
+// Texto para el diccionario de información (título, autor): UTF-16 en hexa,
+// que cualquier lector muestra bien, con acentos o sin ellos
+function textoInfoPDF(s) {
+  let h = "<FEFF";
+  for (let i = 0; i < s.length; i++) h += s.charCodeAt(i).toString(16).toUpperCase().padStart(4, "0");
+  return h + ">";
+}
+
+// Anchos de Helvetica y Helvetica-Bold (métricas AFM de Adobe) para los
+// signos del 32 al 126, en milésimas del cuerpo. Courier mide 600 en todos.
+const ANCHO_HELV = [278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556, 1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 333, 556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584];
+const ANCHO_HELV_N = [278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 333, 333, 584, 584, 584, 611, 975, 722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556, 333, 556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611, 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584];
+// Entre 0xC0 y 0xFF las letras con acento miden como su base; «_» marca los
+// signos sin base, que se toman como 556 (el ancho del guion bajo)
+const BASE_LATIN1 = "AAAAAA_CEEEEIIII_NOOOOO_OUUUUY__aaaaaa_ceeeeiiii_nooooo_ouuuuy_y";
+const ANCHO_OTROS = {
+  0xA0: 278,
+  0xA1: 333,
+  0xB0: 400,
+  0xB7: 278,
+  0xBF: 611,
+  0x85: 1000,
+  0x91: 222,
+  0x92: 222,
+  0x93: 333,
+  0x94: 333,
+  0x95: 350,
+  0x96: 556,
+  0x97: 1000
+};
+
+// Ancho de un texto en puntos. F1 Helvetica, F2 Helvetica-Bold, F3 Courier,
+// F4 Times-Bold (se mide como Helvetica-Bold: solo se usa en el título).
+function anchoTexto(s, fuente, tam) {
+  const bytes = aWinAnsi(s);
+  if (fuente === "F3") return bytes.length * 0.6 * tam;
+  const t = fuente === "F2" || fuente === "F4" ? ANCHO_HELV_N : ANCHO_HELV;
+  let w = 0;
+  for (const b of bytes) {
+    if (b >= 32 && b <= 126) w += t[b - 32];else if (b >= 0xC0) w += t[BASE_LATIN1.charCodeAt(b - 0xC0) - 32];else w += ANCHO_OTROS[b] || 556;
+  }
+  return w / 1000 * tam;
+}
+
+// Corta un texto en renglones de hasta `ancho` puntos. Una palabra que sola no
+// entra (una huella, un nombre de archivo largo) se corta donde haga falta.
+function partirTexto(s, fuente, tam, ancho) {
+  const lineas = [];
+  for (const parrafo of String(s).split("\n")) {
+    let linea = "";
+    for (const palabra of parrafo.split(" ")) {
+      const prueba = linea ? linea + " " + palabra : palabra;
+      if (anchoTexto(prueba, fuente, tam) <= ancho) {
+        linea = prueba;
+        continue;
+      }
+      if (linea) lineas.push(linea);
+      let resto = palabra;
+      while (resto.length > 1 && anchoTexto(resto, fuente, tam) > ancho) {
+        let k = resto.length - 1;
+        while (k > 1 && anchoTexto(resto.slice(0, k), fuente, tam) > ancho) k--;
+        lineas.push(resto.slice(0, k));
+        resto = resto.slice(k);
+      }
+      linea = resto;
+    }
+    lineas.push(linea);
+  }
+  return lineas;
+}
+
+// Ancho, alto y canales de un JPEG, leídos de su marcador SOF
+function tamanoJPEG(b) {
+  if (!b || b.length < 4 || b[0] !== 0xFF || b[1] !== 0xD8) return null;
+  let i = 2;
+  while (i + 9 < b.length) {
+    if (b[i] !== 0xFF) {
+      i++;
+      continue;
+    }
+    const m = b[i + 1];
+    if (m === 0xFF) {
+      i++;
+      continue;
+    }
+    if (m === 0x01 || m >= 0xD0 && m <= 0xD8) {
+      i += 2;
+      continue;
+    }
+    if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) return {
+      alto: b[i + 5] << 8 | b[i + 6],
+      ancho: b[i + 7] << 8 | b[i + 8],
+      canales: b[i + 9]
+    };
+    i += 2 + (b[i + 2] << 8 | b[i + 3]);
+  }
+  return null;
+}
+
+// Operadores de dibujo de una página. El origen va arriba a la izquierda,
+// como en pantalla; PDF lo tiene abajo, así que acá se da vuelta la y.
+// Colores en [r, g, b] de 0 a 255; el texto se ubica por su línea de base.
+function lienzoPDF(ancho, alto) {
+  const ops = [];
+  const n = v => String(Math.round(v * 100) / 100);
+  const rgb = c => c.map(v => n(v / 255)).join(" ");
+  const Y = y => alto - y;
+  const pluma = (color, grosor, guiones) => `${rgb(color)} RG ${n(grosor)} w [${guiones ? guiones.join(" ") : ""}] 0 d`;
+  return {
+    ancho,
+    alto,
+    contenido: () => ops.join("\n"),
+    texto(x, y, s, f, tam, color, espaciado) {
+      ops.push(`BT /${f} ${n(tam)} Tf ${rgb(color)} rg ${n(espaciado || 0)} Tc ${n(x)} ${n(Y(y))} Td ${cadenaPDF(s)} Tj ET`);
+    },
+    rect(x, y, w, h, relleno, borde, grosor) {
+      const r = `${n(x)} ${n(Y(y + h))} ${n(w)} ${n(h)} re`;
+      if (relleno && borde) ops.push(`${rgb(relleno)} rg ${pluma(borde, grosor || 0.5)} ${r} B`);else if (relleno) ops.push(`${rgb(relleno)} rg ${r} f`);else ops.push(`${pluma(borde, grosor || 0.5)} ${r} S`);
+    },
+    linea(x1, y1, x2, y2, color, grosor, guiones) {
+      ops.push(`${pluma(color, grosor, guiones)} ${n(x1)} ${n(Y(y1))} m ${n(x2)} ${n(Y(y2))} l S`);
+    },
+    poligono(pts, color, grosor, guiones) {
+      ops.push(`${pluma(color, grosor, guiones)} ${pts.map((p, i) => `${n(p[0])} ${n(Y(p[1]))} ${i ? "l" : "m"}`).join(" ")} h S`);
+    },
+    elipse(cx, cy, rx, ry, color, grosor, guiones) {
+      const k = 0.5523,
+        a = rx * k,
+        b = ry * k,
+        y0 = Y(cy);
+      ops.push(`${pluma(color, grosor, guiones)} ${n(cx + rx)} ${n(y0)} m ` + `${n(cx + rx)} ${n(y0 + b)} ${n(cx + a)} ${n(y0 + ry)} ${n(cx)} ${n(y0 + ry)} c ` + `${n(cx - a)} ${n(y0 + ry)} ${n(cx - rx)} ${n(y0 + b)} ${n(cx - rx)} ${n(y0)} c ` + `${n(cx - rx)} ${n(y0 - b)} ${n(cx - a)} ${n(y0 - ry)} ${n(cx)} ${n(y0 - ry)} c ` + `${n(cx + a)} ${n(y0 - ry)} ${n(cx + rx)} ${n(y0 - b)} ${n(cx + rx)} ${n(y0)} c S`);
+    },
+    imagen(i, x, y, w, h) {
+      ops.push(`q ${n(w)} 0 0 ${n(h)} ${n(x)} ${n(Y(y + h))} cm /Im${i} Do Q`);
+    },
+    recortar(x, y, w, h) {
+      ops.push(`q ${n(x)} ${n(Y(y + h))} ${n(w)} ${n(h)} re W n`);
+    },
+    soltar() {
+      ops.push("Q");
+    }
+  };
+}
+
+// Arma el archivo PDF 1.4. paginas: lienzos de lienzoPDF; imagenes:
+// [{bytes, ancho, alto, canales}] (JPEG), que las páginas nombran /Im0,
+// /Im1…; info: {titulo, autor, productor, fecha} (fecha como D:AAAAMMDDhhmmssZ).
+function armarPDF(paginas, imagenes, info) {
+  const partes = [],
+    offsets = [];
+  let largo = 0;
+  const ascii = s => {
+    const u = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i) & 0xFF;
+    return u;
+  };
+  const poner = u => {
+    partes.push(u);
+    largo += u.length;
+  };
+  const objeto = (num, dicc, flujo) => {
+    offsets[num] = largo;
+    if (flujo) {
+      poner(ascii(`${num} 0 obj\n${dicc}\nstream\n`));
+      poner(flujo);
+      poner(ascii("\nendstream\nendobj\n"));
+    } else poner(ascii(`${num} 0 obj\n${dicc}\nendobj\n`));
+  };
+  poner(ascii("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n"));
+  const fuentes = ["Helvetica", "Helvetica-Bold", "Courier", "Times-Bold"];
+  const nF = 3,
+    nI = nF + fuentes.length,
+    nP = nI + imagenes.length,
+    nInfo = nP + 2 * paginas.length;
+  const recursos = `<< /Font << ${fuentes.map((f, i) => `/F${i + 1} ${nF + i} 0 R`).join(" ")} >> /XObject << ${imagenes.map((im, i) => `/Im${i} ${nI + i} 0 R`).join(" ")} >> >>`;
+  objeto(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  objeto(2, `<< /Type /Pages /Kids [${paginas.map((p, i) => `${nP + 2 * i} 0 R`).join(" ")}] /Count ${paginas.length} >>`);
+  fuentes.forEach((f, i) => objeto(nF + i, `<< /Type /Font /Subtype /Type1 /BaseFont /${f} /Encoding /WinAnsiEncoding >>`));
+  imagenes.forEach((im, i) => {
+    const color = im.canales === 1 ? "/DeviceGray" : im.canales === 4 ? "/DeviceCMYK /Decode [1 0 1 0 1 0 1 0]" : "/DeviceRGB";
+    objeto(nI + i, `<< /Type /XObject /Subtype /Image /Width ${im.ancho} /Height ${im.alto} /ColorSpace ${color} /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bytes.length} >>`, im.bytes);
+  });
+  paginas.forEach((p, i) => {
+    const flujo = ascii(p.contenido());
+    objeto(nP + 2 * i, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${p.ancho} ${p.alto}] /Resources ${recursos} /Contents ${nP + 2 * i + 1} 0 R >>`);
+    objeto(nP + 2 * i + 1, `<< /Length ${flujo.length} >>`, flujo);
+  });
+  objeto(nInfo, `<< /Title ${textoInfoPDF(info.titulo || "")} /Author ${textoInfoPDF(info.autor || "")} /Producer ${textoInfoPDF(info.productor || "")}${info.fecha ? ` /CreationDate (${info.fecha})` : ""} >>`);
+  const inicioXref = largo,
+    total = nInfo + 1;
+  let xref = `xref\n0 ${total}\n0000000000 65535 f \n`;
+  for (let k = 1; k < total; k++) xref += String(offsets[k]).padStart(10, "0") + " 00000 n \n";
+  poner(ascii(`${xref}trailer\n<< /Size ${total} /Root 1 0 R /Info ${nInfo} 0 R >>\nstartxref\n${inicioXref}\n%%EOF\n`));
+  const out = new Uint8Array(largo);
+  let o = 0;
+  for (const u of partes) {
+    out.set(u, o);
+    o += u.length;
+  }
+  return out;
+}
+
+// El informe de una exportación, a partir de su registro. x:
+//   lang ("es" o "en"), nombreFiltro(id), fecha (Date; por defecto, la del registro),
+//   original y resultado: {bytes, ancho, alto, canales} en JPEG, o null,
+//   logo: lo mismo, o null, fechaToma (texto EXIF) y hayGPS.
+// Devuelve los bytes del PDF.
+function informePDF(reg, x) {
+  const es = (x.lang || "es") !== "en";
+  const t = (a, b) => es ? a : b;
+  const W = 595.28,
+    H = 841.89,
+    M = 42,
+    CW = W - 2 * M,
+    PIE = H - 54;
+  const TIERRA = [62, 39, 35],
+    ORO = [201, 162, 39],
+    ORO_OSC = [150, 116, 18],
+    PERG = [245, 237, 224];
+  const GRIS = [112, 100, 88],
+    GRIS_CL = [214, 203, 188],
+    TINTA = [34, 28, 24],
+    BLANCO = [255, 255, 255],
+    ZONA = [192, 57, 43];
+  const nombre = id => x.nombreFiltro && x.nombreFiltro(id) || id;
+  const miles = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, es ? "." : ",");
+  const signo = v => (v > 0 ? "+" : "") + v;
+  const dec = v => es ? String(v).replace(".", ",") : String(v);
+  const fecha = x.fecha || new Date(reg.fecha || Date.now());
+  const dos = v => String(v).padStart(2, "0");
+  const fechaTxt = es ? `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()} ${dos(fecha.getHours())}:${dos(fecha.getMinutes())}` : `${fecha.getFullYear()}-${dos(fecha.getMonth() + 1)}-${dos(fecha.getDate())} ${dos(fecha.getHours())}:${dos(fecha.getMinutes())}`;
+  const version = reg.opc && reg.opc.version || "";
+  const ent = reg.entrada || {},
+    trab = reg.trabajo || {},
+    sal = reg.salida || {},
+    esc = reg.escala || null;
+  const imagenes = [];
+  const sumarImagen = im => im && im.bytes ? (imagenes.push(im), imagenes.length - 1) : -1;
+  const iLogo = sumarImagen(x.logo),
+    iOrig = sumarImagen(x.original),
+    iRes = sumarImagen(x.resultado);
+  const paginas = [];
+  let lz = null,
+    y = 0;
+  const nuevaPagina = () => {
+    lz = lienzoPDF(W, H);
+    paginas.push(lz);
+    if (paginas.length === 1) {
+      lz.rect(0, 0, W, 82, PERG);
+      let tx = M;
+      if (iLogo >= 0) {
+        lz.imagen(iLogo, M, 19, 44, 44);
+        tx = M + 56;
+      }
+      lz.texto(tx, 45, "OPC – OpuntiaColor", "F4", 21, TIERRA);
+      lz.texto(tx, 60, t("Informe de procesamiento", "Processing report"), "F1", 9.5, GRIS, 0.2);
+      const v = `v${version}`;
+      lz.texto(W - M - anchoTexto(v, "F2", 10), 43, v, "F2", 10, TIERRA);
+      lz.texto(W - M - anchoTexto(fechaTxt, "F1", 8), 57, fechaTxt, "F1", 8, GRIS);
+      lz.rect(0, 82, W, 2.2, ORO);
+      y = 108;
+    } else {
+      lz.texto(M, 40, t("OPC – OpuntiaColor · informe de procesamiento (sigue)", "OPC – OpuntiaColor · processing report (continued)"), "F1", 8, GRIS);
+      lz.linea(M, 48, W - M, 48, GRIS_CL, 0.6);
+      y = 72;
+    }
+  };
+  const asegurar = h => {
+    if (y + h > PIE) nuevaPagina();
+  };
+  const seccion = titulo => {
+    asegurar(44);
+    y += 6;
+    const tt = titulo.toUpperCase(),
+      ancho = anchoTexto(tt, "F2", 7.5) + 1.3 * tt.length;
+    lz.texto(M, y, tt, "F2", 7.5, TIERRA, 1.3);
+    lz.linea(M + ancho + 8, y - 2.6, W - M, y - 2.6, GRIS_CL, 0.6);
+    y += 14;
+  };
+  const COL = 122;
+  const fila = (etiqueta, valor, mono, color) => {
+    const f = mono ? "F3" : "F1",
+      tam = mono ? 7.6 : 8.4,
+      lh = 11.2;
+    const lineas = partirTexto(valor, f, tam, CW - COL);
+    asegurar(lineas.length * lh + 3);
+    lz.texto(M, y, etiqueta, "F1", 7.8, GRIS);
+    lineas.forEach((l, i) => lz.texto(M + COL, y + i * lh, l, f, tam, TINTA));
+    if (color) lz.rect(M + COL - 13, y - 7, 8, 8, color, GRIS, 0.4);
+    y += lineas.length * lh + 3.5;
+  };
+  const parrafo = (texto, tam, color) => {
+    const lh = tam * 1.42;
+    for (const l of partirTexto(texto, "F1", tam, CW)) {
+      asegurar(lh);
+      lz.texto(M, y, l, "F1", tam, color || TINTA);
+      y += lh;
+    }
+    y += 3;
+  };
+  nuevaPagina();
+
+  // ---- Original y resultado, lado a lado, a la misma escala
+  const gap = 18,
+    colW = (CW - gap) / 2;
+  const aw = trab.ancho || ent.ancho || 1,
+    ah = trab.alto || ent.alto || 1,
+    asp = aw / ah;
+  const ih = Math.min(232, colW / asp),
+    iw = ih * asp;
+  const pasos = reg.pasos || [];
+  const zonas = [];
+  for (const p of pasos) if (p.seleccion && !zonas.some(z => JSON.stringify(z) === JSON.stringify(p.seleccion))) zonas.push(p.seleccion);
+  const barraEn = (x0, y0) => {
+    if (!esc || !(esc.px_por_mm_trabajo > 0)) return;
+    const bar = largoBarra(esc.px_por_mm_trabajo * iw / aw, iw * 0.32);
+    if (!bar) return;
+    const et = etiquetaLargo(bar.mm),
+      bx = x0 + 7,
+      by = y0 + ih - 7 - 19;
+    lz.rect(bx, by, bar.px + 14, 19, BLANCO, GRIS, 0.4);
+    for (let k = 0; k < 4; k++) lz.rect(bx + 7 + k * bar.px / 4, by + 4, bar.px / 4, 3.6, k % 2 ? BLANCO : TINTA, TINTA, 0.35);
+    lz.texto(bx + 6, by + 15.2, "0", "F1", 5.8, TINTA);
+    lz.texto(bx + 7 + bar.px - anchoTexto(et, "F2", 5.8) + 1, by + 15.2, et, "F2", 5.8, TINTA);
+  };
+  const panel = (k, idx, rotulo, pie1, pie2) => {
+    const x0 = M + k * (colW + gap) + (colW - iw) / 2,
+      y0 = y + 9;
+    lz.texto(x0, y, rotulo, "F2", 6.8, ORO_OSC, 1.2);
+    if (idx >= 0) lz.imagen(idx, x0, y0, iw, ih);else lz.rect(x0, y0, iw, ih, PERG);
+    lz.recortar(x0, y0, iw, ih);
+    if (k === 0) {
+      for (const z of zonas) {
+        if (z.tipo === "free" && z.puntos) lz.poligono(z.puntos.map(([px, py]) => [x0 + px * iw, y0 + py * ih]), ZONA, 1, [3, 2]);else if (z.tipo === "circle") lz.elipse(x0 + (z.x1 + z.x2) / 2 * iw, y0 + (z.y1 + z.y2) / 2 * ih, Math.abs(z.x2 - z.x1) / 2 * iw, Math.abs(z.y2 - z.y1) / 2 * ih, ZONA, 1, [3, 2]);else if (z.tipo === "rect") lz.rect(x0 + Math.min(z.x1, z.x2) * iw, y0 + Math.min(z.y1, z.y2) * ih, Math.abs(z.x2 - z.x1) * iw, Math.abs(z.y2 - z.y1) * ih, null, ZONA, 1);
+      }
+      if (esc && esc.puntos) {
+        const [[ax, ay], [bx, by]] = esc.puntos;
+        const A = [x0 + ax * iw, y0 + ay * ih],
+          B = [x0 + bx * iw, y0 + by * ih];
+        const L = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1,
+          nx = -(B[1] - A[1]) / L * 3.5,
+          ny = (B[0] - A[0]) / L * 3.5;
+        for (const [c, g] of [[TINTA, 2.6], [ORO, 1.1]]) {
+          lz.linea(A[0], A[1], B[0], B[1], c, g);
+          lz.linea(A[0] + nx, A[1] + ny, A[0] - nx, A[1] - ny, c, g);
+          lz.linea(B[0] + nx, B[1] + ny, B[0] - nx, B[1] - ny, c, g);
+        }
+      }
+    }
+    barraEn(x0, y0);
+    lz.soltar();
+    lz.rect(x0, y0, iw, ih, null, GRIS_CL, 0.6);
+    const p1 = partirTexto(pie1, "F2", 7.4, iw)[0],
+      p2 = partirTexto(pie2, "F1", 7.2, iw)[0];
+    lz.texto(x0, y0 + ih + 12, p1, "F2", 7.4, TINTA);
+    lz.texto(x0, y0 + ih + 22.5, p2, "F1", 7.2, GRIS);
+  };
+  asegurar(ih + 50);
+  const cadena = pasos.map(p => nombre(p.filtro)).join(" › ") || t("sin filtro", "no filter");
+  panel(0, iOrig, "ORIGINAL", ent.archivo || "", `${ent.ancho || "?"} × ${ent.alto || "?"} px${zonas.length ? t(" · en rojo, la zona", " · area in red") : ""}`);
+  panel(1, iRes, t("RESULTADO", "RESULT"), cadena, `${aw} × ${ah} px${esc ? t(" · barra de escala en mm", " · scale bar in mm") : ""}`);
+  y += 9 + ih + 34;
+
+  // ---- Foto de entrada
+  seccion(t("Foto de entrada", "Input photo"));
+  fila(t("Archivo", "File"), ent.archivo || "—");
+  fila(t("Tamaño", "Size"), `${ent.bytes != null ? miles(ent.bytes) + " bytes · " : ""}${ent.ancho} × ${ent.alto} px`);
+  fila(t("SHA-256 del archivo", "File SHA-256"), ent.sha256 || "—", true);
+  if (x.fechaToma) fila(t("Fecha de la toma", "Date taken"), String(x.fechaToma).replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3") + t(" (EXIF)", " (EXIF)"));
+  if (x.hayGPS) fila(t("Coordenadas", "Coordinates"), t("La foto tiene GPS en el EXIF; no se copia a este informe.", "The photo has GPS in its EXIF; it is not copied to this report."));
+  const res = {
+    full: t("completa", "full"),
+    "16mp": "16 MP",
+    "12mp": "12 MP",
+    "8mp": "8 MP",
+    "2000": t("lado mayor 2000 px", "long side 2000 px")
+  }[trab.resolucion];
+  fila(t("Resolución de trabajo", "Working resolution"), `${aw} × ${ah} px` + (res ? ` · ${res}` : trab.lado_max ? t(` · lote, lado mayor ${trab.lado_max} px`, ` · batch, long side ${trab.lado_max} px`) : ""));
+  fila(t("SHA-256 de los píxeles", "Pixel SHA-256"), trab.sha256_pixeles || "—", true);
+
+  // ---- Procedimiento
+  seccion(t("Procedimiento", "Procedure"));
+  pasos.forEach((p, i) => {
+    const d = [`${nombre(p.filtro)}`, `${t("intensidad", "intensity")} ${dec(p.intensidad)}`];
+    if (p.opciones && p.opciones.escala) d.push(`${t("escala", "scale")} ${dec(p.opciones.escala)} %`);
+    const s = p.seleccion;
+    if (!s) d.push(t("toda la imagen", "whole image"));else {
+      const caja = s.caja_px ? ` (px ${s.caja_px[0]}–${s.caja_px[2]} × ${s.caja_px[1]}–${s.caja_px[3]})` : "";
+      d.push((s.tipo === "rect" ? t("zona rectangular", "rectangular area") : s.tipo === "circle" ? t("zona circular", "circular area") : t("zona a mano alzada", "freehand area")) + caja);
+    }
+    fila(`${t("Paso", "Step")} ${i + 1}`, d.join(" · "));
+  });
+  (reg.gotero || []).forEach((g, i) => {
+    fila(`${t("Gotero", "Eyedropper")} ${i + 1}`, `RGB ${g.r}, ${g.g}, ${g.b} · ${t("tolerancia", "tolerance")} ${g.tolerancia} · ${t("suavizado", "feather")} ${g.suavizado} · ${t("ganancia", "gain")} ${signo(g.ganancia)}`, false, [g.r, g.g, g.b]);
+  });
+  const aj = reg.ajustes || {};
+  fila(t("Contraste y saturación", "Contrast and saturation"), aj.contraste || aj.saturacion ? `${t("contraste", "contrast")} ${signo(aj.contraste || 0)} · ${t("saturación", "saturation")} ${signo(aj.saturacion || 0)} · ${aj.metodo === "por_pixel" ? t("aplicados por píxel (lote)", "applied per pixel (batch)") : t("aplicados con el filtro del navegador", "applied with the browser filter")}` : t("sin ajustes", "none"));
+  if (reg.lote && reg.lote.referencia) fila(t("Lote", "Batch"), t(`estadísticas congeladas de ${reg.lote.referencia.archivo}`, `statistics frozen from ${reg.lote.referencia.archivo}`));
+
+  // ---- Escala métrica
+  if (esc) {
+    seccion(t("Escala métrica", "Metric scale"));
+    fila(t("Calibración", "Calibration"), `1 mm = ${dec(numCorto(esc.px_por_mm_trabajo))} px · 1 px = ${dec(numCorto(esc.mm_por_px_trabajo))} mm ${t("(resolución de trabajo)", "(working resolution)")}`);
+    const pp = (esc.puntos_px_original || []).map(q => `(${q.map(dec).join(es ? "; " : ", ")})`);
+    fila(t("Tramo marcado", "Marked span"), `${dec(esc.distancia_mm)} mm` + (pp.length === 2 ? t(` entre ${pp[0]} y ${pp[1]} px de la foto original`, ` between ${pp[0]} and ${pp[1]} px of the original photo`) : "") + ` · ${dec(numCorto(esc.px_por_mm_original))} px/mm ${t("en la original", "in the original")}`);
+    parrafo(t("La escala vale en el plano de la regla. Fuera de él, la perspectiva, el relieve de la roca y la distorsión del objetivo la vuelven aproximada.", "The scale holds in the plane of the ruler. Away from it, perspective, rock relief and lens distortion make it approximate."), 7.6, GRIS);
+  }
+
+  // ---- Resultado
+  seccion(t("Resultado", "Result"));
+  fila(t("Archivo", "File"), sal.archivo || "—");
+  fila(t("SHA-256 de los píxeles", "Pixel SHA-256"), sal.sha256_pixeles || "—", true);
+  if (sal.sha256) fila(t("SHA-256 del archivo", "File SHA-256"), sal.sha256, true);
+  fila(t("Hecho con", "Made with"), `OPC – OpuntiaColor ${version} · ${fechaTxt}`);
+  parrafo(t("Huellas de los píxeles: SHA-256 de los valores RGB de 8 bits, fila por fila, sin el alfa. Se pueden verificar fuera de OPC.", "Pixel fingerprints: SHA-256 of the 8-bit RGB values, row by row, without alpha. They can be checked outside OPC."), 7.6, GRIS);
+
+  // ---- Reproducir y citar, en dos columnas
+  const bloque = [[t("Cómo reproducirlo", "How to reproduce it"), t(`En OPC ${version} o posterior: cargar la foto original y abrir el registro con «Reproducir un registro». Sirve el .json que bajó con este informe o la propia imagen exportada, que lo lleva adentro. OPC rehace la imagen y comprueba que salga idéntica, píxel a píxel.`, `In OPC ${version} or later: load the original photo and open the record with “Replay a record”. Use the .json downloaded with this report, or the exported image itself, which carries it inside. OPC rebuilds the image and checks that it comes out identical, pixel for pixel.`)], [t("Cómo citar", "How to cite"), `Villafañez, E. A. (${fecha.getFullYear()}). OPC – OpuntiaColor (${t("versión", "version")} ${version}) [Software]. LATDAA, ${t("Universidad Nacional de Catamarca", "National University of Catamarca")}. https://doi.org/10.5281/zenodo.21796290`]];
+  const sepB = 24,
+    colB = (CW - sepB) / 2,
+    tamB = 7.9,
+    lhB = 10.8;
+  const lineasB = bloque.map(([, txt]) => partirTexto(txt, "F1", tamB, colB));
+  const altoB = Math.max(...lineasB.map(l => l.length)) * lhB;
+  asegurar(20 + altoB);
+  y += 6;
+  bloque.forEach(([tit], k) => {
+    const x0 = M + k * (colB + sepB),
+      tt = tit.toUpperCase();
+    lz.texto(x0, y, tt, "F2", 7.5, TIERRA, 1.3);
+    lz.linea(x0 + anchoTexto(tt, "F2", 7.5) + 1.3 * tt.length + 8, y - 2.6, x0 + colB, y - 2.6, GRIS_CL, 0.6);
+    lineasB[k].forEach((l, i) => lz.texto(x0, y + 14 + i * lhB, l, "F1", tamB, TINTA));
+  });
+  y += 14 + altoB;
+
+  // ---- Pie de cada página
+  paginas.forEach((p, i) => {
+    p.linea(M, H - 46, W - M, H - 46, GRIS_CL, 0.6);
+    p.texto(M, H - 34, t("LATDAA — Laboratorio de Tecnologías Digitales Aplicadas a la Arqueología · Escuela de Arqueología, UNCa", "LATDAA — Laboratory of Digital Technologies Applied to Archaeology · School of Archaeology, UNCa"), "F1", 6.8, GRIS);
+    const pg = t(`Página ${i + 1} de ${paginas.length}`, `Page ${i + 1} of ${paginas.length}`);
+    p.texto(W - M - anchoTexto(pg, "F1", 6.8), H - 34, pg, "F1", 6.8, GRIS);
+  });
+  const f = new Date(reg.fecha || Date.now()),
+    d2 = v => String(v).padStart(2, "0");
+  return armarPDF(paginas, imagenes, {
+    titulo: `OPC – ${t("Informe de procesamiento", "Processing report")}${sal.archivo ? " – " + sal.archivo : ""}`,
+    autor: "OPC – OpuntiaColor (LATDAA, UNCa)",
+    productor: `OPC – OpuntiaColor ${version}`,
+    fecha: `D:${f.getUTCFullYear()}${d2(f.getUTCMonth() + 1)}${d2(f.getUTCDate())}${d2(f.getUTCHours())}${d2(f.getUTCMinutes())}${d2(f.getUTCSeconds())}Z`
+  });
+}
+
+// −1, 0 o 1 según "3.7.3" sea anterior, igual o posterior a "3.8.0"
+function compararVersiones(a, b) {
+  const x = String(a).split(".").map(Number),
+    y = String(b).split(".").map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    const d = (x[i] || 0) - (y[i] || 0);
+    if (d) return d < 0 ? -1 : 1;
+  }
+  return 0;
+}
+
+// Versiones que cambiaron el resultado de algún filtro, según el CHANGELOG.
+// Al publicar una versión que cambie resultados hay que agregarla acá: con
+// eso, un registro hecho antes avisa que la imagen puede no salir igual.
+function cambiosDeResultados() {
+  return [{
+    version: "3.3.0",
+    filtros: ["crgb", "dslab", "lds"],
+    es: "se corrigió la eigendescomposición",
+    en: "the eigendecomposition was fixed"
+  }, {
+    version: "3.4.0",
+    filtros: ["lds"],
+    es: "la intensidad de LDS pasó a ser el exponente de blanqueo",
+    en: "LDS intensity became the whitening exponent"
+  }, {
+    version: "3.5.0",
+    filtros: ["lds"],
+    es: "LDS pasó a una normalización robusta con ganancia común",
+    en: "LDS moved to a robust normalization with a common gain"
+  },
+  // Cambió la resolución por defecto, no un filtro: el registro guarda la
+  // resolución de trabajo, así que no hace falta avisar
+  {
+    version: "3.6.0",
+    filtros: [],
+    es: "la resolución de trabajo por defecto pasó a ser la completa",
+    en: "the default working resolution became full"
+  }, {
+    version: "3.7.0",
+    filtros: ["red"],
+    es: "el filtro Rojo pasó a ser adaptativo",
+    en: "the Red filter became adaptive"
+  }];
+}
+
+// Cambios de resultados entre la versión del registro y la actual (en
+// cualquiera de los dos sentidos) que afectan a alguno de los filtros usados
+function cambiosEntre(desde, hasta, filtros) {
+  const [a, b] = compararVersiones(desde, hasta) <= 0 ? [desde, hasta] : [hasta, desde];
+  return cambiosDeResultados().filter(c => compararVersiones(c.version, a) > 0 && compararVersiones(c.version, b) <= 0 && c.filtros.some(f => filtros.includes(f)));
+}
+
+// CSV del lote (RFC 4180): una fila por foto
+function csvLote(filas) {
+  const cols = ["archivo_entrada", "sha256_entrada", "ancho_original", "alto_original", "ancho_trabajo", "alto_trabajo", "archivo_salida", "sha256_pixeles_salida", "sha256_salida", "estado"];
+  const campo = v => {
+    const s = v == null ? "" : String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  return [cols.join(","), ...filas.map(f => cols.map(c => campo(f[c])).join(","))].join("\r\n") + "\r\n";
+}
+
+// SHA-256 en hexadecimal: el del navegador si está, si no el propio
+async function huellaSHA256(bytes) {
+  try {
+    if (typeof crypto !== "undefined" && crypto.subtle && crypto.subtle.digest) {
+      const d = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+      let s = "";
+      for (let i = 0; i < d.length; i++) s += d[i].toString(16).padStart(2, "0");
+      return s;
+    }
+  } catch (e) {}
+  return sha256Hex(bytes);
+}
+
+// ============================================================
 // THEMES
 // ============================================================
 
@@ -2091,6 +3222,430 @@ function crearProcesador() {
 }
 
 // ============================================================
+// ZIP SIN COMPRIMIR (v3.8.0)
+// Para bajar la imagen, el .json y el informe juntos, en una carpeta, cuando
+// el navegador no deja elegir dónde guardar. Método «almacenado»: no comprime
+// (PNG, JPG y PDF ya vienen comprimidos), así que alcanza con copiar los bytes
+// y anotar su CRC-32. entradas: [{nombre, bytes}], con «/» para las carpetas,
+// que se agregan solas; los nombres van en UTF-8.
+// ============================================================
+function zipSinComprimir(entradas, fecha) {
+  const te = new TextEncoder(),
+    f = fecha || new Date();
+  const hora = f.getHours() << 11 | f.getMinutes() << 5 | f.getSeconds() >> 1;
+  const dia = Math.max(1980, f.getFullYear()) - 1980 << 9 | f.getMonth() + 1 << 5 | f.getDate();
+  const carpetas = new Set();
+  for (const e of entradas) {
+    const p = e.nombre.split("/");
+    for (let i = 1; i < p.length; i++) carpetas.add(p.slice(0, i).join("/") + "/");
+  }
+  const todas = [...[...carpetas].map(nombre => ({
+    nombre,
+    bytes: new Uint8Array(0),
+    carpeta: true
+  })), ...entradas];
+  const partes = [],
+    centrales = [];
+  let off = 0;
+  for (const e of todas) {
+    const nom = te.encode(e.nombre),
+      crc = e.carpeta ? 0 : crc32(e.bytes),
+      n = e.bytes.length;
+    const lh = new Uint8Array(30 + nom.length),
+      l = new DataView(lh.buffer);
+    l.setUint32(0, 0x04034B50, true);
+    l.setUint16(4, 20, true);
+    l.setUint16(6, 0x0800, true);
+    l.setUint16(8, 0, true);
+    l.setUint16(10, hora, true);
+    l.setUint16(12, dia, true);
+    l.setUint32(14, crc, true);
+    l.setUint32(18, n, true);
+    l.setUint32(22, n, true);
+    l.setUint16(26, nom.length, true);
+    l.setUint16(28, 0, true);
+    lh.set(nom, 30);
+    const ch = new Uint8Array(46 + nom.length),
+      c = new DataView(ch.buffer);
+    c.setUint32(0, 0x02014B50, true);
+    c.setUint16(4, 20, true);
+    c.setUint16(6, 20, true);
+    c.setUint16(8, 0x0800, true);
+    c.setUint16(10, 0, true);
+    c.setUint16(12, hora, true);
+    c.setUint16(14, dia, true);
+    c.setUint32(16, crc, true);
+    c.setUint32(20, n, true);
+    c.setUint32(24, n, true);
+    c.setUint16(28, nom.length, true);
+    c.setUint32(38, e.carpeta ? 0x10 : 0, true);
+    c.setUint32(42, off, true);
+    ch.set(nom, 46);
+    partes.push(lh, e.bytes);
+    centrales.push(ch);
+    off += lh.length + n;
+  }
+  const tamCentral = centrales.reduce((s, u) => s + u.length, 0);
+  const fin = new Uint8Array(22),
+    d = new DataView(fin.buffer);
+  d.setUint32(0, 0x06054B50, true);
+  d.setUint16(8, todas.length, true);
+  d.setUint16(10, todas.length, true);
+  d.setUint32(12, tamCentral, true);
+  d.setUint32(16, off, true);
+  const out = new Uint8Array(off + tamCentral + 22);
+  let o = 0;
+  for (const u of [...partes, ...centrales, fin]) {
+    out.set(u, o);
+    o += u.length;
+  }
+  return out;
+}
+
+// ============================================================
+// ESCALA MÉTRICA EN EL VISOR (v3.8.0)
+// Componentes aparte del principal porque la lupa sigue al puntero: moverla
+// redibuja solo esta capa, no todo el panel.
+// ============================================================
+const ORO_ESCALA = "#e6c35c";
+const MONO_ESCALA = "'JetBrains Mono', monospace";
+
+// Largos redondos para la barra de escala, en mm
+const LARGOS_BARRA_MM = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
+
+// El largo redondo más grande que entra en maxPx píxeles de pantalla.
+// pxPantallaPorMM: cuántos píxeles de pantalla mide un milímetro.
+function largoBarra(pxPantallaPorMM, maxPx) {
+  if (!(pxPantallaPorMM > 0) || !(maxPx > 0)) return null;
+  let mm = LARGOS_BARRA_MM[0];
+  for (const L of LARGOS_BARRA_MM) if (L * pxPantallaPorMM <= maxPx) mm = L;
+  return {
+    mm,
+    px: mm * pxPantallaPorMM
+  };
+}
+
+// 5 → "5 mm", 20 → "2 cm", 1000 → "1 m"
+function etiquetaLargo(mm) {
+  if (mm >= 1000) return `${+(mm / 1000).toFixed(3)} m`;
+  if (mm >= 10) return `${+(mm / 10).toFixed(2)} cm`;
+  return `${+mm.toFixed(2)} mm`;
+}
+function IconoRegla({
+  color
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    width: 22,
+    height: 12,
+    viewBox: "0 0 22 12",
+    "aria-hidden": "true",
+    style: {
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: "0.5",
+    y: "0.5",
+    width: "21",
+    height: "11",
+    rx: "1.5",
+    fill: "none",
+    stroke: color
+  }), [3.5, 6.5, 9.5, 12.5, 15.5, 18.5].map((x, i) => /*#__PURE__*/React.createElement("line", {
+    key: x,
+    x1: x,
+    y1: "0.5",
+    x2: x,
+    y2: i % 2 ? 6.5 : 4,
+    stroke: color
+  })));
+}
+
+// Puntos, línea de medida y lupa mientras se calibra. Va en píxeles del
+// visor, fuera de la capa ampliable: los círculos no se deforman y el texto
+// se lee igual con cualquier aumento.
+function CapaCalibracion({
+  contRef,
+  getBounds,
+  view,
+  imageSize,
+  natW,
+  imageSrc,
+  cal,
+  mm,
+  onCancelar
+}) {
+  const [cur, setCur] = useState(null);
+  useEffect(() => {
+    const el = contRef.current;
+    if (!el) return;
+    const mover = e => {
+      if (e.pointerType === "touch") {
+        setCur(null);
+        return;
+      }
+      const b = getBounds();
+      if (b) setCur({
+        x: e.clientX - b.ox,
+        y: e.clientY - b.oy
+      });
+    };
+    const salir = () => setCur(null);
+    const tecla = e => {
+      if (e.key === "Escape") onCancelar();
+    };
+    el.addEventListener("pointermove", mover);
+    el.addEventListener("pointerleave", salir);
+    window.addEventListener("keydown", tecla);
+    return () => {
+      el.removeEventListener("pointermove", mover);
+      el.removeEventListener("pointerleave", salir);
+      window.removeEventListener("keydown", tecla);
+    };
+  }, [contRef, getBounds, onCancelar]);
+  const b = getBounds();
+  if (!b) return null;
+  // La imagen en pantalla, con el encuadre aplicado
+  const L = b.ix * view.z + view.tx * b.cw,
+    Tp = b.iy * view.z + view.ty * b.ch;
+  const Wp = b.iw * view.z,
+    Hp = b.ih * view.z;
+  const aPant = p => ({
+    x: L + p.x * Wp,
+    y: Tp + p.y * Hp
+  });
+  const dentro = !!cur && cur.x >= L && cur.x <= L + Wp && cur.y >= Tp && cur.y <= Tp + Hp;
+  const A = cal.p1 ? aPant(cal.p1) : null;
+  // Sin el segundo punto, la línea sigue al puntero
+  const nB = cal.p2 || (A && dentro ? {
+    x: (cur.x - L) / Wp,
+    y: (cur.y - Tp) / Hp
+  } : null);
+  const B = nB ? aPant(nB) : null;
+  const tramo = A && nB ? Math.hypot((nB.x - cal.p1.x) * imageSize.w, (nB.y - cal.p1.y) * imageSize.h) : 0;
+  const halo = {
+    stroke: "rgba(0,0,0,0.72)",
+    strokeWidth: 3.5,
+    strokeLinecap: "round"
+  };
+  const oro = {
+    stroke: ORO_ESCALA,
+    strokeWidth: 1.5,
+    strokeLinecap: "round"
+  };
+  const rotulo = {
+    fontFamily: MONO_ESCALA,
+    fontSize: 11,
+    fontWeight: 600,
+    fill: "#fff",
+    stroke: "rgba(0,0,0,0.85)",
+    strokeWidth: 3,
+    style: {
+      paintOrder: "stroke"
+    }
+  };
+  const linea = (x1, y1, x2, y2, k, extra) => [/*#__PURE__*/React.createElement("line", _extends({
+    key: k + "h",
+    x1: x1,
+    y1: y1,
+    x2: x2,
+    y2: y2
+  }, halo)), /*#__PURE__*/React.createElement("line", _extends({
+    key: k + "o",
+    x1: x1,
+    y1: y1,
+    x2: x2,
+    y2: y2
+  }, oro, extra || {}))];
+  const marca = (P, letra) => /*#__PURE__*/React.createElement("g", {
+    key: letra
+  }, /*#__PURE__*/React.createElement("circle", _extends({
+    cx: P.x,
+    cy: P.y,
+    r: 7,
+    fill: "none"
+  }, halo)), /*#__PURE__*/React.createElement("circle", _extends({
+    cx: P.x,
+    cy: P.y,
+    r: 7,
+    fill: "rgba(230,195,92,0.14)"
+  }, oro)), /*#__PURE__*/React.createElement("circle", {
+    cx: P.x,
+    cy: P.y,
+    r: 1.6,
+    fill: ORO_ESCALA
+  }), /*#__PURE__*/React.createElement("text", _extends({
+    x: P.x + 10,
+    y: P.y - 10
+  }, rotulo, {
+    fontSize: 10
+  }), letra));
+  let cota = null;
+  if (A && B) {
+    const dx = B.x - A.x,
+      dy = B.y - A.y,
+      len = Math.hypot(dx, dy);
+    if (len > 2) {
+      // Perpendicular a la línea; el rótulo va siempre del lado de arriba
+      const nx = -dy / len,
+        ny = dx / len,
+        s = ny > 0 ? -1 : 1,
+        t = 8;
+      const fijo = !!cal.p2;
+      const texto = `${Math.round(tramo)} px${fijo && mm > 0 ? ` = ${mm} mm` : ""}`;
+      cota = /*#__PURE__*/React.createElement("g", null, linea(A.x, A.y, B.x, B.y, "l", fijo ? null : {
+        strokeDasharray: "5 4"
+      }), fijo && linea(A.x + nx * t, A.y + ny * t, A.x - nx * t, A.y - ny * t, "ta"), fijo && linea(B.x + nx * t, B.y + ny * t, B.x - nx * t, B.y - ny * t, "tb"), /*#__PURE__*/React.createElement("text", _extends({
+        x: (A.x + B.x) / 2 + nx * 17 * s,
+        y: (A.y + B.y) / 2 + ny * 17 * s,
+        textAnchor: "middle",
+        dominantBaseline: "middle"
+      }, rotulo), texto));
+    }
+  }
+
+  // Lupa: cuatro aumentos sobre lo que se ve, al costado del puntero para no taparlo
+  let lupa = null;
+  if (dentro) {
+    const R = 64,
+      M = 4,
+      sep = 92;
+    let cx = cur.x - sep,
+      cy = cur.y - sep;
+    if (cx - R < 4) cx = cur.x + sep;
+    if (cy - R < 4) cy = cur.y + sep;
+    cx = Math.min(b.cw - R - 4, cx);
+    cy = Math.min(b.ch - R - 4, cy);
+    const wM = Wp * M,
+      hM = Hp * M;
+    const cruz = [[R, R - 20, R, R - 6], [R, R + 6, R, R + 20], [R - 20, R, R - 6, R], [R + 6, R, R + 20, R]];
+    lupa = /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        left: cx - R,
+        top: cy - R,
+        width: 2 * R,
+        height: 2 * R,
+        borderRadius: "50%",
+        overflow: "hidden",
+        border: `2px solid ${ORO_ESCALA}`,
+        boxShadow: "0 0 0 1px rgba(0,0,0,0.6), 0 10px 28px rgba(0,0,0,0.55)",
+        background: "#0e0d0b",
+        pointerEvents: "none",
+        zIndex: 8
+      }
+    }, /*#__PURE__*/React.createElement("img", {
+      src: imageSrc,
+      alt: "",
+      draggable: false,
+      style: {
+        position: "absolute",
+        left: R - (cur.x - L) * M,
+        top: R - (cur.y - Tp) * M,
+        width: wM,
+        height: hM,
+        maxWidth: "none",
+        imageRendering: wM > natW ? "pixelated" : "auto"
+      }
+    }), /*#__PURE__*/React.createElement("svg", {
+      width: 2 * R,
+      height: 2 * R,
+      style: {
+        position: "absolute",
+        left: 0,
+        top: 0
+      }
+    }, cruz.map((c, i) => linea(c[0], c[1], c[2], c[3], "c" + i)), /*#__PURE__*/React.createElement("circle", {
+      cx: R,
+      cy: R,
+      r: 1.4,
+      fill: ORO_ESCALA,
+      stroke: "rgba(0,0,0,0.7)",
+      strokeWidth: 0.8
+    })));
+  }
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("svg", {
+    width: b.cw,
+    height: b.ch,
+    style: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      pointerEvents: "none",
+      zIndex: 7,
+      overflow: "visible"
+    }
+  }, cota, A && marca(A, "A"), cal.p2 && B && marca(B, "B")), lupa);
+}
+
+// Barra de escala del visor, como la de un mapa: el largo redondo más grande
+// que entra, con el aumento actual. Solo se ve en pantalla; no entra en la
+// imagen exportada.
+function BarraEscala({
+  contRef,
+  getBounds,
+  view,
+  ppmm,
+  anchoTrabajo,
+  solar
+}) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const el = contRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setTick(t => t + 1));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [contRef]);
+  const b = getBounds();
+  if (!b || !(ppmm > 0) || !anchoTrabajo) return null;
+  const bar = largoBarra(ppmm * b.iw * view.z / anchoTrabajo, Math.min(160, b.cw * 0.3));
+  if (!bar) return null;
+  const tinta = solar ? "#111111" : "#efe7da";
+  return /*#__PURE__*/React.createElement("div", {
+    "aria-label": etiquetaLargo(bar.mm),
+    style: {
+      position: "absolute",
+      left: 10,
+      top: 10,
+      zIndex: 6,
+      pointerEvents: "none",
+      padding: "7px 10px 5px",
+      borderRadius: 7,
+      background: solar ? "rgba(255,255,255,0.9)" : "rgba(18,16,13,0.66)",
+      border: `1px solid ${solar ? "rgba(0,0,0,0.18)" : "rgba(239,231,218,0.16)"}`,
+      backdropFilter: "blur(4px)",
+      WebkitBackdropFilter: "blur(4px)",
+      boxShadow: "0 4px 14px rgba(0,0,0,0.3)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      width: bar.px,
+      height: 5,
+      border: `1px solid ${tinta}`
+    }
+  }, [0, 1, 2, 3].map(i => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      flex: 1,
+      background: i % 2 ? "transparent" : tinta
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      width: bar.px + 2,
+      marginTop: 3,
+      fontFamily: MONO_ESCALA,
+      fontSize: 9.5,
+      fontWeight: 600,
+      color: tinta,
+      lineHeight: 1
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "0"), /*#__PURE__*/React.createElement("span", null, etiquetaLargo(bar.mm))));
+}
+
+// ============================================================
 // MAIN COMPONENT
 // ============================================================
 
@@ -2198,6 +3753,41 @@ function RockArtEnhancer() {
   const [saturation, setSaturation] = useState(0);
   // NUEVO: formato de exportación
   const [exportFmt, setExportFmt] = useState("png"); // png|jpg|tiff
+  // Informe en PDF junto a cada descarga (v3.8.0); se recuerda entre visitas
+  const [conInforme, setConInforme] = useState(() => {
+    try {
+      return localStorage.getItem("opc_informe") !== "0";
+    } catch (e) {
+      return true;
+    }
+  });
+  const cambiarInforme = () => {
+    const v = !conInforme;
+    setConInforme(v);
+    setAvisoGuardado(null);
+    try {
+      localStorage.setItem("opc_informe", v ? "1" : "0");
+    } catch (e) {}
+  };
+  // El registro aparte, en .json (el de adentro de la imagen va siempre)
+  const [conJSON, setConJSON] = useState(() => {
+    try {
+      return localStorage.getItem("opc_json") !== "0";
+    } catch (e) {
+      return true;
+    }
+  });
+  const cambiarJSON = () => {
+    const v = !conJSON;
+    setConJSON(v);
+    setAvisoGuardado(null);
+    try {
+      localStorage.setItem("opc_json", v ? "1" : "0");
+    } catch (e) {}
+  };
+  // Con el .json o el informe, todo baja junto: un .zip con una carpeta adentro
+  const [avisoGuardado, setAvisoGuardado] = useState(null);
+  const avisoTimerRef = useRef(null);
   // NUEVO: herramientas de selección — solo 2 estados React
   // Gotero cromático: color muestreado sobre el resultado + parámetros
   const [picking, setPicking] = useState(false);
@@ -2218,6 +3808,13 @@ function RockArtEnhancer() {
 
   const [selTool, setSelTool] = useState("none"); // none|rect|circle|free
   const [selData, setSelData] = useState(null); // {type,x1,y1,x2,y2} or {type,points:[]}
+  // Escala métrica (v3.8.0): la calibración vigente {p1, p2, mm} y, mientras
+  // se marca, los puntos tocados {p1?, p2?}; mmDraft es lo que se escribe
+  const [escalaCal, setEscalaCal] = useState(null);
+  const [calibrando, setCalibrando] = useState(null);
+  const [mmDraft, setMmDraft] = useState("");
+  const mmInputRef = useRef(null);
+  const [barraVisible, setBarraVisible] = useState(true); // barra de escala sobre la imagen
   const drawRef = useRef({
     active: false,
     tool: "",
@@ -2241,6 +3838,17 @@ function RockArtEnhancer() {
   });
   const batchInputRef = useRef(null);
   const batchCancelRef = useRef(false);
+  // Registro de sesión (v3.8.0). entradaRef: nombre, tamaño y huella (una
+  // promesa) del archivo cargado; huellasEntradaRef: huella de sus píxeles a
+  // cada resolución de trabajo, para no recalcularla en cada descarga.
+  const entradaRef = useRef(null);
+  const huellasEntradaRef = useRef({});
+  const registroInputRef = useRef(null);
+  const [registroInfo, setRegistroInfo] = useState(null); // resultado de reproducir un registro
+  // Después de reproducir un registro, la intensidad y la escala quedan en los
+  // valores del registro; esto evita que sus efectos reprocesen la imagen
+  // que se acaba de rehacer (con varios pasos, la reemplazarían por uno solo).
+  const omitirAutoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const compareRef = useRef(null);
@@ -2436,14 +4044,27 @@ function RockArtEnhancer() {
     setFileName(file.name);
     setExifData(null);
     setExifRaw(null);
+    setRegistroInfo(null);
+    setEscalaCal(null);
+    setCalibrando(null);
+    setMmDraft("");
+    entradaRef.current = null;
+    huellasEntradaRef.current = {};
     const er = new FileReader();
     er.onload = e => {
+      // Huella del archivo tal cual, para el registro de cada exportación
+      entradaRef.current = {
+        archivo: file.name,
+        bytes: file.size,
+        sha256: huellaSHA256(new Uint8Array(e.target.result)),
+        file
+      };
       try {
         const p = parseExifData(e.target.result);
         if (p) setExifData(p);
         const seg = extractExifSegment(e.target.result);
         if (seg) setExifRaw(seg);
-      } catch (e) {}
+      } catch (err) {}
     };
     er.readAsArrayBuffer(file);
     const dr = new FileReader();
@@ -2519,8 +4140,10 @@ function RockArtEnhancer() {
     if (!image) return;
     const job = ++jobRef.current;
     procRef.current.cancelar();
+    omitirAutoRef.current = null;
     setProcessing(true);
     setActivePreset(preset.id);
+    setRegistroInfo(null);
     const apilar = stackMode && !!processedSrc;
     // setTimeout directo (no requestAnimationFrame): rAF se pausa si la
     // pestaña pierde visibilidad y el procesamiento quedaba colgado
@@ -2574,11 +4197,14 @@ function RockArtEnhancer() {
           ctx.putImageData(final, 0, 0);
           setProcessedSrc(cv.toDataURL("image/png"));
         }
+        // La selección va con cada paso para el registro: en el modo Acumular
+        // cada filtro puede haberse aplicado sobre una zona distinta
         const paso = {
           presetId: preset.id,
           intensity: int,
           frozen: r.frozen,
-          opts
+          opts,
+          sel: selData || null
         };
         // Acumulado → se suma al pipeline del lote; aplicación fresca → arranca de cero
         if (apilar) pipelineRef.current.push(paso);else pipelineRef.current = [paso];
@@ -2612,6 +4238,8 @@ function RockArtEnhancer() {
     // cada reaplicación tomaría el resultado previo como fuente y el filtro
     // se acumularía sin control. El usuario reaplica con el botón del filtro.
     if (stackMode) return;
+    const g = omitirAutoRef.current;
+    if (g && g.intensity === intensity && g.escala === reliefScale) return; // recién reproducido
     if (activePreset && image) {
       const p = PRESETS.find(x => x.id === activePreset);
       if (p) {
@@ -2624,6 +4252,8 @@ function RockArtEnhancer() {
   // Lo mismo con la escala del Relieve, que solo afecta a ese filtro
   useEffect(() => {
     if (stackMode || activePreset !== "relief" || !image) return;
+    const g = omitirAutoRef.current;
+    if (g && g.intensity === intensity && g.escala === reliefScale) return;
     const p = PRESETS.find(x => x.id === "relief");
     const t = setTimeout(() => processImage(p, intensity), 100);
     return () => clearTimeout(t);
@@ -2649,143 +4279,514 @@ function RockArtEnhancer() {
     };
   }, [dragging, handleSliderMove]);
 
-  // Encoder TIFF sin comprimir (RGB 8-bit)
-  const encodeTIFF = canvas => {
+  // TIFF sin comprimir (RGB 8-bit); el codificador está en tiffRGB
+  const encodeTIFF = (canvas, descripcion, pix) => {
     const w = canvas.width,
       h = canvas.height;
-    const ctx = canvas.getContext("2d");
-    const imgData = ctx.getImageData(0, 0, w, h).data;
-    const pixelBytes = w * h * 3; // RGB sin alpha
-    const ifdOffset = 8;
-    const ifdEntries = 12;
-    const ifdSize = 2 + ifdEntries * 12 + 4;
-    // Área de valores fuera de línea (BitsPerSample necesita 3 SHORTs,
-    // X/YResolution son RATIONAL de 8 bytes según spec TIFF 6.0)
-    const bitsOffset = ifdOffset + ifdSize;
-    const xresOffset = bitsOffset + 8; // 6 bytes + 2 de alineación
-    const yresOffset = xresOffset + 8;
-    const stripOffset = yresOffset + 8;
-    const fileSize = stripOffset + pixelBytes;
-    const buf = new ArrayBuffer(fileSize);
-    const view = new DataView(buf);
-    const u8 = new Uint8Array(buf);
-    // Header: little-endian TIFF
-    view.setUint16(0, 0x4949, false); // II
-    view.setUint16(2, 42, true);
-    view.setUint32(4, ifdOffset, true);
-    let off = ifdOffset;
-    // IFD entry count
-    view.setUint16(off, ifdEntries, true);
-    off += 2;
-    const writeIFD = (tag, type, count, value) => {
-      view.setUint16(off, tag, true);
-      off += 2;
-      view.setUint16(off, type, true);
-      off += 2;
-      view.setUint32(off, count, true);
-      off += 4;
-      view.setUint32(off, value, true);
-      off += 4;
-    };
-    writeIFD(256, 3, 1, w); // ImageWidth
-    writeIFD(257, 3, 1, h); // ImageLength
-    writeIFD(258, 3, 3, bitsOffset); // BitsPerSample [8,8,8]
-    writeIFD(259, 3, 1, 1); // Compression: none
-    writeIFD(262, 3, 1, 2); // PhotometricInterpretation: RGB
-    writeIFD(273, 4, 1, stripOffset); // StripOffsets
-    writeIFD(277, 3, 1, 3); // SamplesPerPixel
-    writeIFD(278, 4, 1, h); // RowsPerStrip
-    writeIFD(279, 4, 1, pixelBytes); // StripByteCounts
-    writeIFD(282, 5, 1, xresOffset); // XResolution: RATIONAL 72/1
-    writeIFD(283, 5, 1, yresOffset); // YResolution: RATIONAL 72/1
-    writeIFD(296, 3, 1, 2); // ResolutionUnit: pulgadas
-    // Next IFD offset = 0
-    view.setUint32(off, 0, true);
-    // Valores fuera de línea
-    view.setUint16(bitsOffset, 8, true);
-    view.setUint16(bitsOffset + 2, 8, true);
-    view.setUint16(bitsOffset + 4, 8, true);
-    view.setUint32(xresOffset, 72, true);
-    view.setUint32(xresOffset + 4, 1, true);
-    view.setUint32(yresOffset, 72, true);
-    view.setUint32(yresOffset + 4, 1, true);
-    // Pixel data: RGB (sin alpha)
-    let pOff = stripOffset;
-    for (let i = 0; i < w * h; i++) {
-      u8[pOff++] = imgData[i * 4];
-      u8[pOff++] = imgData[i * 4 + 1];
-      u8[pOff++] = imgData[i * 4 + 2];
-    }
-    return new Blob([buf], {
+    const data = (pix || canvas.getContext("2d").getImageData(0, 0, w, h)).data;
+    return new Blob([tiffRGB(data, w, h, descripcion)], {
       type: "image/tiff"
     });
   };
-  const handleDownload = () => {
-    if (!processedSrc) return;
+
+  // Mete el registro dentro de la imagen codificada, según el formato
+  const conRegistro = async (blob, ext, texto) => {
+    if (!blob || !texto || ext === "tif") return blob;
     try {
-      const tmpImg = new Image();
-      tmpImg.onload = () => {
-        const cv = document.createElement("canvas");
-        cv.width = tmpImg.naturalWidth;
-        cv.height = tmpImg.naturalHeight;
-        const ctx = cv.getContext("2d");
-        if (contrast !== 0 || saturation !== 0) {
-          ctx.filter = `contrast(${1 + contrast / 100}) saturate(${1 + saturation / 100})`;
-        }
-        ctx.drawImage(tmpImg, 0, 0);
-        // Nombre reproducible: filtro + intensidad + ajustes post aplicados
-        const gPasos = [...pickSteps, ...(pickColor && pickGain ? [{
-          tol: pickTol,
-          gain: pickGain
-        }] : [])];
-        const gt = gPasos.length ? "_gotero" + gPasos.map(a => `_g${a.gain > 0 ? "+" : ""}${a.gain}t${a.tol}`).join("") : "";
-        // La escala del Relieve va al lado de la intensidad; con 0 (bordes) se
-        // omite, así el nombre sale igual que en v3.6 para el mismo resultado
-        const esc = activePreset === "relief" && reliefScale ? `_e${reliefScale}` : "";
-        const params = `_i${intensity.toFixed(1)}${esc}${gt}${contrast !== 0 ? `_c${contrast}` : ""}${saturation !== 0 ? `_s${saturation}` : ""}`;
-        const base = `${(fileName || "opc").replace(/\.[^.]+$/, "")}_OPC_${activePreset}${params}`;
-        const doDownload = (blob, ext) => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `${base}.${ext}`;
-          a.style.display = "none";
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          }, 300);
-        };
-        if (exportFmt === "tiff") {
-          doDownload(encodeTIFF(cv), "tif");
-        } else if (exportFmt === "jpg") {
-          cv.toBlob(async blob => {
-            if (!blob) return;
-            let out = blob;
-            // Reinyectar el EXIF original (GPS/fecha) en el JPG exportado
-            if (exifRaw) {
-              try {
-                const buf = new Uint8Array(await blob.arrayBuffer());
-                if (buf[0] === 0xFF && buf[1] === 0xD8) {
-                  out = new Blob([buf.slice(0, 2), exifRaw, buf.slice(2)], {
-                    type: "image/jpeg"
-                  });
-                }
-              } catch (err) {}
-            }
-            doDownload(out, "jpg");
-          }, "image/jpeg", 0.92);
-        } else {
-          cv.toBlob(blob => {
-            if (blob) doDownload(blob, "png");
-          }, "image/png");
-        }
-      };
-      tmpImg.src = pickSrc || processedSrc;
+      const u8 = new Uint8Array(await blob.arrayBuffer());
+      if (ext === "png") return new Blob([pngConRegistro(u8, texto)], {
+        type: "image/png"
+      });
+      if (ext === "jpg") return new Blob([jpegConRegistro(u8, texto)], {
+        type: "image/jpeg"
+      });
+    } catch (err) {
+      console.error("Registro:", err);
+    }
+    return blob;
+  };
+
+  // Píxeles de la foto a la resolución de trabajo, tomados igual que en
+  // processImage, y su huella (una por tamaño, se calcula una sola vez)
+  const leerEntrada = (w, h) => {
+    const cv = document.createElement("canvas");
+    cv.width = w;
+    cv.height = h;
+    const ctx = cv.getContext("2d");
+    ctx.drawImage(image, 0, 0, w, h);
+    const d = ctx.getImageData(0, 0, w, h);
+    cv.width = 0;
+    cv.height = 0;
+    return d;
+  };
+  const huellaEntrada = (w, h) => {
+    const k = `${w}x${h}`,
+      c = huellasEntradaRef.current;
+    if (!c[k]) c[k] = huellaSHA256(pixelesRGB(leerEntrada(w, h).data));
+    return c[k];
+  };
+
+  // Contraste y saturación de la descarga suelta: el filtro del navegador,
+  // como hasta v3.7.3. La reproducción de un registro pasa por acá también,
+  // así que rehace exactamente lo que se exportó (en el mismo navegador).
+  const ajustesNavegador = (fuente, w, h, c, s) => {
+    const cv = document.createElement("canvas");
+    cv.width = w;
+    cv.height = h;
+    const ctx = cv.getContext("2d");
+    if (c !== 0 || s !== 0) ctx.filter = `contrast(${1 + c / 100}) saturate(${1 + s / 100})`;
+    ctx.drawImage(fuente, 0, 0);
+    return cv;
+  };
+
+  // Miniatura en JPEG para el informe: lado mayor de hasta 1400 px, sobre
+  // blanco, porque el JPEG no tiene transparencia
+  const miniaturaJPEG = async (fuente, w, h) => {
+    const s = Math.min(1, 1400 / Math.max(w, h));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(w * s));
+    c.height = Math.max(1, Math.round(h * s));
+    const g = c.getContext("2d");
+    g.fillStyle = "#ffffff";
+    g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(fuente, 0, 0, c.width, c.height);
+    const b = await new Promise(r => c.toBlob(r, "image/jpeg", 0.88));
+    return b ? {
+      bytes: new Uint8Array(await b.arrayBuffer()),
+      ancho: c.width,
+      alto: c.height,
+      canales: 3
+    } : null;
+  };
+  // El logo de OPC ya es un JPEG: va al informe tal cual
+  const logoJPEG = () => {
+    try {
+      const bin = atob(OPC_LOGO.slice(OPC_LOGO.indexOf(",") + 1)),
+        bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const tm = tamanoJPEG(bytes);
+      return tm ? {
+        bytes,
+        ...tm
+      } : null;
     } catch (e) {
-      const w = window.open();
-      if (w) w.document.write(`<img src="${processedSrc}" style="max-width:100%"/>`);
+      return null;
+    }
+  };
+  const bajarArchivo = (blob, nombre) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombre;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 300);
+  };
+
+  // Ajustes del gotero que entran en la imagen: los fijados y el que está en curso
+  const goteroActual = () => [...pickSteps, ...(pickColor && pickGain ? [{
+    ...pickColor,
+    tol: pickTol,
+    feather: pickFeather,
+    gain: pickGain
+  }] : [])];
+
+  // Varios archivos juntos: un .zip con el nombre de la exportación, que baja
+  // donde baja todo y trae adentro una carpeta con ese mismo nombre. Una página
+  // web no puede crear carpetas en Descargas (el navegador solo le deja bajar
+  // archivos sueltos, y cambia la «/» de un nombre por «_»), así que la
+  // carpeta viaja dentro del .zip. Windows lo abre como una carpeta más.
+  const bajarJuntos = async (base, archivos) => {
+    const entradas = await Promise.all(archivos.map(async a => ({
+      nombre: `${base}/${a.nombre}`,
+      bytes: new Uint8Array(await a.blob.arrayBuffer())
+    })));
+    bajarArchivo(new Blob([zipSinComprimir(entradas, new Date())], {
+      type: "application/zip"
+    }), `${base}.zip`);
+    return {
+      zip: `${base}.zip`,
+      cuantos: archivos.length
+    };
+  };
+  const handleDownload = async () => {
+    if (!processedSrc) return;
+    const extras = conJSON || conInforme;
+    setAvisoGuardado(null);
+    try {
+      const tmpImg = await new Promise((ok, mal) => {
+        const im = new Image();
+        im.onload = () => ok(im);
+        im.onerror = mal;
+        im.src = pickSrc || processedSrc;
+      });
+      const cv = ajustesNavegador(tmpImg, tmpImg.naturalWidth, tmpImg.naturalHeight, contrast, saturation);
+      // Nombre reproducible: filtro + intensidad + ajustes post aplicados
+      const gPasos = goteroActual();
+      const gt = gPasos.length ? "_gotero" + gPasos.map(a => `_g${a.gain > 0 ? "+" : ""}${a.gain}t${a.tol}`).join("") : "";
+      // La escala del Relieve va al lado de la intensidad; con 0 (bordes) se
+      // omite, así el nombre sale igual que en v3.6 para el mismo resultado
+      const esc = activePreset === "relief" && reliefScale ? `_e${reliefScale}` : "";
+      const params = `_i${intensity.toFixed(1)}${esc}${gt}${contrast !== 0 ? `_c${contrast}` : ""}${saturation !== 0 ? `_s${saturation}` : ""}`;
+      const base = `${(fileName || "opc").replace(/\.[^.]+$/, "")}_OPC_${activePreset}${params}`;
+      const ext = exportFmt === "tiff" ? "tif" : exportFmt;
+      const pix = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height);
+      // Registro: si algo falla al armarlo, la imagen se descarga igual
+      let reg = null,
+        texto = null;
+      try {
+        const ent = entradaRef.current,
+          {
+            w,
+            h
+          } = imageSize;
+        reg = armarRegistro({
+          version: OPC_VERSION,
+          fecha: new Date().toISOString(),
+          entrada: {
+            archivo: fileName,
+            bytes: ent ? ent.bytes : null,
+            sha256: ent ? await ent.sha256 : null,
+            ancho: image.naturalWidth,
+            alto: image.naturalHeight
+          },
+          trabajo: {
+            resolucion: resId,
+            ancho: w,
+            alto: h,
+            sha256_pixeles: await huellaEntrada(w, h)
+          },
+          escala: escalaCal ? escalaARegistro(escalaCal, {
+            ancho: image.naturalWidth,
+            alto: image.naturalHeight
+          }, {
+            ancho: w,
+            alto: h
+          }) : null,
+          pasos: pipelineRef.current,
+          gotero: gPasos,
+          contraste: contrast,
+          saturacion: saturation,
+          metodoAjustes: "filtro_css",
+          salida: {
+            archivo: `${base}.${ext}`,
+            formato: ext,
+            sha256_pixeles: await huellaSHA256(pixelesRGB(pix.data))
+          }
+        });
+        texto = JSON.stringify(reg, null, 2);
+      } catch (err) {
+        console.error("Registro:", err);
+      }
+      let blob;
+      if (exportFmt === "tiff") {
+        blob = encodeTIFF(cv, texto, pix);
+      } else if (exportFmt === "jpg") {
+        blob = await new Promise(r => cv.toBlob(r, "image/jpeg", 0.92));
+        // Reinyectar el EXIF original (GPS/fecha) en el JPG exportado
+        if (blob && exifRaw) {
+          try {
+            const buf = new Uint8Array(await blob.arrayBuffer());
+            if (buf[0] === 0xFF && buf[1] === 0xD8) blob = new Blob([buf.slice(0, 2), exifRaw, buf.slice(2)], {
+              type: "image/jpeg"
+            });
+          } catch (err) {}
+        }
+      } else {
+        blob = await new Promise(r => cv.toBlob(r, "image/png"));
+      }
+      if (!blob) return;
+      // El registro va siempre adentro de la imagen
+      blob = await conRegistro(blob, ext, texto);
+      const archivos = [{
+        nombre: `${base}.${ext}`,
+        blob
+      }];
+      if (extras && reg) {
+        // Afuera lleva además la huella del archivo ya armado (adentro no
+        // puede ir: cambiaría el archivo que describe)
+        const sha = await huellaSHA256(new Uint8Array(await blob.arrayBuffer()));
+        const lado = {
+          ...reg,
+          salida: {
+            ...reg.salida,
+            sha256: sha
+          }
+        };
+        if (conJSON) archivos.push({
+          nombre: `${base}.json`,
+          blob: new Blob([JSON.stringify(lado, null, 2)], {
+            type: "application/json"
+          })
+        });
+        if (conInforme) {
+          try {
+            const pdf = informePDF(lado, {
+              lang,
+              nombreFiltro: id => presetLabel(id),
+              original: await miniaturaJPEG(image, image.naturalWidth, image.naturalHeight),
+              resultado: await miniaturaJPEG(cv, cv.width, cv.height),
+              logo: logoJPEG(),
+              fechaToma: exifData && exifData.dateTime,
+              hayGPS: !!(exifData && exifData.gps)
+            });
+            archivos.push({
+              nombre: `${base}.pdf`,
+              blob: new Blob([pdf], {
+                type: "application/pdf"
+              })
+            });
+          } catch (err) {
+            console.error("Informe PDF:", err);
+          }
+        }
+      }
+      // Solo la imagen: una descarga común, como siempre. Con más archivos,
+      // todo junto, en una carpeta dentro de un .zip.
+      if (archivos.length === 1) {
+        bajarArchivo(blob, archivos[0].nombre);
+        return;
+      }
+      const dest = await bajarJuntos(base, archivos);
+      setAvisoGuardado(dest);
+      clearTimeout(avisoTimerRef.current);
+      avisoTimerRef.current = setTimeout(() => setAvisoGuardado(null), 9000);
+    } catch (e) {
+      console.error("Descarga:", e);
+    }
+  };
+
+  // ============================================================
+  // REPRODUCIR UN REGISTRO (v3.8.0)
+  // Con la foto original cargada, rehace la imagen a partir de su registro
+  // y comprueba, paso a paso, que salga igual: el archivo de entrada, sus
+  // píxeles a la resolución de trabajo y los píxeles del resultado.
+  // ============================================================
+  const abrirRegistro = async file => {
+    if (!file) return;
+    let rec = null;
+    try {
+      rec = leerRegistro(new Uint8Array(await file.arrayBuffer()));
+    } catch (err) {
+      rec = null;
+    }
+    if (!rec) {
+      setRegistroInfo({
+        ok: false,
+        titulo: {
+          es: "Sin registro",
+          en: "No record"
+        },
+        items: [{
+          ok: false,
+          es: `${file.name} no contiene un registro de OPC. Sirve el .json que se descarga junto a cada imagen, o una imagen exportada con OPC v3.8.0 o posterior.`,
+          en: `${file.name} contains no OPC record. Use the .json downloaded with each image, or an image exported with OPC v3.8.0 or later.`
+        }]
+      });
+      return;
+    }
+    reproducirRegistro(rec);
+  };
+  const reproducirRegistro = async rec => {
+    if (!image) return;
+    const job = ++jobRef.current;
+    procRef.current.cancelar();
+    setProcessing(true);
+    setRegistroInfo(null);
+    const items = [];
+    const nota = (ok, es, en) => items.push({
+      ok,
+      es,
+      en
+    });
+    const terminar = titulo => {
+      setRegistroInfo({
+        ok: items.every(i => i.ok !== false),
+        titulo,
+        items
+      });
+      setProcessing(false);
+    };
+    try {
+      const pasos = pasosDesdeRegistro(rec),
+        lote = !!rec.lote;
+      const desconocidos = pasos.filter(p => !PRESETS.some(x => x.id === p.presetId)).map(p => p.presetId);
+      if (!pasos.length || desconocidos.length) {
+        nota(false, `El registro usa filtros que esta versión no tiene: ${desconocidos.join(", ") || "ninguno"}.`, `The record uses filters this version does not have: ${desconocidos.join(", ") || "none"}.`);
+        return terminar({
+          es: "No se pudo reproducir",
+          en: "Could not replay"
+        });
+      }
+      // 1. Versión de OPC
+      const vr = rec.opc && rec.opc.version;
+      if (vr === OPC_VERSION) nota(true, `Hecho con esta misma versión (v${vr}).`, `Made with this same version (v${vr}).`);
+      // Un registro más nuevo puede venir de una versión que cambió algún
+      // filtro, y esta no tiene cómo saberlo
+      else if (compararVersiones(vr, OPC_VERSION) > 0) nota(false, `El registro es de una versión más nueva (v${vr}); esta es v${OPC_VERSION} y no sabe si entre medio cambió algún filtro.`, `The record comes from a newer version (v${vr}); this is v${OPC_VERSION} and cannot tell whether any filter changed in between.`);else {
+        const cambios = cambiosEntre(vr, OPC_VERSION, pasos.map(p => p.presetId));
+        if (cambios.length) nota(false, `Entre v${vr} y v${OPC_VERSION} cambió el resultado de filtros que usa: ${cambios.map(c => `v${c.version}, ${c.es}`).join("; ")}. La imagen puede no salir igual.`, `Between v${vr} and v${OPC_VERSION} the result of filters it uses changed: ${cambios.map(c => `v${c.version}, ${c.en}`).join("; ")}. The image may not come out the same.`);else nota(true, `Hecho con v${vr}. Entre medio no hubo cambios de resultados en estos filtros.`, `Made with v${vr}. No result changes in these filters since then.`);
+      }
+      // 2. La foto
+      const ent = entradaRef.current,
+        re = rec.entrada || {};
+      const sha = ent ? await ent.sha256 : null;
+      if (job !== jobRef.current) return;
+      if (re.sha256 && sha) {
+        if (re.sha256 === sha) nota(true, `Es la misma foto (${re.archivo}): el archivo coincide byte a byte.`, `It is the same photo (${re.archivo}): the file matches byte for byte.`);else nota(false, `La foto cargada no es la del registro (${re.archivo}): el archivo es distinto.`, `The loaded photo is not the one in the record (${re.archivo}): the file differs.`);
+      }
+      // 3. Tamaño de trabajo: en el lote, el lado máximo; si no, la resolución
+      let w = image.naturalWidth,
+        h = image.naturalHeight;
+      if (lote) {
+        const L = rec.trabajo && rec.trabajo.lado_max || 8192;
+        if (w > L || h > L) {
+          const s = L / Math.max(w, h);
+          w = Math.round(w * s);
+          h = Math.round(h * s);
+        }
+      } else ({
+        w,
+        h
+      } = tamanoTrabajo(w, h, rec.trabajo && rec.trabajo.resolucion || "full"));
+      if (rec.trabajo && rec.trabajo.ancho && (rec.trabajo.ancho !== w || rec.trabajo.alto !== h)) nota(false, `El tamaño de trabajo no coincide: el registro dice ${rec.trabajo.ancho} × ${rec.trabajo.alto} y sale ${w} × ${h}.`, `The working size does not match: the record says ${rec.trabajo.ancho} × ${rec.trabajo.alto} and this gives ${w} × ${h}.`);
+      // 4. Píxeles de entrada. El lote lee cada foto con createImageBitmap y la
+      // vista con un <img>, y Chrome no decodifica igual un JPG por los dos
+      // caminos: difieren en un nivel en alrededor del 0,5 % de los valores.
+      // Cada registro se rehace leyendo la foto como la leyó quien lo hizo.
+      let src;
+      if (lote && ent && ent.file) {
+        const bmp = await createImageBitmap(ent.file);
+        const cv = document.createElement("canvas");
+        cv.width = w;
+        cv.height = h;
+        const ctx = cv.getContext("2d");
+        ctx.drawImage(bmp, 0, 0, w, h);
+        bmp.close();
+        src = ctx.getImageData(0, 0, w, h);
+        cv.width = 0;
+        cv.height = 0;
+      } else src = leerEntrada(w, h);
+      const shaPix = await huellaSHA256(pixelesRGB(src.data));
+      if (!lote) huellasEntradaRef.current[`${w}x${h}`] = Promise.resolve(shaPix);
+      if (job !== jobRef.current) return;
+      if (rec.trabajo && rec.trabajo.sha256_pixeles) {
+        if (rec.trabajo.sha256_pixeles === shaPix) nota(true, `Los píxeles de entrada a ${w} × ${h} coinciden.`, `The input pixels at ${w} × ${h} match.`);else nota(false, `Los píxeles de entrada a ${w} × ${h} no coinciden. Si el archivo es el mismo, la diferencia viene del navegador al leer la foto${w !== image.naturalWidth || h !== image.naturalHeight ? " o al reducirla" : ""}.`, `The input pixels at ${w} × ${h} do not match. If the file is the same, the difference comes from the browser reading the photo${w !== image.naturalWidth || h !== image.naturalHeight ? " or scaling it down" : ""}.`);
+      }
+      // 5. Los filtros, en orden. Fuera del lote se recalculan desde cero, con
+      // la selección de cada paso, como se hicieron; en el lote van con las
+      // estadísticas congeladas de la referencia y sobre la foto entera.
+      let actual = src.data,
+        png = null;
+      const nuevos = [];
+      for (const p of pasos) {
+        const mask = lote ? null : generateMask(p.sel, w, h);
+        const r = await procRef.current.correr({
+          presetId: p.presetId,
+          origen: actual,
+          w,
+          h,
+          intensity: p.intensity,
+          mask,
+          frozen: lote ? p.frozen : null,
+          opts: p.opts
+        });
+        if (job !== jobRef.current) return;
+        actual = r.data;
+        png = r.png;
+        nuevos.push({
+          ...p,
+          frozen: r.frozen || p.frozen
+        });
+      }
+      const resultado = new ImageData(actual, w, h);
+      // 6. Gotero y ajustes, por el mismo camino que la exportación
+      const gotero = goteroDesdeRegistro(rec),
+        aj = rec.ajustes || {};
+      const c = aj.contraste || 0,
+        s = aj.saturacion || 0;
+      let final = new ImageData(new Uint8ClampedArray(actual), w, h);
+      applyPickChain(final, gotero, null);
+      if (aj.metodo === "por_pixel") applyPostAdjust(final, c, s);else if (c || s) {
+        const tmp = document.createElement("canvas");
+        tmp.width = w;
+        tmp.height = h;
+        tmp.getContext("2d").putImageData(final, 0, 0);
+        final = ajustesNavegador(tmp, w, h, c, s).getContext("2d").getImageData(0, 0, w, h);
+      }
+      // 7. El resultado
+      if (rec.salida && rec.salida.sha256_pixeles) {
+        const shaOut = await huellaSHA256(pixelesRGB(final.data));
+        if (job !== jobRef.current) return;
+        if (shaOut === rec.salida.sha256_pixeles) nota(true, `La imagen rehecha es idéntica, píxel a píxel, a ${rec.salida.archivo}.`, `The replayed image is identical, pixel for pixel, to ${rec.salida.archivo}.`);else nota(false, `La imagen rehecha no es idéntica a ${rec.salida.archivo}.`, `The replayed image is not identical to ${rec.salida.archivo}.`);
+      }
+      // 8. La interfaz queda como al exportar
+      const ultimo = pasos[pasos.length - 1];
+      const relieve = [...pasos].reverse().find(p => p.presetId === "relief");
+      const escala = relieve ? relieve.opts && relieve.opts.escala || 0 : reliefScale;
+      omitirAutoRef.current = {
+        intensity: ultimo.intensity,
+        escala
+      };
+      if (!lote && rec.trabajo && rec.trabajo.resolucion) setResId(rec.trabajo.resolucion);
+      setImageSize({
+        w,
+        h
+      });
+      processedDataRef.current = resultado;
+      if (png) setProcessedSrc(URL.createObjectURL(png));else {
+        const cv = document.createElement("canvas");
+        cv.width = w;
+        cv.height = h;
+        cv.getContext("2d").putImageData(resultado, 0, 0);
+        setProcessedSrc(cv.toDataURL("image/png"));
+      }
+      pipelineRef.current = nuevos;
+      setActivePreset(ultimo.presetId);
+      setIntensity(ultimo.intensity);
+      setIntDraft(null);
+      setReliefScale(escala);
+      setStackMode(pasos.length > 1);
+      setSelData(lote ? null : ultimo.sel || null);
+      setSelTool("none");
+      drawRef.current = {
+        active: false,
+        tool: "",
+        start: null,
+        pts: []
+      };
+      setPickSteps(gotero);
+      setPickColor(null);
+      setPicking(false);
+      setContrast(c);
+      setSaturation(s);
+      // La escala métrica, si se había calibrado (el lote no la registra)
+      const escRec = escalaDesdeRegistro(rec.escala);
+      setEscalaCal(escRec);
+      setCalibrando(null);
+      if (escRec) {
+        const p = numCorto(pxPorMM(escRec, w, h));
+        nota(true, `Escala métrica: 1 mm = ${p} px a la resolución de trabajo, calibrada sobre ${escRec.mm} mm.`, `Metric scale: 1 mm = ${p} px at the working resolution, calibrated over ${escRec.mm} mm.`);
+      }
+      terminar(items.every(i => i.ok !== false) ? {
+        es: "Registro reproducido",
+        en: "Record replayed"
+      } : {
+        es: "Registro reproducido, con diferencias",
+        en: "Record replayed, with differences"
+      });
+    } catch (err) {
+      if (err === PROC_CANCELADO) return;
+      console.error(err);
+      nota(false, `Error al reproducir: ${err && err.message || err}`, `Error while replaying: ${err && err.message || err}`);
+      terminar({
+        es: "No se pudo reproducir",
+        en: "Could not replay"
+      });
     }
   };
 
@@ -2820,6 +4821,55 @@ function RockArtEnhancer() {
       errors: []
     });
     const errors = [];
+    const guardar = async (blob, nombre) => {
+      if (dirHandle) {
+        const fh = await dirHandle.getFileHandle(nombre, {
+          create: true
+        });
+        const ws = await fh.createWritable();
+        await ws.write(blob);
+        await ws.close();
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = nombre;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+    };
+    // Registro (v3.8.0): lo común a todas las fotos. La selección de cada paso
+    // es la de la foto de referencia: sirvió para calcular las estadísticas,
+    // que en el lote se aplican congeladas a cada foto entera.
+    const ent = entradaRef.current;
+    const gPasos = goteroActual();
+    const lote = {
+      referencia: {
+        archivo: fileName,
+        sha256: ent ? await ent.sha256 : null,
+        ancho_trabajo: imageSize.w,
+        alto_trabajo: imageSize.h
+      },
+      lado_max: batchRes,
+      formato: batchFmt,
+      estadisticas_congeladas: true
+    };
+    const comun = {
+      version: OPC_VERSION,
+      pasos: pipeline,
+      gotero: gPasos,
+      contraste: contrast,
+      saturacion: saturation,
+      metodoAjustes: "por_pixel",
+      tamSeleccion: {
+        ancho: imageSize.w,
+        alto: imageSize.h
+      }
+    };
+    const filas = [];
     // Un ÚNICO canvas reutilizado en todo el lote: crear uno por foto
     // acumulaba backing stores sin liberar y agotaba la memoria
     const cv = document.createElement("canvas");
@@ -2833,17 +4883,24 @@ function RockArtEnhancer() {
       }));
       // Ceder el hilo para que la UI actualice el progreso
       await new Promise(r => setTimeout(r, 30));
+      const fila = {
+        archivo_entrada: file.name
+      };
       try {
+        const original = new Uint8Array(await file.arrayBuffer());
+        const shaEntrada = huellaSHA256(original);
         // EXIF crudo de ESTA foto (cada una conserva su propio GPS/fecha)
         let exifSeg = null;
         if (batchFmt === "jpg") {
           try {
-            exifSeg = extractExifSegment(await file.arrayBuffer());
+            exifSeg = extractExifSegment(original.buffer);
           } catch (e) {}
         }
         const bmp = await createImageBitmap(file);
-        let w = bmp.width,
-          h = bmp.height;
+        const w0 = bmp.width,
+          h0 = bmp.height;
+        let w = w0,
+          h = h0;
         if (w > batchRes || h > batchRes) {
           const s = batchRes / Math.max(w, h);
           w = Math.round(w * s);
@@ -2854,6 +4911,7 @@ function RockArtEnhancer() {
         ctx.drawImage(bmp, 0, 0, w, h);
         bmp.close();
         let id = ctx.getImageData(0, 0, w, h);
+        const shaPixEntrada = huellaSHA256(pixelesRGB(id.data));
         // Aplicar cada paso del pipeline con sus estadísticas congeladas
         // (sin máscara: en el lote el realce cubre la imagen completa)
         for (const step of pipeline) {
@@ -2864,9 +4922,11 @@ function RockArtEnhancer() {
           } : null, step.opts);
           await new Promise(r => setTimeout(r, 0));
         }
-        // Ajustes post por píxel (ver applyPostAdjust): mismo resultado que
-        // la descarga individual pero sin segundo canvas ni ctx.filter
-        // El gotero va antes de los ajustes post, igual que en la vista previa
+        // El gotero va antes de los ajustes post, igual que en la vista previa.
+        // Los ajustes post van por píxel (applyPostAdjust): con ctx.filter, las
+        // fotos grandes caen al render por software. Ojo: no dan exactamente lo
+        // mismo que el filtro del navegador de la descarga suelta; casi siempre
+        // un nivel de diferencia, más con contraste y saturación juntos.
         applyPickChain(id, pickSteps, pickColor && pickGain ? {
           ...pickColor,
           tol: pickTol,
@@ -2875,19 +4935,44 @@ function RockArtEnhancer() {
         } : null);
         applyPostAdjust(id, contrast, saturation);
         ctx.putImageData(id, 0, 0);
-        id = null;
+        const shaPixSalida = await huellaSHA256(pixelesRGB(id.data));
         // Codificar según formato
         const base = file.name.replace(/\.[^.]+$/, "");
-        let blob, ext;
+        const ext = batchFmt === "tiff" ? "tif" : batchFmt;
+        // MISMO nombre que el original (workflow de reemplazo de texturas):
+        // guardar siempre en una carpeta DISTINTA a la de los originales
+        const outName = `${base}.${ext}`;
+        const reg = armarRegistro({
+          ...comun,
+          fecha: new Date().toISOString(),
+          entrada: {
+            archivo: file.name,
+            bytes: file.size,
+            sha256: await shaEntrada,
+            ancho: w0,
+            alto: h0
+          },
+          trabajo: {
+            lado_max: batchRes,
+            ancho: w,
+            alto: h,
+            sha256_pixeles: await shaPixEntrada
+          },
+          salida: {
+            archivo: outName,
+            formato: ext,
+            sha256_pixeles: shaPixSalida
+          },
+          lote
+        });
+        const texto = JSON.stringify(reg, null, 2);
+        let blob;
         if (batchFmt === "tiff") {
-          blob = encodeTIFF(cv);
-          ext = "tif";
+          blob = encodeTIFF(cv, texto, id);
         } else if (batchFmt === "png") {
           blob = await new Promise(r => cv.toBlob(r, "image/png"));
-          ext = "png";
         } else {
           blob = await new Promise(r => cv.toBlob(r, "image/jpeg", 0.95));
-          ext = "jpg";
           if (blob && exifSeg) {
             try {
               const u8 = new Uint8Array(await blob.arrayBuffer());
@@ -2897,32 +4982,27 @@ function RockArtEnhancer() {
             } catch (e) {}
           }
         }
+        id = null;
         if (!blob) throw new Error(tr("No se pudo codificar la imagen", "Could not encode the image"));
-        // MISMO nombre que el original (workflow de reemplazo de texturas):
-        // guardar siempre en una carpeta DISTINTA a la de los originales
-        const outName = `${base}.${ext}`;
-        if (dirHandle) {
-          const fh = await dirHandle.getFileHandle(outName, {
-            create: true
-          });
-          const ws = await fh.createWritable();
-          await ws.write(blob);
-          await ws.close();
-        } else {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = outName;
-          a.style.display = "none";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 1500);
-        }
+        blob = await conRegistro(blob, ext, texto);
+        await guardar(blob, outName);
+        Object.assign(fila, {
+          sha256_entrada: reg.entrada.sha256,
+          ancho_original: w0,
+          alto_original: h0,
+          ancho_trabajo: w,
+          alto_trabajo: h,
+          archivo_salida: outName,
+          sha256_pixeles_salida: shaPixSalida,
+          sha256_salida: await huellaSHA256(new Uint8Array(await blob.arrayBuffer())),
+          estado: "ok"
+        });
       } catch (err) {
         console.error("Lote:", file.name, err);
         errors.push(file.name);
+        fila.estado = "error";
       }
+      filas.push(fila);
       setBatchProgress(p => ({
         ...p,
         done: fi + 1,
@@ -2932,6 +5012,44 @@ function RockArtEnhancer() {
     // Liberar el backing store del canvas de trabajo
     cv.width = 0;
     cv.height = 0;
+    // El lote deja además un .csv con una fila por foto y un .json con la
+    // configuración común, con nombre de fecha y hora para no pisar otro lote
+    if (filas.length) {
+      try {
+        const t = new Date(),
+          dd = n => String(n).padStart(2, "0");
+        const sello = `${t.getFullYear()}-${dd(t.getMonth() + 1)}-${dd(t.getDate())}_${dd(t.getHours())}${dd(t.getMinutes())}${dd(t.getSeconds())}`;
+        await guardar(new Blob([csvLote(filas)], {
+          type: "text/csv"
+        }), `OPC_lote_${sello}.csv`);
+        const regLote = armarRegistro({
+          ...comun,
+          fecha: t.toISOString(),
+          entrada: ent ? {
+            archivo: fileName,
+            bytes: ent.bytes,
+            sha256: await ent.sha256,
+            ancho: image.naturalWidth,
+            alto: image.naturalHeight
+          } : null,
+          trabajo: {
+            lado_max: batchRes
+          },
+          salida: null,
+          lote: {
+            ...lote,
+            fotos: filas.length,
+            procesadas: filas.filter(f => f.estado === "ok").length,
+            csv: `OPC_lote_${sello}.csv`
+          }
+        });
+        await guardar(new Blob([JSON.stringify(regLote, null, 2)], {
+          type: "application/json"
+        }), `OPC_lote_${sello}.json`);
+      } catch (err) {
+        console.error("Registro del lote:", err);
+      }
+    }
     setBatchRunning(false);
   };
   const handleDrop = e => {
@@ -3095,6 +5213,14 @@ function RockArtEnhancer() {
       ty: 0
     });
     setPanTool(false);
+    entradaRef.current = null;
+    huellasEntradaRef.current = {};
+    omitirAutoRef.current = null;
+    setRegistroInfo(null);
+    setEscalaCal(null);
+    setCalibrando(null);
+    setMmDraft("");
+    setAvisoGuardado(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -3117,10 +5243,70 @@ function RockArtEnhancer() {
   // mientras esta activa; si no, gotero, seleccion y deslizador como antes.
   const handleViewerDown = e => {
     if (panTool || e.button === 1) return startPan(e);
+    if (calibrando) return handleCalDown(e);
     if (picking) return handlePick(e);
     if (selTool !== "none") return handleSelDown(e);
     if (processedSrc) return handlePointerDown(e);
   };
+
+  // Escala métrica (v3.8.0). Primer toque: un extremo; segundo: el otro; un
+  // tercero vuelve a empezar. Con los dos puntos el panel pide los milímetros.
+  const handleCalDown = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const pt = clientToImageNorm(e.clientX, e.clientY);
+    if (!pt) return;
+    setCalibrando(c => !c || !c.p1 || c.p2 ? {
+      p1: pt
+    } : {
+      p1: c.p1,
+      p2: pt
+    });
+  };
+  const empezarCalibracion = () => {
+    setPicking(false);
+    setSelTool("none");
+    setPanTool(false);
+    drawRef.current = {
+      active: false,
+      tool: "",
+      start: null,
+      pts: []
+    };
+    setMmDraft(escalaCal ? String(escalaCal.mm) : "");
+    setCalibrando({});
+  };
+  // Con los dos puntos, el foco va al campo de los mm con el valor anterior
+  // seleccionado, así lo que se escribe lo reemplaza
+  const conDosPuntos = !!(calibrando && calibrando.p2);
+  useEffect(() => {
+    if (conDosPuntos && mmInputRef.current) {
+      mmInputRef.current.focus();
+      mmInputRef.current.select();
+    }
+  }, [calibrando]);
+  const cancelarCalibracion = useCallback(() => setCalibrando(null), []);
+  const pasoCal = !calibrando ? 0 : calibrando.p2 ? 3 : calibrando.p1 ? 2 : 1;
+  const tramoCal = pasoCal === 3 ? Math.hypot((calibrando.p2.x - calibrando.p1.x) * imageSize.w, (calibrando.p2.y - calibrando.p1.y) * imageSize.h) : 0;
+  const calListo = !!(calibrando && calibrando.p2 && pxPorMM({
+    p1: calibrando.p1,
+    p2: calibrando.p2,
+    mm: leerMM(mmDraft)
+  }, imageSize.w, imageSize.h));
+  const confirmarCalibracion = () => {
+    if (!calListo) return;
+    setEscalaCal({
+      p1: calibrando.p1,
+      p2: calibrando.p2,
+      mm: leerMM(mmDraft)
+    });
+    setCalibrando(null);
+  };
+  // Píxeles por milímetro a la resolución de trabajo, y la escala del Relieve
+  // en mm para el texto del panel
+  const ppmm = escalaCal ? pxPorMM(escalaCal, imageSize.w, imageSize.h) : 0;
+  const pxRelieve = Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100));
+  const mmRelieve = ppmm && reliefScale ? ` ≈ ${numCorto(pxRelieve / ppmm)} mm` : "";
   const handleSelDown = e => {
     if (selTool === "none") return;
     e.preventDefault();
@@ -3293,7 +5479,7 @@ function RockArtEnhancer() {
       color: T.tm,
       fontFamily: mono
     }
-  }, "v3.7.3")))), /*#__PURE__*/React.createElement("div", {
+  }, "v3.8.0")))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 6,
@@ -3358,7 +5544,44 @@ function RockArtEnhancer() {
       color: T.ac,
       fontSize: 15
     }
-  }, "OPC v3.7.3 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+  }, "OPC v3.8.0 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Registro de sesi\xF3n (v3.8.0)"), " \u2014 Cada imagen que se descarga lleva ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "adentro un registro"), " con todo lo necesario para rehacerla: versi\xF3n de OPC, foto de entrada con su huella SHA-256, resoluci\xF3n de trabajo, cadena de filtros con sus par\xE1metros, zona seleccionada, gotero con el color muestreado, ajustes y, si se calibr\xF3, la escala m\xE9trica. Con ", /*#__PURE__*/React.createElement("code", null, "+JSON"), ", el mismo registro baja aparte como ", /*#__PURE__*/React.createElement("code", null, ".json"), "; el lote deja adem\xE1s un ", /*#__PURE__*/React.createElement("code", null, ".csv"), " con una fila por foto. Con ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Reproducir un registro"), ", cargando la foto original y el registro (o la propia imagen exportada), OPC rehace la imagen y comprueba que salga ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "igual p\xEDxel a p\xEDxel"), "; si la versi\xF3n es otra y entre medio cambi\xF3 alg\xFAn filtro usado, avisa. Con ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Calibrar con la regla"), " se marcan dos puntos sobre la escala de la foto, con una lupa, y se elige o se escribe cu\xE1nto mide el tramo: el registro guarda cu\xE1ntos p\xEDxeles mide un mil\xEDmetro, el Relieve muestra su escala tambi\xE9n en mm y el visor dibuja una barra de escala. Con ", /*#__PURE__*/React.createElement("code", null, "+PDF"), " baja adem\xE1s un ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "informe en PDF"), " para leer, imprimir o adjuntar a una publicaci\xF3n: las dos im\xE1genes, el procedimiento, la escala y las huellas. Con ", /*#__PURE__*/React.createElement("code", null, "+JSON"), " o ", /*#__PURE__*/React.createElement("code", null, "+PDF"), ", todo baja junto en un ", /*#__PURE__*/React.createElement("code", null, ".zip"), " con el nombre de la imagen, que trae adentro ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "una carpeta"), " con la imagen y los dem\xE1s archivos. Apagados los dos, baja solo la imagen. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Ning\xFAn resultado cambia.")), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -3652,6 +5875,43 @@ function RockArtEnhancer() {
       color: T.text
     }
   }, "DStretch"), " (J. Harman). OPC es una implementaci\xF3n independiente de c\xF3digo abierto, escrita desde cero a partir de la bibliograf\xEDa publicada, sin c\xF3digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci\xF3n entre herramientas.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Session record (v3.8.0)"), " \u2014 Every downloaded image carries ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "a record inside"), " with everything needed to rebuild it: OPC version, input photo with its SHA-256 fingerprint, working resolution, filter chain with its parameters, selected area, eyedropper with the sampled color, adjustments and, if calibrated, the metric scale. With ", /*#__PURE__*/React.createElement("code", null, "+JSON"), ", the same record is also saved as a separate ", /*#__PURE__*/React.createElement("code", null, ".json"), "; a batch also leaves a ", /*#__PURE__*/React.createElement("code", null, ".csv"), " with one row per photo. With ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Replay a record"), ", loading the original photo and the record (or the exported image itself), OPC rebuilds the image and checks that it comes out ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "identical pixel for pixel"), "; if the version differs and a filter it uses changed in between, it warns. With ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "Calibrate with the ruler"), " you mark two points on the photo\u2019s scale, with a loupe, and pick or type the length of the span: the record keeps how many pixels a millimetre measures, the Relief shows its scale in mm too, and the viewer draws a scale bar. With ", /*#__PURE__*/React.createElement("code", null, "+PDF"), " a ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "PDF report"), " to read, print or attach to a publication is downloaded too: both images, the procedure, the scale and the fingerprints. With ", /*#__PURE__*/React.createElement("code", null, "+JSON"), " or ", /*#__PURE__*/React.createElement("code", null, "+PDF"), ", everything is downloaded together in a ", /*#__PURE__*/React.createElement("code", null, ".zip"), " named after the image, with ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "a folder"), " inside holding the image and the other files. With both off, only the image is downloaded. ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "No result changes.")), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -4061,6 +6321,7 @@ function RockArtEnhancer() {
     }
   }, processedSrc && /*#__PURE__*/React.createElement("button", {
     onClick: handleDownload,
+    title: tr("Descarga la imagen con su registro adentro: versión, foto, resolución, filtros, zona, gotero, ajustes y escala. Con +JSON o +PDF, además, el registro aparte y un informe, todo junto en un .zip con una carpeta adentro", "Downloads the image with its record inside: version, photo, resolution, filters, area, eyedropper, adjustments and scale. With +JSON or +PDF, also the record as a separate file and a report, all together in a .zip with a folder inside"),
     style: {
       flex: 1,
       padding: "8px 8px",
@@ -4107,7 +6368,52 @@ function RockArtEnhancer() {
       color: exportFmt === fmt || fmt === "tiff" && exportFmt === "tiff" ? T.ac : T.tm,
       textTransform: "uppercase"
     }
-  }, fmt))), processedSrc && /*#__PURE__*/React.createElement("button", {
+  }, fmt)), /*#__PURE__*/React.createElement("button", {
+    onClick: cambiarJSON,
+    "aria-pressed": conJSON,
+    title: tr("El registro aparte, en .json, para abrirlo con otros programas. Aunque esté apagado, el registro va adentro de la imagen y se puede reproducir igual", "The record as a separate .json, to open with other programs. Even when off, the record is inside the image and can still be replayed"),
+    style: {
+      flex: 1,
+      marginLeft: 4,
+      padding: "4px 2px",
+      fontSize: 9,
+      fontFamily: mono,
+      fontWeight: conJSON ? 700 : 400,
+      background: conJSON ? T.gnBg : T.bBg,
+      border: `1px solid ${conJSON ? T.gn : T.cBd}`,
+      borderRadius: 4,
+      cursor: "pointer",
+      color: conJSON ? T.gn : T.td
+    }
+  }, conJSON ? "+JSON" : "JSON"), /*#__PURE__*/React.createElement("button", {
+    onClick: cambiarInforme,
+    "aria-pressed": conInforme,
+    title: tr("Informe en PDF para leer, imprimir o adjuntar: las dos imágenes, el procedimiento, la escala y las huellas. Baja junto con la imagen y el .json", "PDF report to read, print or attach: both images, the procedure, the scale and the fingerprints. Downloaded with the image and the .json"),
+    style: {
+      flex: 1,
+      padding: "4px 2px",
+      fontSize: 9,
+      fontFamily: mono,
+      fontWeight: conInforme ? 700 : 400,
+      background: conInforme ? T.gnBg : T.bBg,
+      border: `1px solid ${conInforme ? T.gn : T.cBd}`,
+      borderRadius: 4,
+      cursor: "pointer",
+      color: conInforme ? T.gn : T.td
+    }
+  }, conInforme ? "+PDF" : "PDF")), processedSrc && (conJSON || conInforme) && /*#__PURE__*/React.createElement("div", {
+    role: "status",
+    style: {
+      fontSize: 8,
+      fontFamily: mono,
+      color: avisoGuardado ? T.gn : T.td,
+      lineHeight: 1.45,
+      padding: "1px 2px 2px"
+    }
+  }, avisoGuardado ? `✓ ${tr(`Bajó ${avisoGuardado.zip}: adentro, una carpeta con los ${avisoGuardado.cuantos} archivos`, `Downloaded ${avisoGuardado.zip}: inside, a folder with the ${avisoGuardado.cuantos} files`)}` : (() => {
+    const p = [tr("la imagen", "the image"), conJSON && tr("el .json", "the .json"), conInforme && tr("el informe", "the report")].filter(Boolean);
+    return /*#__PURE__*/React.createElement(React.Fragment, null, "📦", " ", tr("Baja un .zip con una carpeta adentro:", "Downloads a .zip with a folder inside:"), " ", p.slice(0, -1).join(", "), tr(" y ", " and "), p[p.length - 1]);
+  })()), processedSrc && /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       setShowBatch(true);
       setBatchFiles([]);
@@ -4129,7 +6435,75 @@ function RockArtEnhancer() {
       cursor: "pointer",
       fontFamily: "'Crimson Pro',serif"
     }
-  }, "▦", " ", tr("Procesar lote (fotogrametr\u00EDa)", "Batch processing (photogrammetry)"))), image && Math.max(image.naturalWidth, image.naturalHeight) > 2000 && (() => {
+  }, "▦", " ", tr("Procesar lote (fotogrametr\u00EDa)", "Batch processing (photogrammetry)")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => registroInputRef.current?.click(),
+    disabled: processing,
+    title: tr("Rehace una imagen a partir de su registro y comprueba que salga igual. Sirve el .json que se descarga junto a cada imagen, o la propia imagen exportada por OPC. Antes hay que cargar la foto original.", "Rebuilds an image from its record and checks that it comes out the same. Use the .json downloaded with each image, or the image exported by OPC itself. Load the original photo first."),
+    style: {
+      padding: "5px 8px",
+      background: "none",
+      border: `1px dashed ${T.cBd}`,
+      borderRadius: 8,
+      color: T.tm,
+      fontSize: 10.5,
+      cursor: processing ? "default" : "pointer",
+      fontFamily: "'Crimson Pro',serif",
+      opacity: processing ? 0.5 : 1
+    }
+  }, "\u21BA", " ", tr("Reproducir un registro\u2026", "Replay a record\u2026")), /*#__PURE__*/React.createElement("input", {
+    ref: registroInputRef,
+    type: "file",
+    accept: ".json,.png,.jpg,.jpeg,.tif,.tiff,application/json",
+    style: {
+      display: "none"
+    },
+    onChange: e => {
+      abrirRegistro(e.target.files?.[0]);
+      e.target.value = "";
+    }
+  }), registroInfo && /*#__PURE__*/React.createElement("div", {
+    role: "status",
+    style: {
+      padding: "7px 9px",
+      background: registroInfo.ok ? T.gnBg : T.acBg,
+      border: `1px solid ${registroInfo.ok ? T.gnBd : T.acBd}`,
+      borderRadius: 8,
+      fontFamily: mono,
+      fontSize: 9.5,
+      lineHeight: 1.5,
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "baseline",
+      gap: 6,
+      marginBottom: 3
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: registroInfo.ok ? T.gn : T.ac,
+      fontSize: 10.5
+    }
+  }, tr(registroInfo.titulo.es, registroInfo.titulo.en)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setRegistroInfo(null),
+    title: tr("Cerrar", "Close"),
+    style: {
+      background: "none",
+      border: "none",
+      color: T.tm,
+      cursor: "pointer",
+      fontSize: 11,
+      padding: 0
+    }
+  }, "\u2715")), registroInfo.items.map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      color: it.ok === false ? T.ac : T.tm,
+      marginTop: 2
+    }
+  }, it.ok === false ? "\u26A0" : "\u2713", " ", tr(it.es, it.en))))), image && Math.max(image.naturalWidth, image.naturalHeight) > 2000 && (() => {
     const grande = esFotoGrande(image.naturalWidth, image.naturalHeight);
     return /*#__PURE__*/React.createElement("div", {
       style: {
@@ -4288,6 +6662,7 @@ function RockArtEnhancer() {
       setSelData(null);
       setProcessedSrc(null);
       setPanTool(false);
+      setCalibrando(null);
       setSelTool(selTool === t.id ? "none" : t.id);
       drawRef.current = {
         active: false,
@@ -4332,7 +6707,359 @@ function RockArtEnhancer() {
       marginTop: 4,
       lineHeight: 1.4
     }
-  }, selTool !== "none" ? `${tr("Dibuj\u00E1 sobre la imagen", "Draw on the image")} \u2192 ${selTool === "rect" ? tr("rect\u00E1ngulo", "rectangle") : selTool === "circle" ? tr("c\u00EDrculo", "circle") : tr("forma libre", "freehand")}` : selData ? tr("\u2713 Zona seleccionada \u2014 el filtro se aplica solo ah\u00ED", "\u2713 Area selected \u2014 the filter is applied only there") : tr("Sin selecci\u00F3n \u2014 filtro en toda la imagen", "No selection \u2014 filter applied to the whole image"))), /*#__PURE__*/React.createElement("div", {
+  }, selTool !== "none" ? `${tr("Dibuj\u00E1 sobre la imagen", "Draw on the image")} \u2192 ${selTool === "rect" ? tr("rect\u00E1ngulo", "rectangle") : selTool === "circle" ? tr("c\u00EDrculo", "circle") : tr("forma libre", "freehand")}` : selData ? tr("\u2713 Zona seleccionada \u2014 el filtro se aplica solo ah\u00ED", "\u2713 Area selected \u2014 the filter is applied only there") : tr("Sin selecci\u00F3n \u2014 filtro en toda la imagen", "No selection \u2014 filter applied to the whole image"))), (() => {
+    const serif = "'Crimson Pro',serif";
+    const rotulo = {
+      fontSize: 8.5,
+      fontFamily: mono,
+      color: T.td,
+      letterSpacing: "1.5px",
+      textTransform: "uppercase"
+    };
+    const enlace = {
+      background: "none",
+      border: "none",
+      padding: 0,
+      fontFamily: mono,
+      fontSize: 9,
+      color: T.tm,
+      cursor: "pointer",
+      textDecoration: "underline",
+      textUnderlineOffset: 2
+    };
+    const chico = {
+      flex: 1,
+      padding: "5px 4px",
+      fontSize: 9.5,
+      fontFamily: mono,
+      background: T.bBg,
+      border: `1px solid ${T.cBd}`,
+      borderRadius: 5,
+      color: T.tm,
+      cursor: "pointer"
+    };
+    const pasos = [tr("Inicio", "Start"), tr("Final", "End"), tr("Medida", "Length")];
+    const mmEscrito = leerMM(mmDraft);
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 6,
+        padding: "9px 10px 10px",
+        background: T.cBg,
+        border: `1px solid ${calibrando ? T.acBd : T.cBd}`,
+        borderRadius: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: rotulo
+    }, tr("Escala métrica", "Metric scale")), calibrando ? /*#__PURE__*/React.createElement("button", {
+      onClick: cancelarCalibracion,
+      style: enlace
+    }, tr("Cancelar", "Cancel")) : escalaCal ? /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 8.5,
+        fontFamily: mono,
+        color: T.gn
+      }
+    }, "✓", " ", tr("calibrada", "calibrated")) : null), !calibrando && !escalaCal && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+      onClick: empezarCalibracion,
+      style: {
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        gap: 9,
+        padding: "8px 10px",
+        background: T.bBg,
+        border: `1px solid ${T.cBd}`,
+        borderRadius: 7,
+        cursor: "pointer",
+        color: T.text,
+        fontFamily: serif,
+        fontSize: 12.5,
+        textAlign: "left"
+      }
+    }, /*#__PURE__*/React.createElement(IconoRegla, {
+      color: solar ? "#8a6a00" : ORO_ESCALA
+    }), /*#__PURE__*/React.createElement("span", null, tr("Calibrar con la regla", "Calibrate with the ruler"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: serif,
+        fontSize: 11,
+        color: T.tm,
+        marginTop: 6,
+        lineHeight: 1.35
+      }
+    }, tr("Si la foto tiene una escala, marcá un tramo y escribí cuánto mide. Queda en el registro.", "If the photo shows a scale, mark a span and type its length. It is saved in the record."))), calibrando && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center"
+      }
+    }, pasos.map((et, i) => {
+      const n = i + 1,
+        hecho = pasoCal > n,
+        activo = pasoCal === n;
+      return /*#__PURE__*/React.createElement(React.Fragment, {
+        key: n
+      }, i > 0 && /*#__PURE__*/React.createElement("div", {
+        style: {
+          flex: 1,
+          minWidth: 6,
+          height: 1,
+          margin: "0 5px",
+          background: pasoCal >= n ? T.acBd : T.cBd
+        }
+      }), /*#__PURE__*/React.createElement("span", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 4
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          width: 16,
+          height: 16,
+          borderRadius: "50%",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 8.5,
+          fontFamily: mono,
+          fontWeight: 700,
+          background: activo ? T.ac : hecho ? T.acBg : "transparent",
+          color: activo ? "#fff" : hecho ? T.ac : T.td,
+          border: `1px solid ${activo || hecho ? T.acBd : T.cBd}`
+        }
+      }, hecho ? "✓" : n), /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 8.5,
+          fontFamily: mono,
+          color: activo ? T.text : T.td
+        }
+      }, et)));
+    })), pasoCal < 3 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: serif,
+        fontSize: 12.5,
+        color: T.text,
+        lineHeight: 1.35,
+        marginTop: 9
+      }
+    }, pasoCal === 1 ? tr("Tocá el comienzo del tramo, por ejemplo el 0 de la regla.", "Tap the start of the span, for example the ruler’s 0.") : tr("Ahora tocá el final. Cuanto más largo el tramo, más precisa la escala.", "Now tap the end. The longer the span, the more precise the scale.")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: mono,
+        fontSize: 8.5,
+        color: T.td,
+        marginTop: 6,
+        lineHeight: 1.5
+      }
+    }, tr("La lupa sigue al puntero · rueda: zoom · Esc: cancelar", "The loupe follows the pointer · wheel: zoom · Esc: cancel"))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        marginTop: 9
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: serif,
+        fontSize: 12.5,
+        color: T.text
+      }
+    }, tr("¿Cuánto mide el tramo?", "How long is the span?")), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: mono,
+        fontSize: 8.5,
+        color: T.td
+      }
+    }, Math.round(tramoCal), " px")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 3,
+        marginTop: 7
+      }
+    }, [[10, "1 cm"], [50, "5 cm"], [100, "10 cm"], [500, "50 cm"], [1000, "1 m"]].map(([v, et]) => /*#__PURE__*/React.createElement("button", {
+      key: v,
+      type: "button",
+      onClick: () => {
+        setMmDraft(String(v));
+        if (mmInputRef.current) mmInputRef.current.focus();
+      },
+      style: {
+        flex: 1,
+        padding: "4px 0",
+        fontSize: 9,
+        fontFamily: mono,
+        background: mmEscrito === v ? T.acBg : T.bBg,
+        border: `1px solid ${mmEscrito === v ? T.acBd : T.cBd}`,
+        borderRadius: 5,
+        color: mmEscrito === v ? T.ac : T.tm,
+        cursor: "pointer",
+        whiteSpace: "nowrap"
+      }
+    }, et))), /*#__PURE__*/React.createElement("form", {
+      onSubmit: e => {
+        e.preventDefault();
+        confirmarCalibracion();
+      },
+      style: {
+        display: "flex",
+        gap: 4,
+        marginTop: 5
+      }
+    }, /*#__PURE__*/React.createElement("label", {
+      style: {
+        flex: 1,
+        minWidth: 0,
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        padding: "0 8px",
+        background: T.bBg,
+        border: `1px solid ${T.acBd}`,
+        borderRadius: 6,
+        cursor: "text"
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      ref: mmInputRef,
+      inputMode: "decimal",
+      value: mmDraft,
+      onChange: e => setMmDraft(e.target.value),
+      placeholder: tr("otra", "other"),
+      "aria-label": tr("Milímetros entre los dos puntos", "Millimetres between the two points"),
+      style: {
+        width: 0,
+        flex: 1,
+        padding: "6px 0",
+        fontSize: 12,
+        fontFamily: mono,
+        background: "transparent",
+        color: T.text,
+        border: "none",
+        outline: "none"
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 9.5,
+        fontFamily: mono,
+        color: T.tm
+      }
+    }, "mm")), /*#__PURE__*/React.createElement("button", {
+      type: "submit",
+      disabled: !calListo,
+      style: {
+        padding: "0 12px",
+        fontSize: 12,
+        fontFamily: serif,
+        fontWeight: 600,
+        background: calListo ? T.ac : T.bBg,
+        border: `1px solid ${calListo ? T.ac : T.cBd}`,
+        borderRadius: 6,
+        color: calListo ? "#fff" : T.td,
+        cursor: calListo ? "pointer" : "default"
+      }
+    }, tr("Listo", "Done"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: mono,
+        fontSize: 8.5,
+        color: T.tm,
+        marginTop: 5,
+        minHeight: 12
+      }
+    }, calListo ? `= ${numCorto(tramoCal / mmEscrito)} px/mm` : tr("Tocá la imagen para volver a marcar", "Tap the image to mark again")))), !calibrando && escalaCal && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "baseline",
+        gap: 6
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: serif,
+        fontSize: 26,
+        fontWeight: 600,
+        color: T.text,
+        lineHeight: 1
+      }
+    }, numCorto(ppmm)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: mono,
+        fontSize: 9.5,
+        color: T.tm
+      }
+    }, tr("px por mm", "px per mm"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: mono,
+        fontSize: 9,
+        color: T.tm,
+        marginTop: 5
+      }
+    }, "1 px = ", numCorto(1 / ppmm), " mm"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: mono,
+        fontSize: 8.5,
+        color: T.td,
+        marginTop: 2
+      }
+    }, tr(`tramo de ${escalaCal.mm} mm · a ${imageSize.w}×${imageSize.h}`, `${escalaCal.mm} mm span · at ${imageSize.w}×${imageSize.h}`)), /*#__PURE__*/React.createElement("button", {
+      role: "switch",
+      "aria-checked": barraVisible,
+      onClick: () => setBarraVisible(!barraVisible),
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        width: "100%",
+        marginTop: 9,
+        padding: "8px 0 0",
+        background: "none",
+        border: "none",
+        borderTop: `1px solid ${T.cBd}`,
+        cursor: "pointer",
+        fontFamily: mono,
+        fontSize: 9,
+        color: T.tm,
+        textAlign: "left"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        position: "relative",
+        width: 24,
+        height: 13,
+        borderRadius: 7,
+        flexShrink: 0,
+        boxSizing: "border-box",
+        background: barraVisible ? T.ac : T.bBg,
+        border: `1px solid ${barraVisible ? T.ac : T.cBd}`,
+        transition: "background .15s"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        position: "absolute",
+        top: 1,
+        left: barraVisible ? 12 : 1,
+        width: 9,
+        height: 9,
+        borderRadius: "50%",
+        background: barraVisible ? "#fff" : T.tm,
+        transition: "left .15s"
+      }
+    })), tr("Barra de escala en la imagen", "Scale bar on the image")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 4,
+        marginTop: 8
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: empezarCalibracion,
+      style: chico
+    }, tr("Recalibrar", "Recalibrate")), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setEscalaCal(null),
+      style: chico
+    }, tr("Quitar", "Remove")))));
+  })(), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 6,
       padding: "10px 12px",
@@ -4438,7 +7165,7 @@ function RockArtEnhancer() {
       marginTop: 4,
       lineHeight: 1.4
     }
-  }, reliefScale ? tr(`Borra lo que mide menos de ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px (${reliefScale}% del lado mayor) y resta el fondo: se van el grano y la iluminación despareja. Si el motivo se empasta, bajá la escala.`, `Erases what measures less than ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px (${reliefScale}% of the long side) and subtracts the background: grain and uneven lighting drop out. If the motif blurs, lower the scale.`) : tr("Mapa de bordes de v3.6: todo detalle por igual, para calcar. Para grabados, probá una escala.", "v3.6 edge map: every detail alike, for tracing. For engravings, try a scale."))), activePreset === "map" && /*#__PURE__*/React.createElement("div", {
+  }, reliefScale ? tr(`Borra lo que mide menos de ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px${mmRelieve} (${reliefScale}% del lado mayor) y resta el fondo: se van el grano y la iluminación despareja. Si el motivo se empasta, bajá la escala.`, `Erases what measures less than ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px${mmRelieve} (${reliefScale}% of the long side) and subtracts the background: grain and uneven lighting drop out. If the motif blurs, lower the scale.`) : tr("Mapa de bordes de v3.6: todo detalle por igual, para calcar. Para grabados, probá una escala.", "v3.6 edge map: every detail alike, for tracing. For engravings, try a scale."))), activePreset === "map" && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 8,
       fontFamily: mono,
@@ -4636,6 +7363,7 @@ function RockArtEnhancer() {
     onClick: () => {
       setPicking(!picking);
       setPanTool(false);
+      setCalibrando(null);
     },
     title: tr("Toc\u00E1 sobre la imagen el color que quer\u00E9s trabajar", "Tap on the image the color you want to work on"),
     style: {
@@ -4869,7 +7597,7 @@ function RockArtEnhancer() {
       borderRadius: 10,
       overflow: "hidden",
       border: `1px solid ${selTool !== "none" ? T.acBd : T.cBd}`,
-      cursor: panTool ? panning ? "grabbing" : "grab" : picking || selTool !== "none" ? "crosshair" : processedSrc ? "col-resize" : "default",
+      cursor: panTool ? panning ? "grabbing" : "grab" : picking || calibrando || selTool !== "none" ? "crosshair" : processedSrc ? "col-resize" : "default",
       userSelect: "none",
       background: T.iBg,
       transition: "border 0.2s",
@@ -5033,7 +7761,24 @@ function RockArtEnhancer() {
       strokeWidth: 0.3 / view.z,
       strokeDasharray: 1 / view.z
     }));
-  })(), processedSrc && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  })(), calibrando && /*#__PURE__*/React.createElement(CapaCalibracion, {
+    contRef: compareRef,
+    getBounds: getImageBounds,
+    view: view,
+    imageSize: imageSize,
+    natW: image ? image.naturalWidth : 0,
+    imageSrc: imageSrc,
+    cal: calibrando,
+    mm: leerMM(mmDraft),
+    onCancelar: cancelarCalibracion
+  }), !calibrando && escalaCal && barraVisible && /*#__PURE__*/React.createElement(BarraEscala, {
+    contRef: compareRef,
+    getBounds: getImageBounds,
+    view: view,
+    ppmm: ppmm,
+    anchoTrabajo: imageSize.w,
+    solar: solar
+  }), processedSrc && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       position: "absolute",
       bottom: 10,
@@ -5128,7 +7873,54 @@ function RockArtEnhancer() {
       color: "#fff",
       pointerEvents: "none"
     }
-  }, "\uD83D\uDD0D", " ", tr("Toc\u00E1 el color que quer\u00E9s realzar o atenuar", "Tap the color you want to boost or reduce")), selTool !== "none" && /*#__PURE__*/React.createElement("div", {
+  }, "\uD83D\uDD0D", " ", tr("Toc\u00E1 el color que quer\u00E9s realzar o atenuar", "Tap the color you want to boost or reduce")), calibrando && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: 10,
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: 7,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "5px 12px 5px 6px",
+      borderRadius: 20,
+      background: solar ? "rgba(255,255,255,0.95)" : "rgba(26,23,20,0.9)",
+      border: `1px solid ${T.acBd}`,
+      boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+      pointerEvents: "none",
+      whiteSpace: "nowrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 18,
+      height: 18,
+      borderRadius: "50%",
+      background: T.ac,
+      color: "#fff",
+      fontSize: 9,
+      fontFamily: mono,
+      fontWeight: 700,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, pasoCal), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "'Crimson Pro',serif",
+      fontSize: 13,
+      color: T.text
+    }
+  }, pasoCal === 1 ? tr("Tocá el comienzo del tramo", "Tap the start of the span") : pasoCal === 2 ? tr("Tocá el final del tramo", "Tap the end of the span") : tr("Escribí la medida en el panel", "Type the length in the panel")), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: mono,
+      fontSize: 8.5,
+      color: T.td,
+      border: `1px solid ${T.cBd}`,
+      borderRadius: 4,
+      padding: "1px 4px"
+    }
+  }, "Esc")), selTool !== "none" && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "absolute",
       top: 10,
@@ -5162,7 +7954,7 @@ function RockArtEnhancer() {
       fontFamily: mono,
       animation: "pulse 1.5s ease-in-out infinite"
     }
-  }, tr("Procesando p\u00EDxeles...", "Processing pixels..."))), !processedSrc && !processing && selTool === "none" && /*#__PURE__*/React.createElement("div", {
+  }, tr("Procesando p\u00EDxeles...", "Processing pixels..."))), !processedSrc && !processing && selTool === "none" && !calibrando && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "absolute",
       inset: 0,
@@ -5507,7 +8299,7 @@ function RockArtEnhancer() {
       color: T.gn,
       fontWeight: 500
     }
-  }, "OPC"), " \u2013 OpuntiaColor v3.7.3 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+  }, "OPC"), " \u2013 OpuntiaColor v3.8.0 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
       color: T.tm
     }

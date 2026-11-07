@@ -16,6 +16,7 @@ todavía no se corrigieron.
 2. [El mapa de pigmentos no identifica pigmentos](#2-el-mapa-de-pigmentos-no-identifica-pigmentos)
 11. [El gotero selecciona color, no pigmento](#11-el-gotero-selecciona-color-no-pigmento)
 12. [El Relieve mide brillo, no altura](#12-el-relieve-mide-brillo-no-altura)
+13. [La escala métrica vale en un plano](#13-la-escala-métrica-vale-en-un-plano)
 
 **Técnicas**
 3. [El rango de intensidad de LDS no llega a la foto original](#3-el-rango-de-intensidad-de-lds-no-llega-a-la-foto-original)
@@ -26,7 +27,7 @@ todavía no se corrigieron.
 8. [Sin calibración fotométrica](#8-sin-calibración-fotométrica)
 
 **De reproducibilidad**
-9. [Lo que no queda registrado](#9-lo-que-no-queda-registrado)
+9. [Lo que queda registrado y lo que no](#9-lo-que-queda-registrado-y-lo-que-no)
 10. [Cambios de versión que cambian resultados](#10-cambios-de-versión-que-cambian-resultados)
 
 ---
@@ -233,22 +234,45 @@ imágenes realzadas por separado no está sostenida por los datos.
 
 # De reproducibilidad
 
-## 9. Lo que no queda registrado
+## 9. Lo que queda registrado y lo que no
 
-El nombre del archivo exportado registra el filtro, la intensidad y los ajustes
-de contraste y saturación (`IMG_0421_OPC_crgb_i1.8_c10.png`). Eso cubre lo
-básico, pero **no** queda registrado:
+Hasta v3.7.3 solo el nombre del archivo registraba el procedimiento: filtro,
+intensidad y ajustes (`IMG_0421_OPC_crgb_i1.8_c10.png`). Desde **v3.8.0** cada
+imagen exportada lleva adentro un **registro de sesión**, que con `+JSON` baja
+además aparte como `.json`. Anota la versión de OPC, la foto de entrada con su huella SHA-256,
+la resolución de trabajo, la cadena de filtros, la zona seleccionada en cada
+paso, el gotero con el color muestreado, los ajustes, la escala métrica si se
+calibró y, en el lote, la foto de referencia. El detalle de cada campo está en
+[PARAMETROS.md](PARAMETROS.md#registro-de-sesión).
 
-- la **versión de OPC** usada (y las versiones cambian resultados: ver §10);
-- la **resolución de trabajo** (completa, 16, 12 u 8 MP, o 2000 px);
-- la **zona de selección**, que puede cambiar el resultado por completo;
-- la **cadena de filtros** si se usó el modo Acumular (desde v3.7.0 la escala
-  del Relieve sí queda en el nombre, como `_e0.25`);
-- en el lote, **cuál fue la foto de referencia**.
+Con la foto original y el registro, **Reproducir un registro** rehace la imagen
+y comprueba que salga igual píxel a píxel. Esa comprobación tiene límites:
 
-Todo eso hay que anotarlo aparte. Como mínimo, en una publicación deberían
-constar **versión, filtro, intensidad y resolución**: son los cuatro datos sin
-los cuales otra persona no puede reproducir la imagen.
+- **Es exacta en el mismo navegador.** Si la reproducción no sale igual en otro,
+  la diferencia puede venir de cómo cada navegador decodifica el JPG, o de cómo
+  reduce la foto cuando no se trabaja a resolución completa. El registro guarda
+  la huella de los píxeles de entrada justamente para separar ese caso: si esa
+  huella ya no coincide, el filtro no tiene la culpa.
+- **El lote y la vista no leen igual un JPG.** El lote usa `createImageBitmap`
+  y la vista un `<img>`. En Chrome eso da diferencias de 1 nivel en alrededor
+  del 0,5 % de los valores. Cada registro se reproduce leyendo la foto por el
+  mismo camino que se usó al hacerlo. Pero la foto de referencia procesada
+  dentro del lote no es idéntica, bit a bit, a la misma foto procesada suelta.
+- **Contraste y saturación** se aplican de dos maneras distintas en la descarga
+  suelta y en el lote, que no dan exactamente lo mismo (ver
+  [PARAMETROS.md](PARAMETROS.md#contraste-y-saturación)). El registro anota
+  cuál se usó.
+- **Lo que pasó antes de OPC no queda registrado**: el revelado del RAW, el
+  recorte, la conversión de color (§5, §6).
+- **Registros de antes de v3.8.0 no hay.** Lo procesado con versiones
+  anteriores sigue dependiendo de lo que se haya anotado a mano.
+
+El **informe en PDF** que baja con `+PDF` es para leer: resume lo mismo,
+pero no sirve para reproducir. Tampoco copia las coordenadas GPS de la foto.
+
+Para una publicación, lo mínimo sigue siendo consignar **versión, filtro,
+intensidad y resolución**. Adjuntar el `.json` como material suplementario
+cubre todo lo demás.
 
 ## 10. Cambios de versión que cambian resultados
 
@@ -297,10 +321,9 @@ intensidad Y, existe una región cuya crominancia está a menos de Z unidades de
 la de un punto dado. Es una afirmación sobre la imagen procesada, y como tal
 debe reportarse.
 
-**Registrar el color muestreado.** El nombre del archivo guarda la ganancia y la
-tolerancia, pero no el color: si el procedimiento se va a publicar, hay que
-anotar los valores RGB de la muestra junto con los demás parámetros. Es un caso
-particular de §9.
+**El color muestreado queda registrado.** El nombre del archivo guarda la
+ganancia y la tolerancia, pero no el color. Desde v3.8.0 el registro de sesión
+anota los valores RGB de cada muestra junto con los demás parámetros (§9).
 
 ## 12. El Relieve mide brillo, no altura
 
@@ -325,13 +348,38 @@ RTI o escaneo. El Relieve de OPC sirve para encontrar y orientar, no para medir.
 
 ---
 
+## 13. La escala métrica vale en un plano
+
+La calibración (v3.8.0) da **una sola** relación entre píxeles y milímetros
+para toda la foto. Es correcta en el plano de la escala métrica y a su misma
+distancia de la cámara. En el resto de la imagen es una aproximación:
+
+- **Perspectiva.** Si la cámara no estaba perpendicular a la pared, la escala
+  cambia de un lado al otro de la foto: lo más lejano sale más chico.
+- **Roca no plana.** Lo que está más adelante o más atrás que la escala sale
+  con otra escala. En un alero o una superficie curva la diferencia puede ser
+  grande.
+- **Distorsión del objetivo.** Un gran angular estira los bordes; la escala
+  medida en el centro no vale en las esquinas.
+- **Panoramas cosidos.** No tienen una escala única: cada foto que los forma se
+  proyectó distinto.
+- **Precisión de los puntos.** Depende del zoom y del largo del tramo: un error
+  de 1 px en cada extremo es un 0,2 % sobre 1000 px y un 2 % sobre 100 px.
+
+Para medir sobre la foto conviene que la escala esté en el mismo plano que el
+motivo y cerca de él, con la cámara perpendicular. Para medir de verdad sobre
+una superficie irregular hace falta un modelo de fotogrametría escalado o un
+ortomosaico.
+
+---
+
 ## Qué falta
 
 Además de lo anterior, hay cosas que directamente no están:
 
 - Deshacer / rehacer más allá del filtro actual.
-- Exportar la máscara de selección, o volver a cargarla en otra sesión.
-- Un registro automático de la sesión que cubra lo que enumera §9.
+- Exportar la máscara de selección como imagen. Sus coordenadas sí quedan en el
+  registro de sesión y se recuperan al reproducirlo (v3.8.0).
 - Soporte de 16 bits (requiere `WebGL` o `WebGPU`, no `<canvas>` 2D).
 - Perfiles ICC.
 

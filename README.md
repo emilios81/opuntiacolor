@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.7.3
+# OPC – OpuntiaColor v3.8.0
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -145,6 +145,28 @@ El nombre del archivo exportado registra el filtro, la intensidad y los ajustes
 aplicados (`IMG_0421_OPC_crgb_i1.8_c10.png`); si se usó el gotero, también su
 ganancia y su tolerancia (`_gotero+60t20`).
 
+Desde v3.8.0 cada imagen lleva además, adentro, un **registro de sesión**. Con
+`+JSON`, ese registro también baja aparte como `.json`. Anota la versión de OPC, la foto de
+entrada con su huella SHA-256, la resolución de trabajo, la cadena de filtros,
+la zona, el gotero y los ajustes. El lote agrega un `.csv` con una fila por
+foto. Con la foto original cargada, **Reproducir un registro** rehace la imagen
+y comprueba que salga igual píxel a píxel
+([detalle](docs/PARAMETROS.md#registro-de-sesión)).
+
+Si la foto tiene una escala métrica a la vista, **Calibrar con la regla**
+permite marcar dos puntos sobre ella, con una lupa, y decir cuánto mide el
+tramo. El registro guarda cuántos píxeles mide un milímetro, el Relieve muestra
+su escala también en mm y el visor dibuja una barra de escala
+([detalle](docs/PARAMETROS.md#escala-métrica)).
+
+Con `+PDF` baja también un **informe en PDF** para leer, imprimir o adjuntar:
+el original y el resultado lado a lado, el procedimiento, la escala y las
+huellas, con cómo reproducirlo y cómo citar OPC
+([detalle](docs/PARAMETROS.md#informe-en-pdf)). Con `+JSON` o `+PDF`, todo
+baja junto en un `.zip` que trae adentro una carpeta con el nombre de la
+imagen; con los dos apagados, solo la imagen
+([detalle](docs/PARAMETROS.md#qué-baja-y-dónde)).
+
 ---
 
 ## Reproducibilidad
@@ -159,7 +181,9 @@ ganancia y su tolerancia (`_gotero+60t20`).
 - **Compilación determinista.** `app.js` se genera desde `src/app.jsx` con
   `node build.js` y el resultado es idéntico byte a byte, lo que permite
   comprobar que el archivo compilado corresponde al código publicado.
-- **Procedimiento registrado** en el nombre del archivo exportado.
+- **Procedimiento registrado** en el nombre del archivo exportado y, desde
+  v3.8.0, completo en el registro de sesión que va dentro de cada imagen. Ese
+  registro se puede reproducir y comprobar píxel a píxel.
 
 Los límites de todo esto están documentados sin adornos en
 [docs/LIMITACIONES.md](docs/LIMITACIONES.md), incluido lo que todavía falta.
@@ -230,7 +254,7 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.7.3)
+para el realce digital de pigmentos y grabados en arte rupestre* (v3.8.0)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://doi.org/10.5281/zenodo.21796290
 

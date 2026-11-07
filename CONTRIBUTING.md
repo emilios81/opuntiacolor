@@ -45,6 +45,10 @@ parámetro por defecto, una normalización— tiene que:
 - Actualizarse en `docs/ALGORITMOS.md`
 - Venir acompañada de una prueba en `tests/run-tests.js` que verifique el
   comportamiento nuevo
+- Sumar la versión a `cambiosDeResultados()` en `src/app.jsx`, con los filtros
+  afectados. Con eso, al reproducir un registro hecho con una versión anterior,
+  OPC avisa que la imagen puede no salir igual. Hay una prueba que compara esa
+  lista con el CHANGELOG.
 
 Que un realce "se vea mejor" no es criterio suficiente. La herramienta se usa
 para documentar patrimonio: un cambio que mejora el aspecto pero rompe la

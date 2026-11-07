@@ -1272,14 +1272,16 @@ suite("Correspondencia src/app.jsx ↔ app.js", () => {
     const html = leer("index.html"), readme = leer("README.md"), cff = leer("CITATION.cff");
     const zenodo = JSON.parse(leer(".zenodo.json"));
 
-    // Un bump de versión toca diez lugares (el último, la dirección de app.js
-    // en index.html, desde v3.7.3). En v3.6.0 se olvidaron dos del
+    // Un bump de versión toca once lugares (la dirección de app.js en
+    // index.html desde v3.7.3, la constante OPC_VERSION desde v3.8.0). En v3.6.0 se olvidaron dos del
     // README y nadie se enteró hasta revisarlo a mano: de ahí esta prueba.
     const donde = {
       "src/app.jsx (cabecera)":      (source.match(/OPC – OpuntiaColor v([\d.]+)/) || [])[1],
       "src/app.jsx (span del header)": (source.match(/fontFamily:mono }}>v([\d.]+)<\/span>/) || [])[1],
       "src/app.jsx (h3 de novedades)": (source.match(/OPC v([\d.]+) &mdash;/) || [])[1],
       "src/app.jsx (pie)":           (source.match(/&ndash; OpuntiaColor v([\d.]+) &middot;/) || [])[1],
+      // Desde v3.8.0, la que se anota en el registro de cada exportación
+      "src/app.jsx (OPC_VERSION)":   (source.match(/^const OPC_VERSION = "([\d.]+)";$/m) || [])[1],
       "index.html":                  (html.match(/OpuntiaColor v([\d.]+)/) || [])[1],
       // Desde v3.7.3: la versión en la dirección de app.js obliga al navegador
       // a bajar el programa nuevo; si queda vieja, se carga el app.js anterior
@@ -1544,6 +1546,418 @@ async function testAsync(name, fn) {
     assert(chica.length === 1 && chica[0] === "full", "a una foto de 1800 px se le ofrece " + chica.join(", "));
     const grande = opciones(6222, 4666).map(o => o.id);
     assert(grande.join(",") === "full,16mp,12mp,8mp,2000", "opciones para 29 MP: " + grande.join(", "));
+  });
+
+  // ============================================================
+  // Registro de sesión (v3.8.0)
+  //
+  // Cada exportación lleva su registro adentro (PNG, JPG, TIFF) y al lado
+  // (.json). Acá se prueba lo que no necesita navegador: las huellas, los
+  // tres formatos de ida y vuelta, que las estadísticas congeladas pasen por
+  // JSON sin perder un bit y los avisos de versión. La reproducción completa
+  // —exportar y rehacer en el navegador— se verifica a mano en el panel.
+  // ============================================================
+
+  console.log("\n\x1b[1mRegistro de sesión (v3.8.0)\x1b[0m");
+  const reg = cargarApp({ postMessage() {}, TextEncoder, TextDecoder });
+  const R = (nombre) => vm.runInContext(nombre, reg);
+  const nodeCrypto = require("crypto"), zlib = require("zlib");
+  const sha = (b) => nodeCrypto.createHash("sha256").update(b).digest("hex");
+  const txt = (s) => new Uint8Array(Buffer.from(s, "utf8"));
+  // Igualdad profunda vía JSON con las claves ordenadas
+  const canon = (o) => JSON.stringify(o, (k, v) => (v && typeof v === "object" && !Array.isArray(v)) ? Object.keys(v).sort().reduce((a, x) => (a[x] = v[x], a), {}) : v);
+
+  await testAsync("SHA-256 da los vectores de FIPS 180-4 y lo mismo que el de Node, en todos los largos", () => {
+    const sha256Hex = R("sha256Hex");
+    assert(sha256Hex(txt("")) === "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "cadena vacía");
+    assert(sha256Hex(txt("abc")) === "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "«abc»");
+    assert(sha256Hex(txt("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")) === "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1", "mensaje de 448 bits");
+    // Todos los largos de 0 a 300 bytes cubren los dos casos de relleno (uno o
+    // dos bloques de cola), y uno de 1 MB recorre muchos bloques completos
+    const rnd = lcg(808);
+    for (let n = 0; n <= 300; n++) {
+      const b = new Uint8Array(n); for (let i = 0; i < n; i++) b[i] = Math.floor(rnd() * 256);
+      assert(sha256Hex(b) === sha(b), "largo " + n);
+    }
+    const grande = new Uint8Array(1 << 20); for (let i = 0; i < grande.length; i++) grande[i] = (i * 2654435761) >>> 24;
+    assert(sha256Hex(grande) === sha(grande), "1 MB");
+  });
+
+  await testAsync("la huella de los píxeles es RGB fila por fila, sin el alfa", () => {
+    const rgba = new Uint8ClampedArray([1, 2, 3, 255, 4, 5, 6, 0, 7, 8, 9, 128]);
+    assertBytesEqual(R("pixelesRGB")(rgba), new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9]), "pixelesRGB");
+  });
+
+  await testAsync("CRC-32 da el valor de control de ISO 3309", () => {
+    assert(R("crc32")(txt("123456789")) === 0xCBF43926, "crc32(«123456789»)");
+    if (zlib.crc32) { const b = txt("OpuntiaColor ñandú"); assert(R("crc32")(b) === zlib.crc32(b), "contra zlib"); }
+  });
+
+  // Un PNG mínimo pero real: 3 × 2 RGB, armado con zlib
+  const chunkPNG = (tipo, datos) => {
+    const td = Buffer.concat([Buffer.from(tipo, "latin1"), datos]);
+    const out = Buffer.alloc(12 + datos.length);
+    out.writeUInt32BE(datos.length, 0); td.copy(out, 4); out.writeUInt32BE(R("crc32")(td), 8 + datos.length);
+    return out;
+  };
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(3, 0); ihdr.writeUInt32BE(2, 4); ihdr[8] = 8; ihdr[9] = 2;
+  const filas = Buffer.from([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const PNG = new Uint8Array(Buffer.concat([Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
+    chunkPNG("IHDR", ihdr), chunkPNG("IDAT", zlib.deflateSync(filas)), chunkPNG("IEND", Buffer.alloc(0))]));
+  const bloquesPNG = (u8) => {
+    const b = Buffer.from(u8), out = [];
+    for (let o = 8; o < b.length;) {
+      const n = b.readUInt32BE(o), tipo = b.toString("latin1", o + 4, o + 8);
+      const crcOk = b.readUInt32BE(o + 8 + n) === R("crc32")(b.subarray(o + 4, o + 8 + n));
+      out.push({ tipo, datos: b.subarray(o + 8, o + 8 + n), crcOk });
+      o += 12 + n;
+    }
+    return out;
+  };
+
+  // Un registro como el que arma la descarga, con caracteres no ASCII y una
+  // selección a mano alzada larga para que el JPG necesite varios segmentos
+  const registroDePrueba = (puntos) => R("armarRegistro")({
+    version: "3.8.0", fecha: "2026-11-07T12:00:00.000Z",
+    entrada: { archivo: "Peña_Sixtina ñandú.jpg", bytes: 123456, sha256: "ab".repeat(32), ancho: 6222, alto: 4666 },
+    trabajo: { resolucion: "16mp", ancho: 4619, alto: 3464, sha256_pixeles: "cd".repeat(32) },
+    pasos: [
+      { presetId: "crgb", intensity: 1.8, opts: null, frozen: { mean: [1.5, 2.25, 3.125], ev: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], stds: [0.1, 0.2, 0.30000000000000004], clips: [{ lo: -1e-7, hi: 1 / 3 }] },
+        sel: { type: "rect", x1: 0.25, y1: 0.75, x2: 0.125, y2: 0.5 } },
+      { presetId: "relief", intensity: 2.2, opts: { escala: 0.25 }, frozen: { mid: 0.1, sig: 2 / 3 },
+        sel: { type: "free", points: Array.from({ length: puntos }, (_, k) => ({ x: 0.5 + 0.4 * Math.cos(k / 50), y: 0.5 + 0.4 * Math.sin(k / 50) })) } },
+    ],
+    gotero: [{ r: 200, g: 120, b: 80, tol: 20, feather: 50, gain: 60 }, { r: 90, g: 140, b: 70, tol: 15, feather: 30, gain: -100 }],
+    contraste: 10, saturacion: -5, metodoAjustes: "filtro_css",
+    salida: { archivo: "Peña_Sixtina ñandú_OPC_relief_i2.2_e0.25.png", formato: "png", sha256_pixeles: "ef".repeat(32) },
+  });
+
+  await testAsync("el PNG con registro sigue siendo válido, con los mismos píxeles, y devuelve el registro", () => {
+    const r = registroDePrueba(40), texto = JSON.stringify(r, null, 2);
+    const out = R("pngConRegistro")(PNG, texto), bl = bloquesPNG(out);
+    assert(bl.every(b => b.crcOk), "hay bloques con CRC inválido");
+    assert(bl.map(b => b.tipo).join(",") === "IHDR,IDAT,iTXt,IEND", "orden de bloques: " + bl.map(b => b.tipo).join(","));
+    assertBytesEqual(zlib.inflateSync(bl[1].datos), filas, "los píxeles del IDAT");
+    const it = Buffer.from(bl[2].datos);
+    assert(it.toString("latin1", 0, 13) === "OPC-registro\0", "clave del iTXt");
+    assert(canon(R("leerRegistro")(out)) === canon(r), "el registro leído no es el escrito");
+    assert(R("leerRegistro")(PNG) === null, "un PNG sin registro debería dar null");
+  });
+
+  // Un JPG falso pero con la estructura de segmentos real: SOI, APP1 (EXIF),
+  // APP0 (JFIF), DQT, SOS con datos, EOI. Lo que se prueba es dónde van los
+  // comentarios y que el resto quede intacto.
+  const seg = (m, n) => { const b = new Uint8Array(4 + n); b[0] = 0xFF; b[1] = m; b[2] = (n + 2) >> 8; b[3] = (n + 2) & 0xFF; for (let i = 0; i < n; i++) b[4 + i] = (i * 7 + m) & 0x7F; return b; };
+  const JPG = new Uint8Array(Buffer.concat([Buffer.from([0xFF, 0xD8]), seg(0xE1, 40), seg(0xE0, 14), seg(0xDB, 67),
+    Buffer.from(seg(0xDA, 10)), Buffer.from([1, 2, 3, 0xFF, 0x00, 4, 5]), Buffer.from([0xFF, 0xD9])]));
+  const segmentosJPG = (u8) => {
+    const out = []; let o = 2;
+    while (o < u8.length && u8[o] === 0xFF && u8[o + 1] !== 0xDA) { const n = (u8[o + 2] << 8) | u8[o + 3]; out.push({ m: u8[o + 1], n, o }); o += 2 + n; }
+    out.push({ m: 0xDA, o }); return out;
+  };
+
+  await testAsync("el JPG con registro conserva sus segmentos y reparte un registro grande en varios comentarios", () => {
+    for (const puntos of [40, 6000]) {
+      const r = registroDePrueba(puntos), texto = JSON.stringify(r, null, 2);
+      const out = R("jpegConRegistro")(JPG, texto), segs = segmentosJPG(out);
+      const com = segs.filter(s => s.m === 0xFE), esperados = Math.ceil(Buffer.byteLength(texto) / 65000);
+      assert(com.length === esperados, puntos + " puntos: " + com.length + " comentarios en vez de " + esperados);
+      assert(com.every(s => s.n <= 65535), "un comentario pasa el máximo de 65 535 bytes");
+      assert(segs.map(s => s.m.toString(16)).join(",") === ["e1", "e0", ...com.map(() => "fe"), "db", "da"].join(","), "orden de segmentos: " + segs.map(s => s.m.toString(16)).join(","));
+      // Sacando los comentarios queda el JPG original, byte a byte
+      const partes = []; let o = 0;
+      for (const s of com) { partes.push(out.subarray(o, s.o)); o = s.o + 2 + s.n; }
+      partes.push(out.subarray(o));
+      assertBytesEqual(new Uint8Array(Buffer.concat(partes.map(p => Buffer.from(p)))), JPG, "el JPG sin los comentarios");
+      assert(canon(R("leerRegistro")(out)) === canon(r), puntos + " puntos: el registro leído no es el escrito");
+    }
+    assert(R("leerRegistro")(JPG) === null, "un JPG sin registro debería dar null");
+  });
+
+  // El codificador TIFF de v3.1–v3.7.3, copiado tal cual (leía del canvas;
+  // acá recibe los datos directamente)
+  const tiffViejo = (imgData, w, h) => {
+    const pixelBytes = w * h * 3, ifdOffset = 8, ifdEntries = 12, ifdSize = 2 + ifdEntries * 12 + 4;
+    const bitsOffset = ifdOffset + ifdSize, xresOffset = bitsOffset + 8, yresOffset = xresOffset + 8, stripOffset = yresOffset + 8;
+    const buf = new ArrayBuffer(stripOffset + pixelBytes), view = new DataView(buf), u8 = new Uint8Array(buf);
+    view.setUint16(0, 0x4949, false); view.setUint16(2, 42, true); view.setUint32(4, ifdOffset, true);
+    let off = ifdOffset; view.setUint16(off, ifdEntries, true); off += 2;
+    const writeIFD = (tag, type, count, value) => { view.setUint16(off, tag, true); off += 2; view.setUint16(off, type, true); off += 2; view.setUint32(off, count, true); off += 4; view.setUint32(off, value, true); off += 4; };
+    writeIFD(256, 3, 1, w); writeIFD(257, 3, 1, h); writeIFD(258, 3, 3, bitsOffset); writeIFD(259, 3, 1, 1); writeIFD(262, 3, 1, 2);
+    writeIFD(273, 4, 1, stripOffset); writeIFD(277, 3, 1, 3); writeIFD(278, 4, 1, h); writeIFD(279, 4, 1, pixelBytes);
+    writeIFD(282, 5, 1, xresOffset); writeIFD(283, 5, 1, yresOffset); writeIFD(296, 3, 1, 2);
+    view.setUint32(off, 0, true);
+    view.setUint16(bitsOffset, 8, true); view.setUint16(bitsOffset + 2, 8, true); view.setUint16(bitsOffset + 4, 8, true);
+    view.setUint32(xresOffset, 72, true); view.setUint32(xresOffset + 4, 1, true); view.setUint32(yresOffset, 72, true); view.setUint32(yresOffset + 4, 1, true);
+    let pOff = stripOffset;
+    for (let i = 0; i < w * h; i++) { u8[pOff++] = imgData[i * 4]; u8[pOff++] = imgData[i * 4 + 1]; u8[pOff++] = imgData[i * 4 + 2]; }
+    return u8;
+  };
+
+  await testAsync("TIFF: sin registro es el archivo de v3.7.3 byte a byte; con él agrega la etiqueta 270 y los mismos píxeles", () => {
+    const img = syntheticImage(23, 17, 77), tiffRGB = R("tiffRGB");
+    assertBytesEqual(tiffRGB(img.data, 23, 17, null), tiffViejo(img.data, 23, 17), "TIFF sin descripción");
+    const r = registroDePrueba(40), out = tiffRGB(img.data, 23, 17, JSON.stringify(r, null, 2));
+    const dv = new DataView(out.buffer, out.byteOffset, out.byteLength), cuenta = dv.getUint16(8, true), tags = [];
+    let strip = 0;
+    for (let i = 0; i < cuenta; i++) { const e = 10 + i * 12, t = dv.getUint16(e, true); tags.push(t); if (t === 273) strip = dv.getUint32(e + 8, true); }
+    assert(tags.join(",") === "256,257,258,259,262,270,273,277,278,279,282,283,296", "etiquetas: " + tags.join(","));
+    assertBytesEqual(out.subarray(strip), tiffViejo(img.data, 23, 17).subarray(8 + 2 + 12 * 12 + 4 + 24), "los píxeles");
+    for (let i = 0; i < cuenta; i++) {
+      const e = 10 + i * 12;
+      if (dv.getUint16(e, true) !== 270) continue;
+      const n = dv.getUint32(e + 4, true), o = dv.getUint32(e + 8, true);
+      assert(out.subarray(o, o + n - 1).every(b => b >= 0x0A && b <= 0x7E) && out[o + n - 1] === 0, "la descripción no es ASCII terminado en cero");
+    }
+    const leido = R("leerRegistro")(out);
+    assert(canon(leido) === canon(r), "el registro leído del TIFF no es el escrito");
+    assert(leido.entrada.archivo === "Peña_Sixtina ñandú.jpg", "los acentos y la ñ no volvieron iguales: " + leido.entrada.archivo);
+  });
+
+  await testAsync("un .json suelto se lee con o sin BOM; lo que no es un registro de OPC da null", () => {
+    const r = registroDePrueba(10), t = JSON.stringify(r, null, 2), leer = R("leerRegistro");
+    assert(canon(leer(txt(t))) === canon(r), "JSON sin BOM");
+    assert(canon(leer(new Uint8Array([0xEF, 0xBB, 0xBF, ...txt("\n  " + t)]))) === canon(r), "JSON con BOM y espacios");
+    assert(leer(txt('{"hola": 1}')) === null, "un JSON cualquiera");
+    assert(leer(txt("no es json")) === null, "texto");
+  });
+
+  await testAsync("el registro y su inversa reconstruyen el pipeline, la selección y el gotero", () => {
+    const r = JSON.parse(JSON.stringify(registroDePrueba(40)));
+    const pasos = R("pasosDesdeRegistro")(r), gotero = R("goteroDesdeRegistro")(r);
+    assert(pasos.length === 2 && pasos[0].presetId === "crgb" && pasos[1].opts.escala === 0.25, "pasos");
+    assert(pasos[0].intensity === 1.8 && pasos[1].intensity === 2.2, "intensidades");
+    assert(canon(pasos[0].sel) === canon({ type: "rect", x1: 0.25, y1: 0.75, x2: 0.125, y2: 0.5 }), "selección rectangular");
+    assert(pasos[1].sel.type === "free" && pasos[1].sel.points.length === 40 && pasos[1].sel.points[7].x === 0.5 + 0.4 * Math.cos(7 / 50), "selección a mano alzada");
+    assert(pasos[0].frozen.stds[2] === 0.30000000000000004 && pasos[0].frozen.clips[0].hi === 1 / 3, "estadísticas, al último bit");
+    assert(canon(gotero) === canon([{ r: 200, g: 120, b: 80, tol: 20, feather: 50, gain: 60 }, { r: 90, g: 140, b: 70, tol: 15, feather: 30, gain: -100 }]), "gotero");
+    // La caja en píxeles se calcula a la resolución de trabajo, 4619 × 3464
+    assert(r.pasos[0].seleccion.caja_px.join(",") === [577, 1732, 1155, 2598].join(","), "caja_px: " + r.pasos[0].seleccion.caja_px);
+    assert(r.ajustes.metodo === "filtro_css" && r.ajustes.contraste === 10, "ajustes");
+  });
+
+  await testAsync("las estadísticas congeladas de los doce filtros pasan por JSON sin perder nada", () => {
+    const w = cargarWorker(), ids = vm.runInContext("PRESETS.map(p => p.id)", w);
+    const ref = syntheticImage(40, 30, 515), otra = syntheticImage(40, 30, 516);
+    let conEstadisticas = 0;
+    for (const id of ids) {
+      const opts = id === "relief" ? { escala: 0.25 } : null;
+      for (const mask of [null, mascaraCentro(40, 30)]) {
+        const { frozen } = directo(w, id, ref, 2.2, mask, null, opts);
+        if (!frozen) continue;
+        conEstadisticas++;
+        const viaJSON = JSON.parse(JSON.stringify(frozen));
+        assert(JSON.stringify(viaJSON) === JSON.stringify(frozen), id + ": las estadísticas cambian al pasar por JSON");
+        const a = directo(w, id, otra, 2.2, null, frozen, opts), b = directo(w, id, otra, 2.2, null, viaJSON, opts);
+        assertBytesEqual(a.data, b.data, id + (mask ? " con máscara" : "") + ": con las estadísticas leídas del JSON");
+      }
+    }
+    assert(conEstadisticas >= 18, "solo " + conEstadisticas + " casos dejaron estadísticas");
+  });
+
+  await testAsync("avisa los cambios de resultados entre versiones solo si tocan los filtros usados", () => {
+    const entre = R("cambiosEntre"), cmp = R("compararVersiones"), v = (l) => l.map(c => c.version).join(",");
+    assert(cmp("3.10.0", "3.9.9") === 1 && cmp("3.8", "3.8.0") === 0 && cmp("3.7.3", "3.8.0") === -1, "compararVersiones");
+    assert(v(entre("3.8.0", "3.8.0", ["red"])) === "", "misma versión");
+    assert(v(entre("3.2.1", "3.8.0", ["crgb"])) === "3.3.0", "CRGB desde 3.2.1");
+    assert(v(entre("3.2.1", "3.8.0", ["lds", "petro"])) === "3.3.0,3.4.0,3.5.0", "LDS desde 3.2.1");
+    assert(v(entre("3.6.0", "3.8.0", ["red"])) === "3.7.0", "Rojo desde 3.6.0");
+    assert(v(entre("3.7.0", "3.8.0", ["red"])) === "", "3.7.0 ya tiene el Rojo nuevo");
+    assert(v(entre("3.8.0", "3.6.0", ["red"])) === "3.7.0", "registro más nuevo que la aplicación");
+    assert(v(entre("3.5.0", "3.8.0", ["petro", "relief", "clahe"])) === "", "la resolución por defecto (3.6.0) no avisa");
+  });
+
+  await testAsync("cada versión que el CHANGELOG marca como cambio de resultados está en la lista de avisos", () => {
+    const cl = fs.readFileSync(path.join(ROOT, "CHANGELOG.md"), "utf8").split(/\n(?=## v)/);
+    const lista = R("cambiosDeResultados")().map(c => c.version);
+    for (const sec of cl) {
+      const m = sec.match(/^## v([\d.]+)/);
+      if (!m || !/[Cc]ambia (los |el )?resultado/.test(sec)) continue;
+      const ver = m[1].split(".").length === 2 ? m[1] + ".0" : m[1];
+      if (R("compararVersiones")(ver, "3.3.0") < 0) continue;   // antes de v3.3 no hubo control de versiones de resultados
+      assert(lista.includes(ver), "el CHANGELOG dice que v" + ver + " cambia resultados y no está en cambiosDeResultados()");
+    }
+  });
+
+  await testAsync("el CSV del lote escapa comas, comillas y saltos de línea", () => {
+    const csv = R("csvLote")([
+      { archivo_entrada: "a,b.jpg", sha256_entrada: "x", estado: "ok" },
+      { archivo_entrada: 'dijo "hola".jpg', estado: "error" },
+      { archivo_entrada: "dos\nlíneas.jpg", ancho_original: 0 },
+    ]);
+    const lineas = csv.split("\r\n");
+    assert(lineas[0] === "archivo_entrada,sha256_entrada,ancho_original,alto_original,ancho_trabajo,alto_trabajo,archivo_salida,sha256_pixeles_salida,sha256_salida,estado", "encabezado");
+    assert(lineas[1] === '"a,b.jpg",x,,,,,,,,ok', "coma: " + lineas[1]);
+    assert(lineas[2] === '"dijo ""hola"".jpg",,,,,,,,,error', "comillas: " + lineas[2]);
+    assert(csv.includes('"dos\nlíneas.jpg",,0,'), "salto de línea y el cero");
+    assert(csv.endsWith("\r\n"), "termina en salto de línea");
+  });
+
+  // Escala métrica (v3.8.0): dos puntos en fracción de la imagen y los mm
+  // entre ellos. No toca el procesamiento; solo se registra.
+  const calPrueba = { p1: { x: 0.1, y: 0.5 }, p2: { x: 0.6, y: 0.5 }, mm: 100 };
+
+  await testAsync("la escala métrica da los píxeles por milímetro a cualquier resolución de trabajo", () => {
+    const ppm = R("pxPorMM");
+    // 0.5 del ancho: 2000 px a 4000 de ancho, 1000 px a 2000
+    assert(ppm(calPrueba, 4000, 3000) === 20, "a 4000 px: " + ppm(calPrueba, 4000, 3000));
+    assert(ppm(calPrueba, 2000, 1500) === 10, "a 2000 px");
+    // En diagonal, con el ancho y el alto por separado
+    const diag = { p1: { x: 0, y: 0 }, p2: { x: 0.3, y: 0.4 }, mm: 50 };
+    assert(ppm(diag, 1000, 1000) === 10, "diagonal 3-4-5");
+    assertClose(ppm(diag, 1000, 500), Math.hypot(300, 200) / 50, 1e-12, "diagonal con alto distinto");
+    // Lo que no es una calibración da 0
+    for (const mm of [0, -5, NaN, undefined]) assert(ppm({ ...calPrueba, mm }, 4000, 3000) === 0, "mm = " + mm);
+    assert(ppm({ p1: { x: 0.2, y: 0.2 }, p2: { x: 0.2, y: 0.2 }, mm: 10 }, 4000, 3000) === 0, "mismo punto");
+    assert(ppm(null, 4000, 3000) === 0 && ppm(calPrueba, 0, 0) === 0, "sin calibración o sin imagen");
+  });
+
+  await testAsync("la escala pasa por el registro y vuelve igual", () => {
+    const e = R("escalaARegistro")(calPrueba, { ancho: 6222, alto: 4666 }, { ancho: 4619, alto: 3464 });
+    // 0.5 × 6222 = 3111 px en 100 mm; a 4619 de ancho, 2309.5 px
+    assert(e.distancia_mm === 100 && e.px_por_mm_original === 31.11 && e.px_por_mm_trabajo === 23.095, "px/mm: " + e.px_por_mm_original + " " + e.px_por_mm_trabajo);
+    assert(e.mm_por_px_trabajo === Math.round(1e6 / 23.095) / 1e6, "mm/px: " + e.mm_por_px_trabajo);
+    assert(canon(e.puntos_px_original) === canon([[622.2, 2333], [3733.2, 2333]]), "puntos en píxeles: " + JSON.stringify(e.puntos_px_original));
+    // El registro completo la lleva; de vuelta, la calibración es la misma al último bit
+    const r = JSON.parse(JSON.stringify(R("armarRegistro")({ version: "3.8.0", pasos: [], escala: e })));
+    assert(canon(r.escala) === canon(e), "escala en el registro");
+    assert(canon(R("escalaDesdeRegistro")(r.escala)) === canon(calPrueba), "ida y vuelta");
+    // Sin calibrar, el campo queda en null; un registro sin escala no inventa una
+    assert(R("armarRegistro")({ version: "3.8.0", pasos: [] }).escala === null, "sin escala, null");
+    for (const malo of [null, {}, { puntos: [[0, 0]], distancia_mm: 10 }, { puntos: [[0, 0], [0.5, 0]], distancia_mm: 0 }, { puntos: [[0.3, 0.3], [0.3, 0.3]], distancia_mm: 10 }])
+      assert(R("escalaDesdeRegistro")(malo) === null, "inválida: " + JSON.stringify(malo));
+    assert(R("escalaARegistro")({ ...calPrueba, mm: 0 }, { ancho: 6222, alto: 4666 }, { ancho: 4619, alto: 3464 }) === null, "sin mm, no se registra");
+  });
+
+  await testAsync("los milímetros se escriben con coma o con punto", () => {
+    const mm = R("leerMM");
+    assert(mm("12,5") === 12.5 && mm("10") === 10 && mm(" 7.25 ") === 7.25 && mm(100) === 100, "válidos");
+    for (const malo of ["", "abc", "-3", "0", null, undefined]) assert(mm(malo) === 0, "inválido: " + malo);
+    const n = R("numCorto");
+    assert(n(20) === "20.0" && n(123.4) === "123" && n(5.678) === "5.68" && n(0.0812) === "0.081", "cifras del panel");
+  });
+
+  await testAsync("la barra de escala elige el largo redondo más grande que entra, y lo rotula en mm, cm o m", () => {
+    const lb = R("largoBarra"), et = R("etiquetaLargo");
+    // 10 px de pantalla por mm y 160 px de lugar: entra 1 cm (100 px), no 2 cm (200 px)
+    assert(canon(lb(10, 160)) === canon({ mm: 10, px: 100 }), "1 cm: " + JSON.stringify(lb(10, 160)));
+    assert(lb(0.5, 160).mm === 200 && lb(0.5, 160).px === 100, "20 cm");
+    assert(lb(40, 160).mm === 2, "2 mm");
+    assert(lb(0, 160) === null && lb(5, 0) === null, "sin escala o sin lugar");
+    const rotulos = [[5, "5 mm"], [0.5, "0.5 mm"], [10, "1 cm"], [20, "2 cm"], [500, "50 cm"], [1000, "1 m"], [2000, "2 m"]];
+    for (const [mm, txt] of rotulos) assert(et(mm) === txt, mm + " → " + et(mm));
+  });
+
+  // Informe en PDF (v3.8.0): un escritor de PDF propio, sin bibliotecas.
+  // Acá se prueba que el archivo esté bien armado; cómo se ve se revisó
+  // aparte, abriéndolo con PyMuPDF y con pypdf en modo estricto.
+  const logoBytes = new Uint8Array(Buffer.from(R("OPC_LOGO").split(",")[1], "base64"));
+  const logo = { bytes: logoBytes, ...R("tamanoJPEG")(logoBytes) };
+  // Revisa la estructura: cabecera, tabla xref exacta, flujos con su largo
+  const revisarPDF = (pdf) => {
+    const s = Buffer.from(pdf).toString("latin1");
+    assert(s.startsWith("%PDF-1.4\n") && s.endsWith("%%EOF\n"), "cabecera o final");
+    const sx = +s.match(/startxref\n(\d+)\n%%EOF\n$/)[1];
+    assert(s.slice(sx).startsWith("xref\n0 "), "startxref no apunta a la tabla");
+    const [, desde, cuantos] = s.slice(sx).match(/^xref\n(\d+) (\d+)\n/);
+    const filas = s.slice(sx).split("\n").slice(2, 2 + +cuantos);
+    filas.slice(1).forEach((f, k) => {
+      assert(f.length === 19 && f.endsWith(" 00000 n "), "fila de xref mal formada: " + JSON.stringify(f));
+      assert(s.slice(+f.slice(0, 10)).startsWith(`${k + 1} 0 obj\n`), `el objeto ${k + 1} no está donde dice la tabla`);
+    });
+    for (const m of s.matchAll(/\/Length (\d+) >>\nstream\n/g)) {
+      const fin = m.index + m[0].length + +m[1];
+      assert(s.slice(fin, fin + 11) === "\nendstream\n", "un flujo no mide lo que dice su /Length");
+    }
+    return s;
+  };
+
+  await testAsync("el PDF se escribe en WinAnsi: acentos en octal, paréntesis escapados y equivalentes para lo que falta", () => {
+    const wa = R("aWinAnsi"), cad = R("cadenaPDF");
+    assert(wa("ñá–—€¿").join(",") === [0xF1, 0xE1, 0x96, 0x97, 0x80, 0xBF].join(","), "Latin-1 y cp1252: " + wa("ñá–—€¿"));
+    assert(String.fromCharCode(...wa("≈ → ✓")) === "~ -> ", "equivalentes: " + JSON.stringify(String.fromCharCode(...wa("≈ → ✓"))));
+    assert(wa("漢").join() === "63", "lo que no existe va como ?");
+    assert(cad("Peña (a\\b)") === "(Pe\\361a \\(a\\\\b\\))", "cadena: " + cad("Peña (a\\b)"));
+    assert(R("textoInfoPDF")("Peña") === "<FEFF0050006500F10061>", "título en UTF-16: " + R("textoInfoPDF")("Peña"));
+  });
+
+  await testAsync("los anchos de Helvetica son los de Adobe y los renglones no se pasan del ancho", () => {
+    assert(R("ANCHO_HELV").length === 95 && R("ANCHO_HELV_N").length === 95, "tablas de 95 signos");
+    const at = R("anchoTexto");
+    assertClose(at("Hola", "F1", 10), (722 + 556 + 222 + 556) / 100, 1e-9, "Helvetica");
+    assertClose(at("Hola", "F2", 10), (722 + 611 + 278 + 556) / 100, 1e-9, "Helvetica-Bold");
+    assert(at("abc", "F3", 10) === 18, "Courier: 600 por signo");
+    assert(at("áÑ", "F1", 10) === at("aN", "F1", 10), "las acentuadas miden como su base");
+    const texto = "La escala vale en el plano de la regla. Fuera de él, la perspectiva, el relieve de la roca y la distorsión del objetivo la vuelven aproximada.";
+    const lineas = R("partirTexto")(texto, "F1", 9, 150);
+    assert(lineas.length > 3 && lineas.every(l => at(l, "F1", 9) <= 150), "renglones de hasta 150 pt");
+    assert(lineas.join(" ") === texto, "partir no pierde ni agrega nada");
+    const huella = "ab".repeat(32), partes = R("partirTexto")(huella, "F3", 8, 100);
+    assert(partes.length > 1 && partes.join("") === huella && partes.every(p => at(p, "F3", 8) <= 100), "una huella larga se corta");
+  });
+
+  await testAsync("el tamaño de un JPEG sale de su marcador SOF", () => {
+    const b = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, 0, 4, 1, 2, 0xFF, 0xC4, 0, 3, 9, 0xFF, 0xC0, 0, 11, 8, 0x01, 0x23, 0x04, 0x56, 3, 1, 2, 3, 0xFF, 0xD9]);
+    assert(canon(R("tamanoJPEG")(b)) === canon({ alto: 0x123, ancho: 0x456, canales: 3 }), "SOF0: " + JSON.stringify(R("tamanoJPEG")(b)));
+    assert(R("tamanoJPEG")(new Uint8Array([0x89, 0x50, 0x4E, 0x47])) === null, "un PNG no es JPEG");
+    assert(logo.ancho > 0 && logo.alto > 0 && logo.canales === 3, "el logo de OPC: " + JSON.stringify({ ancho: logo.ancho, alto: logo.alto, canales: logo.canales }));
+  });
+
+  await testAsync("el informe es un PDF bien armado, con las imágenes, la escala y las huellas", () => {
+    const r = JSON.parse(JSON.stringify(registroDePrueba(40)));
+    r.escala = R("escalaARegistro")(calPrueba, { ancho: 6222, alto: 4666 }, { ancho: 4619, alto: 3464 });
+    r.salida.sha256 = "12".repeat(32);
+    const pdf = R("informePDF")(r, { lang: "es", nombreFiltro: (id) => ({ crgb: "CRGB", relief: "Relieve" })[id], original: logo, resultado: logo, logo, fechaToma: "2024:05:14 10:22:31", hayGPS: true, fecha: new Date(2026, 10, 7, 12, 0) });
+    const s = revisarPDF(pdf), cad = R("cadenaPDF");
+    assert(/\/Type \/Pages \/Kids \[[^\]]+\] \/Count 1 >>/.test(s), "una sola página");
+    assert((s.match(/\/Subtype \/Image /g) || []).length === 3, "logo, original y resultado");
+    assert((s.match(/\/BaseFont \/(Helvetica|Helvetica-Bold|Courier|Times-Bold) \/Encoding \/WinAnsiEncoding/g) || []).length === 4, "las cuatro fuentes estándar");
+    for (const t of ["Peña_Sixtina ñandú.jpg", "CRGB › Relieve", "ab".repeat(32), "cd".repeat(32), "ef".repeat(32), "12".repeat(32), "RGB 200, 120, 80", "1 mm = 23,1 px", "2024-05-14 10:22:31 (EXIF)", "Página 1 de 1", "https://doi.org/10.5281/zenodo.21796290"])
+      assert(s.includes(cad(t).slice(1, -1)), "falta en el PDF: " + t);
+    assert(!s.includes(cad("-65.").slice(1, -1)) && !/GPS.{0,40}\d+\.\d{4}/.test(s), "las coordenadas no se copian");
+  });
+
+  await testAsync("un informe largo sigue en otra página, con el pie en todas; en inglés cambian los textos", () => {
+    const r = JSON.parse(JSON.stringify(registroDePrueba(40)));
+    r.gotero = Array.from({ length: 45 }, () => r.gotero[0]);
+    const cad = R("cadenaPDF");
+    const s = revisarPDF(R("informePDF")(r, { lang: "es", original: null, resultado: null, logo: null }));
+    assert(/\/Count 2 >>/.test(s), "dos páginas");
+    assert(s.includes(cad("Página 1 de 2").slice(1, -1)) && s.includes(cad("Página 2 de 2").slice(1, -1)), "pie en las dos");
+    assert(s.includes(cad("Gotero 45").slice(1, -1)), "llega hasta el último ajuste");
+    const en = revisarPDF(R("informePDF")(r, { lang: "en" }));
+    assert(en.includes(cad("Processing report").slice(1, -1)) && en.includes(cad("Eyedropper 45").slice(1, -1)) && !en.includes(cad("Gotero").slice(1, -1)), "en inglés");
+  });
+
+  // Con +JSON o +PDF, la imagen y lo demás bajan juntos en una carpeta. Si el
+  // navegador no deja elegir dónde, en un .zip que la trae adentro.
+  await testAsync("el .zip guarda los archivos tal cual, adentro de su carpeta, con nombres en UTF-8", () => {
+    const te = new TextEncoder(), td = new TextDecoder();
+    const a = te.encode('{"hola": 1}'), b = new Uint8Array(70000).map((_, i) => (i * 31) & 255);
+    const dir = "Peña_OPC_crgb_i1.5";
+    const zip = R("zipSinComprimir")([{ nombre: `${dir}/${dir}.png`, bytes: b }, { nombre: `${dir}/${dir}.json`, bytes: a }], new Date(2026, 10, 7, 21, 30, 10));
+    const dv = new DataView(zip.buffer, zip.byteOffset, zip.byteLength), fin = zip.length - 22;
+    assert(dv.getUint32(fin, true) === 0x06054B50, "fin del directorio central");
+    const n = dv.getUint16(fin + 10, true), tam = dv.getUint32(fin + 12, true), ini = dv.getUint32(fin + 16, true);
+    assert(n === 3 && ini + tam === fin, "tres entradas (la carpeta y los dos archivos) y el directorio en su lugar");
+    const leidas = [];
+    for (let p = ini, k = 0; k < n; k++) {
+      assert(dv.getUint32(p, true) === 0x02014B50, "firma del directorio central");
+      const flags = dv.getUint16(p + 8, true), metodo = dv.getUint16(p + 10, true), crc = dv.getUint32(p + 16, true);
+      const largo = dv.getUint32(p + 24, true), ln = dv.getUint16(p + 28, true), atrib = dv.getUint32(p + 38, true), off = dv.getUint32(p + 42, true);
+      const nombre = td.decode(zip.subarray(p + 46, p + 46 + ln));
+      assert((flags & 0x0800) && metodo === 0, "UTF-8 y sin comprimir: " + nombre);
+      assert(dv.getUint32(off, true) === 0x04034B50 && td.decode(zip.subarray(off + 30, off + 30 + ln)) === nombre, "encabezado local de " + nombre);
+      const datos = zip.subarray(off + 30 + ln, off + 30 + ln + largo);
+      if (nombre.endsWith("/")) assert(largo === 0 && atrib === 0x10, "la carpeta");
+      else assert(crc === zlib.crc32(datos), "CRC-32 de " + nombre);
+      leidas.push([nombre, datos]);
+      p += 46 + ln;
+    }
+    assert(leidas[0][0] === dir + "/", "la carpeta va primero: " + leidas[0][0]);
+    assertBytesEqual(leidas[1][1], b, "la imagen, byte a byte");
+    assertBytesEqual(leidas[2][1], a, "el .json, byte a byte");
+    assert(dv.getUint16(10, true) === ((21 << 11) | (30 << 5) | 5) && dv.getUint16(12, true) === (((2026 - 1980) << 9) | (11 << 5) | 7), "fecha y hora en formato DOS");
   });
 
   console.log(

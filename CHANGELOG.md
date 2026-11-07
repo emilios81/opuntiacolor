@@ -4,6 +4,248 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.8.0 (2026-11-07)
+
+**No cambia ningún resultado.** Los filtros, el gotero y los ajustes dan los
+mismos píxeles que en v3.7.3. Cambian los archivos: llevan el registro adentro.
+El TIFF sin registro sigue siendo el de siempre, byte a byte (hay una prueba).
+
+### Registro de sesión
+
+- **El problema.** El nombre del archivo exportado guardaba el filtro, la
+  intensidad y los ajustes, pero no la versión de OPC, la resolución de
+  trabajo, la zona seleccionada, la cadena del modo Acumular, el color que
+  muestreó el gotero ni la foto de referencia del lote
+  ([LIMITACIONES.md §9](docs/LIMITACIONES.md#9-lo-que-queda-registrado-y-lo-que-no)).
+  Sin eso, otra persona no podía rehacer la imagen, y uno mismo tampoco, meses
+  después.
+
+- **El cambio.** Cada imagen que se descarga lleva **adentro un registro**: un
+  bloque `iTXt` en el PNG, segmentos de comentario en el JPG y la etiqueta
+  `ImageDescription` en el TIFF. Registra lo siguiente:
+  - versión de OPC y fecha;
+  - foto de entrada: nombre, tamaño, dimensiones y huella SHA-256 del archivo;
+  - resolución de trabajo, con la huella de los píxeles a esa resolución;
+  - cada filtro de la cadena, con su intensidad, sus opciones (la escala del
+    Relieve), la zona seleccionada en ese paso y las estadísticas que calculó;
+  - los ajustes del gotero, con el RGB muestreado, la tolerancia, el suavizado
+    y la ganancia;
+  - contraste y saturación, y por qué camino se aplicaron;
+  - la escala métrica, si se calibró (ver más abajo);
+  - el archivo de salida y la huella de sus píxeles.
+
+  Con `+JSON`, el mismo registro **baja además aparte como `.json`**, con la
+  huella del archivo de salida agregada (adentro no puede ir, porque cambiaría
+  el archivo que describe). Ver más abajo dónde se guarda.
+
+- **En el lote**, cada foto lleva su propio registro (su huella, sus
+  dimensiones, la foto de referencia y las estadísticas congeladas). Al terminar
+  se guardan `OPC_lote_<fecha>_<hora>.csv`, con una fila por foto, y
+  `OPC_lote_<fecha>_<hora>.json`, con la configuración común.
+
+- **Reproducir un registro.** Un botón nuevo del panel abre un registro: el
+  `.json`, o la propia imagen exportada. Con la foto original cargada, OPC rehace
+  la imagen paso a paso y comprueba cuatro cosas:
+  1. que la versión sea la misma o, si no, que entre medio no haya cambiado el
+     resultado de ningún filtro usado (según este CHANGELOG);
+  2. que el archivo de la foto sea el mismo;
+  3. que sus píxeles a la resolución de trabajo sean los mismos;
+  4. que la imagen rehecha sea **idéntica píxel a píxel** a la exportada.
+
+  Al final la interfaz queda como estaba al exportar: filtro, intensidad,
+  escala del Relieve, zona, gotero, ajustes y escala métrica.
+
+- **Dos huellas por imagen.** La del archivo identifica la foto exacta. La de
+  los píxeles (RGB de 8 bits, fila por fila, sin alfa) es la que sirve para
+  comparar resultados: dos navegadores pueden guardar los mismos píxeles en dos
+  PNG distintos. Es la misma cuenta que hace
+  `hashlib.sha256(np.asarray(img.convert("RGB")).tobytes())` en Python, así que
+  se puede verificar fuera de OPC.
+
+- **Doce pruebas nuevas.** Comprueban lo siguiente:
+  - el SHA-256 contra los vectores de FIPS 180-4 y contra el de Node, en todos
+    los largos de 0 a 300 bytes y en 1 MB;
+  - que el PNG siga siendo válido y con los mismos píxeles;
+  - que el JPG conserve sus segmentos y reparta un registro grande en varios
+    comentarios;
+  - que el TIFF sin registro sea el de v3.7.3 byte a byte;
+  - que las estadísticas de los doce filtros pasen por JSON sin perder un bit;
+  - que cada versión que este CHANGELOG marca como cambio de resultados esté en
+    la lista de avisos.
+
+### Escala en milímetros
+
+- **El problema.** OPC trabajaba solo en píxeles. Para saber cuánto medía algo
+  en la foto, o a qué tamaño real correspondía la escala del Relieve, había que
+  medir en otro programa.
+
+- **El cambio.** Un recuadro nuevo del panel, **Escala métrica**. Con
+  **Calibrar con la regla** se tocan los dos extremos de un tramo conocido de
+  la escala que aparece en la foto, guiados en tres pasos (inicio, final,
+  medida). Una lupa que sigue al puntero ayuda a marcar fino, y una línea de
+  cota muestra el largo en píxeles mientras se marca. El largo se elige con un
+  botón (1 cm, 5 cm, 10 cm, 50 cm, 1 m) o se escribe en mm, con coma decimal.
+  El panel muestra cuántos píxeles mide un milímetro a la resolución de trabajo,
+  y la escala del Relieve pasa a mostrarse también en milímetros.
+
+- **Barra de escala.** Con la foto calibrada, el visor muestra una barra como
+  la de un mapa, con el largo redondo que entra y que cambia con el zoom. Se
+  apaga desde el panel. Solo se ve en pantalla; la imagen exportada no cambia.
+
+- Los puntos se guardan en fracción de la imagen, como la selección: si se
+  cambia la resolución de trabajo, la calibración sigue valiendo.
+
+- **Queda en el registro**, en el campo `escala`: los dos puntos, los
+  milímetros y los píxeles por milímetro en la foto original y en la imagen
+  exportada. Al reproducir un registro, la escala vuelve.
+
+- **No toca el procesamiento.** Ningún filtro la usa y el nombre del archivo
+  exportado no cambia. En el lote no se registra, porque cada foto tiene su
+  propio encuadre.
+
+- Vale en el plano de la escala métrica; fuera de él es una aproximación
+  ([LIMITACIONES.md §13](docs/LIMITACIONES.md#13-la-escala-métrica-vale-en-un-plano)).
+
+- **Cuatro pruebas nuevas:** los píxeles por milímetro a distintas
+  resoluciones y en diagonal, la ida y vuelta por el registro, los milímetros
+  escritos con coma o con punto, y el largo y el rótulo de la barra de escala.
+
+### Informe en PDF
+
+- **Para qué.** El `.json` es para que OPC rehaga la imagen, y no se lee
+  cómodo. El informe es para leerlo, imprimirlo o adjuntarlo a una publicación
+  o a la libreta de campo. No reemplaza al `.json`: se suma.
+
+- **Qué tiene.** Una hoja A4, o más si la cadena es larga, con:
+  - el original y el resultado lado a lado, a la misma escala. Sobre el
+    original, la zona seleccionada en rojo y el tramo calibrado; sobre los dos,
+    la barra de escala en mm;
+  - la foto de entrada (archivo, tamaño, huella SHA-256, fecha de la toma
+    según el EXIF), la resolución de trabajo y la huella de sus píxeles;
+  - el procedimiento: cada filtro con su intensidad, su escala y su zona, cada
+    ajuste del gotero con una muestra de su color, y el contraste y la
+    saturación;
+  - la escala métrica, si se calibró;
+  - el archivo de salida y sus dos huellas;
+  - cómo reproducir la imagen y cómo citar OPC, con el DOI concepto.
+
+- **Las coordenadas GPS no se copian.** Si la foto las tiene, el informe solo
+  dice que están. Un informe circula más que una foto, y la ubicación de un
+  sitio con arte rupestre es un dato sensible.
+
+- **Cómo se usa.** El botón `+PDF`, al lado de PNG, JPG y TIFF, lo prende o
+  lo apaga, y la elección se recuerda. Sale en el idioma de la interfaz. El lote
+  no hace informes.
+
+- **Sin bibliotecas.** OPC escribe el PDF él mismo: PDF 1.4 con las cuatro
+  fuentes estándar del formato (Helvetica, Helvetica negrita, Courier y Times
+  negrita, que no se incrustan) y las imágenes en JPEG tal como salen del
+  navegador. Sigue funcionando sin conexión.
+
+- **Cinco pruebas nuevas:** la codificación de los textos (acentos, paréntesis
+  y signos que la codificación del PDF no tiene), los anchos de letra y el corte
+  de renglones, el tamaño de un JPEG, y que el archivo esté bien armado (tabla
+  de objetos exacta, flujos con su largo) en un informe de una página y en uno
+  largo de dos, en castellano y en inglés.
+
+### Qué baja y dónde: solo la imagen, o todo junto en una carpeta
+
+- **Dos botones**, `+JSON` y `+PDF`, al lado de PNG, JPG y TIFF. Los dos
+  vienen prendidos y la elección se recuerda.
+- **Apagados los dos, baja solo la imagen**, como en v3.7.3: una descarga común,
+  rápida. El registro va igual adentro de la imagen, así que se puede reproducir
+  igual.
+- **Con uno o los dos prendidos, todo baja junto en un `.zip`** con el nombre
+  de la exportación (`IMG_0421_OPC_crgb_i1.8.zip`). Baja donde bajan siempre
+  las descargas, sin preguntar nada, y trae adentro una carpeta con ese mismo
+  nombre, con la imagen, el `.json` y el informe. Windows lo abre como una
+  carpeta más.
+- **Por qué un `.zip` y no una carpeta suelta.** Una página web no puede crear
+  carpetas en Descargas: el navegador solo le deja bajar archivos sueltos, y si
+  el nombre trae una «/», la cambia por «_». Elegir una carpeta con el selector
+  del navegador sí funciona en Chrome y Edge, pero pregunta cada vez que se
+  abre la página; se probó y se descartó por eso.
+- Debajo de los botones dice qué va a bajar y, al terminar, qué bajó. Una sola
+  descarga, así que Chrome tampoco pregunta si se permiten varias.
+- **Una prueba nueva** para el `.zip`: que cada archivo quede adentro de su
+  carpeta, byte a byte, con su CRC-32 y el nombre en UTF-8. OPC lo escribe
+  sin bibliotecas y sin comprimir (PNG, JPG y PDF ya vienen comprimidos).
+
+### Lo que se encontró al hacerlo: contraste y saturación no dan lo mismo suelta que en lote
+
+La descarga suelta aplica el contraste y la saturación con el filtro del
+navegador (`ctx.filter`). El lote los aplica por píxel (`applyPostAdjust`). La
+documentación decía que eran equivalentes exactos, y no lo son. Medido en
+Chrome 152 sobre 512 × 512 píxeles al azar:
+
+- con un solo ajuste, la diferencia es de 1 nivel, de redondeo, en un 3 a 45 %
+  de los valores;
+- con contraste positivo y saturación juntos llega a 26 niveles (+25 / −30) y a
+  31 (+50 / +50). El navegador recorta a 0–255 entre un ajuste y el otro, y
+  `applyPostAdjust` no. Con contraste negativo la diferencia se queda en 1 o
+  2 niveles.
+
+Con contraste y saturación en 0, que es el valor por defecto, los dos caminos
+dan lo mismo. **Esta versión no cambia ninguno de los dos.** El registro anota
+cuál se usó (`filtro_css` o `por_pixel`) y la reproducción usa ese mismo. Queda
+pendiente decidir si unificarlos, que sí cambiaría resultados.
+
+### Lo que se encontró al hacerlo: el lote y la vista no leen igual un JPG
+
+Se notó al reproducir una foto del lote. El lote abre cada foto con
+`createImageBitmap` y la vista principal con un `<img>`. Chrome no decodifica
+igual el mismo JPG por los dos caminos: en una foto sintética de 1200 × 900, el
+0,5 % de los valores difería en 1 nivel. La consecuencia es que la foto de
+referencia procesada dentro del lote no sale idéntica, bit a bit, a la misma foto
+procesada en la vista. Las estadísticas congeladas no cambian por esto: salen
+de la vista, como siempre.
+
+**Esta versión no cambia ninguno de los dos caminos.** El registro del lote
+guarda la huella de los píxeles tal como los leyó el lote. Al reproducirlo, la
+foto se lee igual que la leyó el lote. Así las dos fotos del lote de prueba se
+reprodujeron idénticas.
+
+### Verificado en el navegador
+
+Pruebas hechas en el panel de Chrome con dos fotos sintéticas de 1200 × 900:
+
+- **Exportación.** Se armó una sesión con dos filtros encadenados (Relieve y
+  CLAHE) sobre una zona circular, dos ajustes del gotero, contraste +20 y
+  saturación +15. Al exportarla, el registro de adentro coincide con el `.json`
+  en PNG, JPG y TIFF. La huella del archivo y la de los píxeles, recalculadas
+  sobre lo descargado, coinciden con las del registro, y el JPG sigue
+  abriéndose.
+- **Reproducción.** Con «Nueva imagen» y la misma foto, reproducir desde el PNG
+  o desde el JPG da las cuatro comprobaciones en verde. Exportar otra vez desde
+  el estado reproducido da los mismos píxeles, el mismo gotero y los mismos
+  pasos.
+- **Lote.** Con LDS sobre una zona y dos fotos, el lote deja las dos imágenes
+  con su registro, el `.csv` y el `.json`; las huellas del CSV coinciden con
+  los archivos. Las dos fotos se reproducen idénticas.
+- **Escala métrica.** Sobre una foto sintética de 2400 × 1800 con una regla
+  dibujada a 10 px/mm, marcar los extremos de un tramo de 100 mm da 10.0 px/mm,
+  y los de uno de 30 mm, también 10.0. Con clics a mano sobre la vista sin
+  ampliar da 9.98. A 2000 px el panel muestra 8.32, y el Relieve con escala
+  0.5 % sigue diciendo ≈ 1.20 mm. La escala va en el registro del PNG y del
+  `.json`, y vuelve al reproducirlo, con las cuatro comprobaciones en verde.
+  La barra de 5 cm mide en pantalla la mitad que la regla de 10 cm de la foto
+  (0,4988), y con el zoom pasa a 1 cm. La lupa, los tres pasos y la barra se
+  ven bien en el modo normal y en Solar, y en los dos idiomas.
+- **El .zip.** Con `+JSON` y `+PDF` baja un solo `.zip` con la carpeta y los
+  tres archivos; con solo uno de los dos, la carpeta trae la imagen y ese; con
+  los dos apagados baja solo la imagen, sin `.zip`. Python lo abre sin errores
+  y Windows lo extrae como una carpeta, con los acentos y la ñ de los nombres.
+- **Informe en PDF.** El de una sesión calibrada sale en una página, con el
+  logo, las dos imágenes y la barra de 5 cm, y las tres imágenes que lleva se
+  decodifican al tamaño que declaran. Se abrió con PyMuPDF y con pypdf en modo
+  estricto, que rechaza una tabla de objetos con errores, en castellano y en
+  inglés. Uno con 40 ajustes del gotero pasa a una segunda página, con el pie
+  en las dos. Con `+PDF` apagado bajan dos archivos, y la elección queda
+  guardada.
+- **Avisos.** Un registro de v3.7.3 no avisa nada. Uno de v3.9.0 avisa que es
+  más nuevo. Uno de v3.6.0 con el Rojo avisa el cambio de v3.7.0. Una foto sin
+  registro da «Sin registro». Los mensajes salen en los dos idiomas.
+
 ## v3.7.3 (2026-10-15)
 
 **No cambia ningún resultado** a resolución completa ni en 2000 px: dan
