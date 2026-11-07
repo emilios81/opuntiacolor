@@ -423,7 +423,7 @@ function crgbEnhance(imageData, intensity = 1.5, mask = null, store = null) {
 // escala mayor que 0 pasa a reliefEscala (v3.7.0), pensado para grabados.
 function reliefMap(imageData, intensity = 1.5, mask = null, store = null, opts = null) {
   const escala = (opts && opts.escala) || 0;
-  if (escala > 0) return reliefEscala(imageData, intensity, mask, store, escala);
+  if (escala > 0) return reliefEscala(imageData, intensity, mask, store, escala, opts);
   const data = imageData.data, w = imageData.width, h = imageData.height, n = w * h;
   const output = new Uint8ClampedArray(data.length);
   const lum = new Float64Array(n);
@@ -464,6 +464,13 @@ function reliefMap(imageData, intensity = 1.5, mask = null, store = null, opts =
 const RELIEF_ESCALAS = [0, 0.1, 0.25, 0.5, 1];
 // Cuántas veces más grande que la escala es el entorno que se resta como fondo
 const RELIEF_FONDO = 16;
+// Relieve doble (v3.8.0): cuántas veces más grande que la escala elegida (la
+// textura) es la del objeto, la forma de conjunto del surco o del panel
+const RELIEF_OBJETO = 4;
+// Compresión suave (v3.8.0): rodilla de la curva asinh, en niveles de gris, y
+// hasta cuántas veces el recorte lineal llega a abarcar el rango de grises
+const RELIEF_SUAVE_K = 40;
+const RELIEF_SUAVE_TOPE = 3;
 
 // Promedio en caja de (2r+1)×(2r+1) píxeles, separable y recorriendo siempre
 // por filas (la pasada vertical lleva una suma corrida por columna, así no
@@ -582,29 +589,115 @@ function quitarTendencia(lum, w, h) {
 // Trabaja sobre el brillo, no sobre la altura: muestra lo que la foto registra
 // como más claro o más oscuro a esa escala. Con luz rasante eso es relieve; con
 // luz difusa, pátina y picado. Ver docs/LIMITACIONES.md.
-function reliefEscala(imageData, intensity, mask, store, escala) {
+//
+// Opciones (v3.8.0), todas apagadas por defecto; apagadas, la salida es byte a
+// byte la de v3.7:
+//   doble (0–1): suma a la escala elegida (textura) otra RELIEF_OBJETO veces
+//     mayor (objeto), cada una en desvíos de su propio entorno; el número es
+//     el peso del objeto. Después se vuelve a normalizar la suma.
+//   suave: los extremos se comprimen con asinh en vez de recortarse.
+//   clahe: CLAHE sobre el resultado. Realza, pero deja de ser una medida.
+//   mezcla ("dslab" o "lds") y alfa (0–1): el relieve entra como luminosidad
+//     de ese filtro de color, en proporción alfa; el color queda del filtro.
+function reliefEscala(imageData, intensity, mask, store, escala, opts) {
+  const o = opts || {};
   const data = imageData.data, w = imageData.width, h = imageData.height, n = w * h;
-  const lum = new Float32Array(n), fino = new Float32Array(n), fondo = new Float32Array(n), tmp = new Float32Array(n);
+  const lum = new Float32Array(n);
   for (let i = 0; i < n; i++) lum[i] = 0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2];
   quitarTendencia(lum, w, h);
-  const r = Math.max(1, Math.round(Math.max(w, h) * escala / 200)), R = r * RELIEF_FONDO;
-  boxBlur(lum, fino, tmp, w, h, r); boxBlur(fino, fondo, tmp, w, h, r); boxBlur(fondo, fino, tmp, w, h, r);
-  // El fondo usa lum como intermedio: ya no hace falta
-  boxBlur(lum, fondo, tmp, w, h, R); boxBlur(fondo, lum, tmp, w, h, R); boxBlur(lum, fondo, tmp, w, h, R);
-  for (let i = 0; i < n; i++) fino[i] -= fondo[i];
-  let st = store && store.frozen;
-  if (!st) {
-    const q = tukeyFences(fino, n, mask, 0);   // k = 0: Q1 y Q3
-    st = { mid: (q.lo + q.hi) / 2, sig: (q.hi - q.lo) / 1.349 || 1 };
+  const estad = (D) => { const q = tukeyFences(D, n, mask, 0); return { mid: (q.lo + q.hi) / 2, sig: (q.hi - q.lo) / 1.349 || 1 }; };   // k = 0: Q1 y Q3
+  let st = store && store.frozen, D;
+  if (o.doble == null) {
+    D = relieveBanda(lum, w, h, escala, false);
+    if (!st) { st = estad(D); if (store) store.frozen = st; }
+  } else {
+    const p = Math.max(0, Math.min(1, o.doble));
+    D = relieveBanda(lum, w, h, escala, true);
+    const obj = relieveBanda(lum, w, h, escala * RELIEF_OBJETO, false);
+    if (!st) st = { textura: estad(D), objeto: estad(obj) };
+    const t = st.textura, b = st.objeto;
+    for (let i = 0; i < n; i++) D[i] = (1 - p) * (D[i] - t.mid) / t.sig + p * (obj[i] - b.mid) / b.sig;
+    if (st.mid == null) Object.assign(st, estad(D));
     if (store) store.frozen = st;
   }
   const g = 40 * intensity / 1.5 / st.sig;
   const output = new Uint8ClampedArray(data.length);
-  for (let i = 0; i < n; i++) {
-    const v = 128 + (fino[i] - st.mid) * g;
-    output[i*4] = v; output[i*4+1] = v; output[i*4+2] = v; output[i*4+3] = 255;
+  if (!o.suave) {
+    for (let i = 0; i < n; i++) {
+      const v = 128 + (D[i] - st.mid) * g;
+      output[i*4] = v; output[i*4+1] = v; output[i*4+2] = v; output[i*4+3] = 255;
+    }
+  } else {
+    // Pendiente ~1 en el centro; lo que antes se recortaba a 127 niveles del
+    // gris medio llega hasta RELIEF_SUAVE_TOPE veces más lejos antes de saturar
+    const K = RELIEF_SUAVE_K, A = 127 / Math.asinh(127 * RELIEF_SUAVE_TOPE / K);
+    for (let i = 0; i < n; i++) {
+      const v = 128 + A * Math.asinh((D[i] - st.mid) * g / K);
+      output[i*4] = v; output[i*4+1] = v; output[i*4+2] = v; output[i*4+3] = 255;
+    }
   }
-  return new ImageData(output, w, h);
+  let out = new ImageData(output, w, h);
+  if (o.clahe) out = claheEnhance(out, 1.5);
+  if (o.mezcla === "dslab" || o.mezcla === "lds") {
+    // El filtro de color, con su intensidad por defecto y la misma zona; en el
+    // lote, con sus estadísticas congeladas junto a las del relieve
+    const sub = { frozen: st.color || null };
+    const col = (o.mezcla === "lds" ? ldsEnhance : dsLabEnhance)(imageData, 1.5, mask, sub);
+    st.color = sub.frozen;
+    if (store) store.frozen = st;
+    const a = o.alfa == null ? 0.5 : Math.max(0, Math.min(1, o.alfa));
+    const Lgris = new Float64Array(256);
+    for (let v = 0; v < 256; v++) Lgris[v] = rgb2lab(v, v, v)[0];
+    const s = out.data, c = col.data, mix = new Uint8ClampedArray(data.length);
+    for (let i = 0; i < n; i++) {
+      const q = i * 4, lab = rgb2lab(c[q], c[q+1], c[q+2]);
+      const rgb = lab2rgb((1 - a) * lab[0] + a * Lgris[s[q]], lab[1], lab[2]);
+      mix[q] = rgb[0]; mix[q+1] = rgb[1]; mix[q+2] = rgb[2]; mix[q+3] = 255;
+    }
+    out = new ImageData(mix, w, h);
+  }
+  return out;
+}
+
+// El pasabanda del Relieve: suavizado(r) − suavizado(RELIEF_FONDO · r) sobre la
+// luminancia ya sin tendencia. Cada suavizado son tres pasadas de promedio en
+// caja. Con conservar = false usa lum de intermedio para el fondo (lo deja
+// inservible), que es lo que hacía v3.7 y ahorra memoria; el Relieve doble lo
+// conserva para la segunda escala.
+function relieveBanda(lum, w, h, escala, conservar) {
+  const n = w * h, fino = new Float32Array(n), fondo = new Float32Array(n), tmp = new Float32Array(n);
+  const aux = conservar ? new Float32Array(n) : lum;
+  const r = Math.max(1, Math.round(Math.max(w, h) * escala / 200)), R = r * RELIEF_FONDO;
+  boxBlur(lum, fino, tmp, w, h, r); boxBlur(fino, fondo, tmp, w, h, r); boxBlur(fondo, fino, tmp, w, h, r);
+  boxBlur(lum, fondo, tmp, w, h, R); boxBlur(fondo, aux, tmp, w, h, R); boxBlur(aux, fondo, tmp, w, h, R);
+  for (let i = 0; i < n; i++) fino[i] -= fondo[i];
+  return fino;
+}
+
+// Las opciones del Relieve tal como viajan al filtro, al lote y al registro.
+// Solo lleva las prendidas, así que con todo apagado queda {escala} como en
+// v3.7: mismo registro y mismo nombre de archivo. Sin escala no valen.
+// o: {doble (peso del objeto, 0–1, o null), suave, clahe, mezcla, alfa}
+function opcionesRelieve(escala, o) {
+  const r = { escala };
+  if (!escala || !o) return r;
+  if (o.doble != null) r.doble = o.doble;
+  if (o.suave) r.suave = true;
+  if (o.clahe) r.clahe = true;
+  if (o.mezcla) { r.mezcla = o.mezcla; r.alfa = o.alfa; }
+  return r;
+}
+
+// Lo que el Relieve agrega al nombre del archivo: _e0.25_doble50_suave_clahe_lds50.
+// Con escala 0 (bordes) no agrega nada, como en v3.6.
+function sufijoRelieve(opts) {
+  if (!opts || !opts.escala) return "";
+  let s = `_e${opts.escala}`;
+  if (opts.doble != null) s += `_doble${Math.round(opts.doble * 100)}`;
+  if (opts.suave) s += "_suave";
+  if (opts.clahe) s += "_clahe";
+  if (opts.mezcla) s += `_${opts.mezcla}${Math.round((opts.alfa == null ? 0.5 : opts.alfa) * 100)}`;
+  return s;
 }
 
 // --- Técnico ---
@@ -1727,7 +1820,14 @@ function informePDF(reg, x) {
   seccion(t("Procedimiento", "Procedure"));
   pasos.forEach((p, i) => {
     const d = [`${nombre(p.filtro)}`, `${t("intensidad", "intensity")} ${dec(p.intensidad)}`];
-    if (p.opciones && p.opciones.escala) d.push(`${t("escala", "scale")} ${dec(p.opciones.escala)} %`);
+    if (p.opciones && p.opciones.escala) {
+      const op = p.opciones;
+      d.push(`${t("escala", "scale")} ${dec(op.escala)} %`);
+      if (op.doble != null) d.push(t(`doble, objeto al ${Math.round(op.doble * 100)} %`, `double, object at ${Math.round(op.doble * 100)} %`));
+      if (op.suave) d.push(t("compresión suave", "soft compression"));
+      if (op.clahe) d.push(t("realzado con CLAHE (no métrico)", "enhanced with CLAHE (not metric)"));
+      if (op.mezcla) { const al = Math.round((op.alfa == null ? 0.5 : op.alfa) * 100), nm = op.mezcla === "lds" ? "LDS" : "DS-LAB"; d.push(t(`mezclado con ${nm} al ${al} %`, `blended with ${nm} at ${al} %`)); }
+    }
     const s = p.seleccion;
     if (!s) d.push(t("toda la imagen", "whole image"));
     else {
@@ -2262,6 +2362,13 @@ function RockArtEnhancer() {
   }, []);
   // Escala del Relieve en % del lado mayor (0 = mapa de bordes de v3.6)
   const [reliefScale, setReliefScale] = useState(0);
+  // Opciones del Relieve con escala (v3.8.0), todas apagadas por defecto
+  const [relDoble, setRelDoble] = useState(false), [relObjeto, setRelObjeto] = useState(50);
+  const [relSuave, setRelSuave] = useState(false), [relClahe, setRelClahe] = useState(false);
+  const [relMezcla, setRelMezcla] = useState(null), [relAlfa, setRelAlfa] = useState(50);
+  const [relMas, setRelMas] = useState(false);   // el desplegable de opciones
+  const relOpts = opcionesRelieve(reliefScale, { doble: relDoble ? relObjeto / 100 : null, suave: relSuave, clahe: relClahe, mezcla: relMezcla, alfa: relAlfa / 100 });
+  const relClave = JSON.stringify(relOpts);
   const [processing, setProcessing] = useState(false);
   const [sliderPos, setSliderPos] = useState(50);
   const [dragging, setDragging] = useState(false);
@@ -2567,7 +2674,7 @@ function RockArtEnhancer() {
 
         const mask = generateMask(selData, w, h);
         // Parámetros propios de un filtro; viajan también al pipeline del lote
-        const opts = preset.id === "relief" ? { escala: reliefScale } : null;
+        const opts = preset.id === "relief" ? relOpts : null;
 
         // Si stackMode y hay resultado previo, usar ese como fuente
         let fuente = image;
@@ -2594,7 +2701,7 @@ function RockArtEnhancer() {
       } catch(e) { if (e === PROC_CANCELADO) return; console.error(e); }
       if (job === jobRef.current) setProcessing(false);
     }, 50);
-  }, [image, imageSize, stackMode, processedSrc, selData, generateMask, reliefScale]);
+  }, [image, imageSize, stackMode, processedSrc, selData, generateMask, relClave]);
 
   // Descarta el cálculo en curso: al cambiar de foto, de resolución o de
   // selección, un resultado que llegue tarde ya no corresponde a lo que se ve
@@ -2614,19 +2721,19 @@ function RockArtEnhancer() {
     // se acumularía sin control. El usuario reaplica con el botón del filtro.
     if (stackMode) return;
     const g = omitirAutoRef.current;
-    if (g && g.intensity === intensity && g.escala === reliefScale) return;   // recién reproducido
+    if (g && g.intensity === intensity && g.clave === relClave) return;   // recién reproducido
     if (activePreset && image) { const p = PRESETS.find(x=>x.id===activePreset); if(p){ const t=setTimeout(()=>processImage(p,intensity),250); return ()=>clearTimeout(t); }}
   }, [intensity]);
 
-  // Lo mismo con la escala del Relieve, que solo afecta a ese filtro
+  // Lo mismo con la escala y las opciones del Relieve, que solo afectan a ese filtro
   useEffect(() => {
     if (stackMode || activePreset !== "relief" || !image) return;
     const g = omitirAutoRef.current;
-    if (g && g.intensity === intensity && g.escala === reliefScale) return;
+    if (g && g.intensity === intensity && g.clave === relClave) return;
     const p = PRESETS.find(x => x.id === "relief");
     const t = setTimeout(() => processImage(p, intensity), 100);
     return () => clearTimeout(t);
-  }, [reliefScale]);
+  }, [relClave]);
 
   const handleSliderMove = useCallback((cx) => { const b=getImageBounds(); if(!b) return; setSliderPos(Math.max(0,Math.min(100,((cx-b.ox)/b.cw)*100))); }, [getImageBounds]);
   const handlePointerDown = (e) => { setDragging(true); handleSliderMove(e.clientX); };
@@ -2731,7 +2838,9 @@ function RockArtEnhancer() {
       const gt = gPasos.length ? "_gotero" + gPasos.map(a => `_g${a.gain>0?"+":""}${a.gain}t${a.tol}`).join("") : "";
       // La escala del Relieve va al lado de la intensidad; con 0 (bordes) se
       // omite, así el nombre sale igual que en v3.6 para el mismo resultado
-      const esc = (activePreset === "relief" && reliefScale) ? `_e${reliefScale}` : "";
+      // y sus opciones, si hay alguna prendida (v3.8.0)
+      const pasoRel = [...pipelineRef.current].reverse().find(p => p.presetId === "relief");
+      const esc = activePreset === "relief" ? sufijoRelieve(pasoRel ? pasoRel.opts : relOpts) : "";
       const params = `_i${intensity.toFixed(1)}${esc}${gt}${contrast!==0?`_c${contrast}`:""}${saturation!==0?`_s${saturation}`:""}`;
       const base = `${(fileName||"opc").replace(/\.[^.]+$/,"")}_OPC_${activePreset}${params}`;
       const ext = exportFmt === "tiff" ? "tif" : exportFmt;
@@ -2918,7 +3027,14 @@ function RockArtEnhancer() {
       const ultimo = pasos[pasos.length - 1];
       const relieve = [...pasos].reverse().find(p => p.presetId === "relief");
       const escala = relieve ? ((relieve.opts && relieve.opts.escala) || 0) : reliefScale;
-      omitirAutoRef.current = { intensity: ultimo.intensity, escala };
+      // Las opciones del Relieve vuelven como estaban; sin Relieve, quedan las de ahora
+      const ro = relieve ? (relieve.opts || {}) : null;
+      const rel = ro
+        ? { doble: ro.doble != null, objeto: ro.doble != null ? Math.round(ro.doble * 100) : relObjeto, suave: !!ro.suave, clahe: !!ro.clahe,
+            mezcla: ro.mezcla || null, alfa: ro.mezcla ? Math.round((ro.alfa == null ? 0.5 : ro.alfa) * 100) : relAlfa }
+        : { doble: relDoble, objeto: relObjeto, suave: relSuave, clahe: relClahe, mezcla: relMezcla, alfa: relAlfa };
+      const clave = JSON.stringify(opcionesRelieve(escala, { doble: rel.doble ? rel.objeto / 100 : null, suave: rel.suave, clahe: rel.clahe, mezcla: rel.mezcla, alfa: rel.alfa / 100 }));
+      omitirAutoRef.current = { intensity: ultimo.intensity, clave };
       if (!lote && rec.trabajo && rec.trabajo.resolucion) setResId(rec.trabajo.resolucion);
       setImageSize({ w, h });
       processedDataRef.current = resultado;
@@ -2926,6 +3042,8 @@ function RockArtEnhancer() {
       else { const cv = document.createElement("canvas"); cv.width = w; cv.height = h; cv.getContext("2d").putImageData(resultado, 0, 0); setProcessedSrc(cv.toDataURL("image/png")); }
       pipelineRef.current = nuevos;
       setActivePreset(ultimo.presetId); setIntensity(ultimo.intensity); setIntDraft(null); setReliefScale(escala);
+      setRelDoble(rel.doble); setRelObjeto(rel.objeto); setRelSuave(rel.suave); setRelClahe(rel.clahe); setRelMezcla(rel.mezcla); setRelAlfa(rel.alfa);
+      if (rel.doble || rel.suave || rel.clahe || rel.mezcla) setRelMas(true);
       setStackMode(pasos.length > 1);
       setSelData(lote ? null : (ultimo.sel || null)); setSelTool("none"); drawRef.current = { active:false, tool:"", start:null, pts:[] };
       setPickSteps(gotero); setPickColor(null); setPicking(false);
@@ -3302,7 +3420,7 @@ function RockArtEnhancer() {
         <div style={{ margin:"0 20px",padding:20,background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:10,fontSize:13,lineHeight:1.7,position:"relative",zIndex:10 }}>
           <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v3.8.0 &mdash; {tr("Novedades","What\u2019s new")}</h3>
           {lang === "es" ? (<>
-          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Registro de sesi&oacute;n (v3.8.0)</strong> &mdash; Cada imagen que se descarga lleva <strong style={{color:T.text}}>adentro un registro</strong> con todo lo necesario para rehacerla: versi&oacute;n de OPC, foto de entrada con su huella SHA-256, resoluci&oacute;n de trabajo, cadena de filtros con sus par&aacute;metros, zona seleccionada, gotero con el color muestreado, ajustes y, si se calibr&oacute;, la escala m&eacute;trica. Con <code>+JSON</code>, el mismo registro baja aparte como <code>.json</code>; el lote deja adem&aacute;s un <code>.csv</code> con una fila por foto. Con <strong style={{color:T.text}}>Reproducir un registro</strong>, cargando la foto original y el registro (o la propia imagen exportada), OPC rehace la imagen y comprueba que salga <strong style={{color:T.text}}>igual p&iacute;xel a p&iacute;xel</strong>; si la versi&oacute;n es otra y entre medio cambi&oacute; alg&uacute;n filtro usado, avisa. Con <strong style={{color:T.text}}>Calibrar con la regla</strong> se marcan dos puntos sobre la escala de la foto, con una lupa, y se elige o se escribe cu&aacute;nto mide el tramo: el registro guarda cu&aacute;ntos p&iacute;xeles mide un mil&iacute;metro, el Relieve muestra su escala tambi&eacute;n en mm y el visor dibuja una barra de escala. Con <code>+PDF</code> baja adem&aacute;s un <strong style={{color:T.text}}>informe en PDF</strong> para leer, imprimir o adjuntar a una publicaci&oacute;n: las dos im&aacute;genes, el procedimiento, la escala y las huellas. Con <code>+JSON</code> o <code>+PDF</code>, todo baja junto en un <code>.zip</code> con el nombre de la imagen, que trae adentro <strong style={{color:T.text}}>una carpeta</strong> con la imagen y los dem&aacute;s archivos. Apagados los dos, baja solo la imagen. <strong style={{color:T.text}}>Ning&uacute;n resultado cambia.</strong></p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Registro de sesi&oacute;n (v3.8.0)</strong> &mdash; Cada imagen que se descarga lleva <strong style={{color:T.text}}>adentro un registro</strong> con todo lo necesario para rehacerla: versi&oacute;n de OPC, foto de entrada con su huella SHA-256, resoluci&oacute;n de trabajo, cadena de filtros con sus par&aacute;metros, zona seleccionada, gotero con el color muestreado, ajustes y, si se calibr&oacute;, la escala m&eacute;trica. Con <code>+JSON</code>, el mismo registro baja aparte como <code>.json</code>; el lote deja adem&aacute;s un <code>.csv</code> con una fila por foto. Con <strong style={{color:T.text}}>Reproducir un registro</strong>, cargando la foto original y el registro (o la propia imagen exportada), OPC rehace la imagen y comprueba que salga <strong style={{color:T.text}}>igual p&iacute;xel a p&iacute;xel</strong>; si la versi&oacute;n es otra y entre medio cambi&oacute; alg&uacute;n filtro usado, avisa. Con <strong style={{color:T.text}}>Calibrar con la regla</strong> se marcan dos puntos sobre la escala de la foto, con una lupa, y se elige o se escribe cu&aacute;nto mide el tramo: el registro guarda cu&aacute;ntos p&iacute;xeles mide un mil&iacute;metro, el Relieve muestra su escala tambi&eacute;n en mm y el visor dibuja una barra de escala. Con <code>+PDF</code> baja adem&aacute;s un <strong style={{color:T.text}}>informe en PDF</strong> para leer, imprimir o adjuntar a una publicaci&oacute;n: las dos im&aacute;genes, el procedimiento, la escala y las huellas. Con <code>+JSON</code> o <code>+PDF</code>, todo baja junto en un <code>.zip</code> con el nombre de la imagen, que trae adentro <strong style={{color:T.text}}>una carpeta</strong> con la imagen y los dem&aacute;s archivos. Apagados los dos, baja solo la imagen. En el Relieve con escala, <strong style={{color:T.text}}>M&aacute;s opciones</strong> agrega el Relieve doble (objeto y textura), la compresi&oacute;n suave, el realce con CLAHE y la mezcla con DS-LAB o LDS; apagadas, el Relieve da lo mismo que antes. <strong style={{color:T.text}}>Ning&uacute;n resultado cambia.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Fotos grandes: se elige la resoluci&oacute;n al abrirlas (v3.7.3)</strong> &mdash; Una foto de m&aacute;s de 16 MP abre con un cartel que propone trabajarla a <strong style={{color:T.text}}>16 MP</strong>: conserva tres cuartos de cada lado y cada filtro tarda alrededor de la mitad. Tambi&eacute;n se puede elegir 12 MP o la completa. En el panel, la resoluci&oacute;n de trabajo pasa a ser un men&uacute; con m&aacute;s escalones (completa, 16, 12 y 8 MP, 2000 px). A resoluci&oacute;n completa y en 2000 px <strong style={{color:T.text}}>nada cambia</strong>: dan el mismo tama&ntilde;o que antes.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>La p&aacute;gina ya no se congela mientras procesa (v3.7.2)</strong> &mdash; Los filtros corren en un <strong style={{color:T.text}}>hilo aparte</strong> (Web Worker). Con una foto de 29 MP el Rojo sigue tardando unos 8 segundos, pero mientras tanto la p&aacute;gina responde, y si cambi&aacute;s de filtro o de intensidad, el c&aacute;lculo anterior se cancela y arranca el nuevo. Antes la p&aacute;gina quedaba congelada todo ese tiempo y no tomaba los clics. <strong style={{color:T.text}}>Ning&uacute;n resultado cambia.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Mover la intensidad ya no cuelga la p&aacute;gina (v3.7.1)</strong> &mdash; La intensidad se aplica al <strong style={{color:T.text}}>soltar el deslizador</strong>: antes se reprocesaba la foto en cada pausa del arrastre y, con una de 20 MP o m&aacute;s, la p&aacute;gina quedaba congelada medio minuto o se ca&iacute;a. Adem&aacute;s, la conversi&oacute;n a LAB tarda un tercio menos y Bicromo y el Mapa de pigmentos usan menos de un tercio de la memoria. <strong style={{color:T.text}}>Ning&uacute;n resultado cambia</strong>: la salida es id&eacute;ntica a la de v3.7.0, byte a byte.</p>
@@ -3324,7 +3442,7 @@ function RockArtEnhancer() {
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Exportaci&oacute;n con metadatos</strong> &mdash; El nombre del archivo registra filtro e intensidad; el JPG conserva el EXIF/GPS original. TIFF v&aacute;lido seg&uacute;n spec 6.0.</p>
           <p style={{ margin:"0 0 8px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Reconocimiento</strong> &mdash; El decorrelation stretch (Gillespie et al. 1986) fue popularizado en arte rupestre por <strong style={{color:T.text}}>DStretch</strong> (J. Harman). OPC es una implementaci&oacute;n independiente de c&oacute;digo abierto, escrita desde cero a partir de la bibliograf&iacute;a publicada, sin c&oacute;digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci&oacute;n entre herramientas.</p>
           </>) : (<>
-          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Session record (v3.8.0)</strong> &mdash; Every downloaded image carries <strong style={{color:T.text}}>a record inside</strong> with everything needed to rebuild it: OPC version, input photo with its SHA-256 fingerprint, working resolution, filter chain with its parameters, selected area, eyedropper with the sampled color, adjustments and, if calibrated, the metric scale. With <code>+JSON</code>, the same record is also saved as a separate <code>.json</code>; a batch also leaves a <code>.csv</code> with one row per photo. With <strong style={{color:T.text}}>Replay a record</strong>, loading the original photo and the record (or the exported image itself), OPC rebuilds the image and checks that it comes out <strong style={{color:T.text}}>identical pixel for pixel</strong>; if the version differs and a filter it uses changed in between, it warns. With <strong style={{color:T.text}}>Calibrate with the ruler</strong> you mark two points on the photo&rsquo;s scale, with a loupe, and pick or type the length of the span: the record keeps how many pixels a millimetre measures, the Relief shows its scale in mm too, and the viewer draws a scale bar. With <code>+PDF</code> a <strong style={{color:T.text}}>PDF report</strong> to read, print or attach to a publication is downloaded too: both images, the procedure, the scale and the fingerprints. With <code>+JSON</code> or <code>+PDF</code>, everything is downloaded together in a <code>.zip</code> named after the image, with <strong style={{color:T.text}}>a folder</strong> inside holding the image and the other files. With both off, only the image is downloaded. <strong style={{color:T.text}}>No result changes.</strong></p>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Session record (v3.8.0)</strong> &mdash; Every downloaded image carries <strong style={{color:T.text}}>a record inside</strong> with everything needed to rebuild it: OPC version, input photo with its SHA-256 fingerprint, working resolution, filter chain with its parameters, selected area, eyedropper with the sampled color, adjustments and, if calibrated, the metric scale. With <code>+JSON</code>, the same record is also saved as a separate <code>.json</code>; a batch also leaves a <code>.csv</code> with one row per photo. With <strong style={{color:T.text}}>Replay a record</strong>, loading the original photo and the record (or the exported image itself), OPC rebuilds the image and checks that it comes out <strong style={{color:T.text}}>identical pixel for pixel</strong>; if the version differs and a filter it uses changed in between, it warns. With <strong style={{color:T.text}}>Calibrate with the ruler</strong> you mark two points on the photo&rsquo;s scale, with a loupe, and pick or type the length of the span: the record keeps how many pixels a millimetre measures, the Relief shows its scale in mm too, and the viewer draws a scale bar. With <code>+PDF</code> a <strong style={{color:T.text}}>PDF report</strong> to read, print or attach to a publication is downloaded too: both images, the procedure, the scale and the fingerprints. With <code>+JSON</code> or <code>+PDF</code>, everything is downloaded together in a <code>.zip</code> named after the image, with <strong style={{color:T.text}}>a folder</strong> inside holding the image and the other files. With both off, only the image is downloaded. In the Relief with a scale, <strong style={{color:T.text}}>More options</strong> adds the double Relief (object and texture), soft compression, CLAHE enhancement and blending with DS-LAB or LDS; with them off, the Relief gives the same as before. <strong style={{color:T.text}}>No result changes.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Large photos: pick the resolution when opening them (v3.7.3)</strong> &mdash; A photo over 16 MP opens with a notice that suggests working at <strong style={{color:T.text}}>16 MP</strong>: it keeps three quarters of each side and each filter takes about half the time. 12 MP or full resolution can also be chosen. In the panel, the working resolution becomes a menu with more steps (full, 16, 12 and 8 MP, 2000 px). At full resolution and at 2000 px <strong style={{color:T.text}}>nothing changes</strong>: they give the same size as before.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>The page no longer freezes while processing (v3.7.2)</strong> &mdash; Filters run in a <strong style={{color:T.text}}>separate thread</strong> (Web Worker). With a 29 MP photo the Red filter still takes about 8 seconds, but the page keeps responding meanwhile, and if you switch filter or intensity, the previous computation is cancelled and the new one starts. Before, the page stayed frozen the whole time and ignored clicks. <strong style={{color:T.text}}>No result changes.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Moving the intensity no longer hangs the page (v3.7.1)</strong> &mdash; Intensity is applied when you <strong style={{color:T.text}}>release the slider</strong>: before, the photo was reprocessed at every pause while dragging and, with a 20 MP photo or larger, the page froze for half a minute or crashed. LAB conversion also takes a third less time, and Bichrome and the Pigment map use less than a third of the memory. <strong style={{color:T.text}}>No result changes</strong>: the output is identical to v3.7.0, byte for byte.</p>
@@ -3601,6 +3719,52 @@ function RockArtEnhancer() {
                              `Erases what measures less than ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px${mmRelieve} (${reliefScale}% of the long side) and subtracts the background: grain and uneven lighting drop out. If the motif blurs, lower the scale.`)
                         : tr("Mapa de bordes de v3.6: todo detalle por igual, para calcar. Para grabados, probá una escala.","v3.6 edge map: every detail alike, for tracing. For engravings, try a scale.")}
                     </div>
+                    {/* Más opciones del Relieve con escala (v3.8.0), en un desplegable.
+                        Apagadas, el Relieve da byte a byte lo mismo que en v3.7. */}
+                    {reliefScale > 0 && (() => {
+                      const activas = [relDoble, relSuave, relClahe, !!relMezcla].filter(Boolean).length;
+                      const fila = { display:"flex",alignItems:"center",gap:6,width:"100%",padding:"5px 0",background:"none",border:"none",cursor:"pointer",fontFamily:mono,fontSize:9,color:T.tm,textAlign:"left" };
+                      const llave = (on) => (
+                        <span style={{ position:"relative",width:22,height:12,borderRadius:6,flexShrink:0,boxSizing:"border-box",background:on?T.ac:T.bBg,border:`1px solid ${on?T.ac:T.cBd}`,transition:"background .15s" }}>
+                          <span style={{ position:"absolute",top:1,left:on?11:1,width:8,height:8,borderRadius:"50%",background:on?"#fff":T.tm,transition:"left .15s" }} />
+                        </span>
+                      );
+                      const chips = (vals, actual, fijar, etiqueta) => (
+                        <div style={{ display:"flex",gap:3,margin:"1px 0 5px 28px" }}>
+                          {vals.map(v => (
+                            <button key={String(v)} onClick={()=>fijar(v)} style={{ flex:1,padding:"3px 2px",fontSize:8.5,fontFamily:mono,fontWeight:actual===v?700:400,background:actual===v?T.acBg:T.cBg,border:`1px solid ${actual===v?T.acBd:T.cBd}`,borderRadius:5,cursor:"pointer",color:actual===v?T.ac:T.tm }}>{etiqueta(v)}</button>
+                          ))}
+                        </div>
+                      );
+                      const nota = (txt, color) => <div style={{ margin:"0 0 5px 28px",fontSize:8,fontFamily:mono,color:color||T.td,lineHeight:1.4 }}>{txt}</div>;
+                      const mmObjeto = ppmm ? `, ~${numCorto(pxRelieve * RELIEF_OBJETO / ppmm)} mm` : "";
+                      return (
+                        <div style={{ marginTop:8,borderTop:`1px solid ${T.cBd}`,paddingTop:4 }}>
+                          <button onClick={()=>setRelMas(!relMas)} aria-expanded={relMas} style={{ ...fila,fontSize:8.5,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase" }}>
+                            <span style={{ display:"inline-block",width:10,transform:relMas?"rotate(90deg)":"none",transition:"transform .15s" }}>{"▸"}</span>
+                            {tr("Más opciones","More options")}
+                            {activas > 0 && <span style={{ color:T.ac,letterSpacing:0,textTransform:"none" }}>{`· ${activas} ${tr(activas === 1 ? "activa" : "activas", "on")}`}</span>}
+                          </button>
+                          {relMas && (<>
+                            <button role="switch" aria-checked={relDoble} onClick={()=>setRelDoble(!relDoble)} style={fila}>{llave(relDoble)}{tr("Doble: objeto y textura","Double: object and texture")}</button>
+                            {relDoble && (<>
+                              {nota(tr(`Suma esta escala (la textura) y otra ${RELIEF_OBJETO} veces mayor (el objeto${mmObjeto}). Peso del objeto:`, `Adds this scale (texture) and one ${RELIEF_OBJETO} times larger (object${mmObjeto}). Object weight:`))}
+                              {chips([25, 50, 75], relObjeto, setRelObjeto, v => `${v} %`)}
+                            </>)}
+                            <button role="switch" aria-checked={relSuave} onClick={()=>setRelSuave(!relSuave)} style={fila}>{llave(relSuave)}{tr("Compresión suave","Soft compression")}</button>
+                            {relSuave && nota(tr("Los extremos no se queman: se comprimen y conservan detalle.","Extremes are not burnt out: they are compressed and keep detail."))}
+                            <button role="switch" aria-checked={relClahe} onClick={()=>setRelClahe(!relClahe)} style={fila}>{llave(relClahe)}{tr("Realzar con CLAHE","Enhance with CLAHE")}</button>
+                            {relClahe && nota(`⚠ ${tr("Realza, pero ya no es una medida: CLAHE estira el contraste distinto en cada zona.","Enhances, but it is no longer a measurement: CLAHE stretches contrast differently in each area.")}`, T.ac)}
+                            <div style={{ ...fila,cursor:"default",paddingBottom:3 }}><span style={{ width:22,flexShrink:0,textAlign:"center",fontSize:10 }}>{"◑"}</span>{tr("Mezclar con color","Blend with color")}</div>
+                            {chips([null, "dslab", "lds"], relMezcla, setRelMezcla, v => v === null ? tr("no","no") : v === "lds" ? "LDS" : "DS-LAB")}
+                            {relMezcla && (<>
+                              {nota(tr("El relieve, como luz y sombra sobre los colores del filtro. Cuánto relieve:","The relief, as light and shade over the filter’s colors. How much relief:"))}
+                              {chips([25, 50, 75], relAlfa, setRelAlfa, v => `${v} %`)}
+                            </>)}
+                          </>)}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
                 {/* Mapa de pigmentos: el límite de lo que muestra, a la vista */}

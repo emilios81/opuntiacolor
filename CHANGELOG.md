@@ -171,6 +171,53 @@ El TIFF sin registro sigue siendo el de siempre, byte a byte (hay una prueba).
   carpeta, byte a byte, con su CRC-32 y el nombre en UTF-8. OPC lo escribe
   sin bibliotecas y sin comprimir (PNG, JPG y PDF ya vienen comprimidos).
 
+### Mejoras del Relieve con escala
+
+- **Dónde.** Con el Relieve y una escala elegida, debajo de los botones de
+  escala hay un desplegable, **Más opciones**. Dice cuántas hay prendidas.
+  **Todas vienen apagadas, y apagadas el Relieve da byte a byte lo mismo que
+  en v3.7** (hay una prueba con diez combinaciones de escala, intensidad y zona,
+  con los checksums tomados antes del cambio).
+
+- **Relieve doble: objeto y textura.** Suma la escala elegida (la textura: el
+  picado, el borde del surco) y otra cuatro veces mayor (el objeto: la forma de
+  conjunto del surco o del motivo). Cada una se normaliza en desvíos de su
+  propio entorno y la suma se vuelve a normalizar, así que ninguna tapa a la
+  otra por tener más contraste. El peso del objeto se elige en 25, 50 o 75 %.
+  Con peso 0 da la textura sola, y con 1, el objeto solo (hay una prueba).
+
+- **Compresión suave.** Hasta ahora lo que se pasaba del rango de grises se
+  recortaba: los surcos más profundos y los bordes más claros quedaban
+  quemados, en negro o blanco liso. Con esta opción los extremos se comprimen
+  con una curva asinh: en el centro casi no cambia nada, y lo que antes se
+  recortaba entra hasta el triple de lejos con detalle.
+
+- **Realzar con CLAHE.** Aplica CLAHE al resultado, en un solo paso. Avisa en
+  el panel que el resultado ya no es una medida: CLAHE estira el contraste de
+  manera distinta en cada zona de la imagen, así que dos zonas no se pueden
+  comparar.
+
+- **Mezclar con color.** Combina el relieve con DS-LAB o LDS: los colores del
+  filtro y, como luz y sombra, el relieve. Se elige cuánto relieve entra (25,
+  50 o 75 %). Técnicamente, el relieve reemplaza en esa proporción la
+  luminosidad L\* del filtro en CIE-LAB, y el color (a\*, b\*) queda del filtro.
+  El filtro de color va con su intensidad por defecto y con la misma zona.
+
+- **Reproducible.** Las opciones viajan con el Relieve al registro, al lote
+  (con todas sus estadísticas congeladas, también las del filtro de color) y al
+  nombre del archivo, solo si están prendidas:
+  `IMG_0421_OPC_relief_i1.5_e0.25_doble50_suave_clahe_lds50.png`. Al reproducir
+  un registro, las opciones vuelven como estaban. El informe en PDF las nombra
+  en el paso del Relieve.
+
+- **Siete pruebas nuevas** (110 en total): los checksums de v3.7 con todo
+  apagado, cuáles opciones viajan y el nombre del archivo, los extremos del
+  Relieve doble, que la compresión suave no queme los extremos ni cambie el
+  centro, que CLAHE deje el resultado en gris, los extremos de la mezcla (alfa 0
+  es el filtro de color; alfa 1, la luz del relieve) y las estadísticas
+  congeladas del lote, que pasan por JSON sin cambiar nada. La prueba del
+  worker ahora corre el Relieve con todas las opciones prendidas.
+
 ### Lo que se encontró al hacerlo: contraste y saturación no dan lo mismo suelta que en lote
 
 La descarga suelta aplica el contraste y la saturación con el filtro del
@@ -231,6 +278,13 @@ Pruebas hechas en el panel de Chrome con dos fotos sintéticas de 1200 × 900:
   La barra de 5 cm mide en pantalla la mitad que la regla de 10 cm de la foto
   (0,4988), y con el zoom pasa a 1 cm. La lupa, los tres pasos y la barra se
   ven bien en el modo normal y en Solar, y en los dos idiomas.
+- **Relieve.** En una foto de prueba de 1600 × 1100 con un surco y una figura,
+  cada opción vuelve a procesar al prenderla (medio segundo el doble; un
+  segundo la mezcla con LDS) y el contador de «Más opciones» las sigue. La
+  exportación sale con `_e0.5_doble50_suave_lds50` en el nombre, las opciones
+  en el registro y las estadísticas de los dos niveles y del color congeladas.
+  Con todo apagado, reproducir esa imagen devuelve las opciones y da las cuatro
+  comprobaciones en verde, idéntica píxel a píxel.
 - **El .zip.** Con `+JSON` y `+PDF` baja un solo `.zip` con la carpeta y los
   tres archivos; con solo uno de los dos, la carpeta trae la imagen y ese; con
   los dos apagados baja solo la imagen, sin `.zip`. Python lo abre sin errores

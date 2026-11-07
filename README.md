@@ -91,6 +91,9 @@ más detección de bordes Sobel) y Relieve. El Relieve tiene un control de escal
 (v3.7.0): en *Bordes* es el mapa de bordes multi-escala de siempre, para calcar;
 con una escala, conserva solo las estructuras de ese tamaño y resta el fondo
 (iluminación despareja, pendiente general de la roca), pensado para grabados.
+Desde v3.8.0, *Más opciones* agrega el Relieve doble (objeto y textura), la
+compresión suave de los extremos, el realce con CLAHE y la mezcla con DS-LAB o
+LDS ([detalle](docs/PARAMETROS.md#más-opciones-v380)).
 
 **Técnico** — CLAHE (Zuiderveld 1994) y Mapa de pigmentos (clasificación por
 falso color por firma cromática: es una hipótesis, no una identificación; ver

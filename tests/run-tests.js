@@ -97,7 +97,8 @@ const CORE = [
   "buildSAT", "satMean",
   "crgbEnhance", "dsLabEnhance", "ldsEnhance", "ybkEnhance",
   "claheEnhance", "applyPostAdjust", "chromaTarget", "applyPickChain",
-  "enhanceRedPigment", "reliefMap", "reliefEscala", "quitarTendencia", "boxBlur",
+  "enhanceRedPigment", "reliefMap", "reliefEscala", "relieveBanda", "quitarTendencia", "boxBlur",
+  "opcionesRelieve", "sufijoRelieve",
 ];
 
 // ImageData no existe en Node: se implementa la parte de la API que usa el
@@ -115,7 +116,7 @@ const sandbox = {
 vm.createContext(sandbox);
 // Constantes sueltas que usa el núcleo: se leen del fuente para que la prueba
 // siga al valor real y no a una copia que se pueda desactualizar.
-const CONSTANTES = ["SRGB_LINEAL", "LDS_TUKEY_K", "RED_SIGMA", "RED_PISO", "RED_ENFASIS", "RELIEF_ESCALAS", "RELIEF_FONDO"].map(nombre => {
+const CONSTANTES = ["SRGB_LINEAL", "LDS_TUKEY_K", "RED_SIGMA", "RED_PISO", "RED_ENFASIS", "RELIEF_ESCALAS", "RELIEF_FONDO", "RELIEF_OBJETO", "RELIEF_SUAVE_K", "RELIEF_SUAVE_TOPE"].map(nombre => {
   const m = source.match(new RegExp("^const " + nombre + " = .+;$", "m"));
   if (!m) throw new Error("no se encontró la constante " + nombre + " en src/app.jsx");
   return m[0];
@@ -129,6 +130,7 @@ const {
   crgbEnhance, dsLabEnhance, ldsEnhance,
   applyPostAdjust, chromaTarget, applyPickChain,
   enhanceRedPigment, reliefMap, quitarTendencia, boxBlur,
+  opcionesRelieve, sufijoRelieve,
 } = sandbox;
 const ImageData = sandbox.ImageData;
 
@@ -1227,6 +1229,119 @@ suite("Relieve por escala (v3.7.0)", () => {
 });
 
 // ============================================================
+// Relieve: opciones (v3.8.0)
+//
+// Doble (objeto y textura), compresión suave, CLAHE y mezcla con un filtro de
+// color. Lo primero es que, apagadas, el Relieve dé byte a byte lo mismo que
+// en v3.7: los checksums se tomaron del commit 6f99808, antes del cambio, en
+// una imagen de 1200 px de ancho para que cada escala tenga su propio radio.
+// ============================================================
+
+suite("Relieve: opciones (v3.8.0)", () => {
+  const W = 1200, H = 160, zona = new Uint8Array(W * H);
+  for (let y = 30; y < 130; y++) for (let x = 200; x < 700; x++) zona[y * W + x] = 1;
+  const v37 = { "0.1|1.5|toda": 2957437714, "0.1|1.5|zona": 2738901222, "0.25|1.5|toda": 1091619538, "0.25|1.5|zona": 1048805178,
+    "0.25|3|toda": 920069132, "0.25|3|zona": 2409635513, "0.5|1.5|toda": 1559539038, "0.5|1.5|zona": 2668518489,
+    "1|1.5|toda": 4126315670, "1|1.5|zona": 38049753 };
+  const apagadas = { doble: null, suave: false, clahe: false, mezcla: null, alfa: 0.5 };
+
+  test("apagadas, el Relieve con escala da lo mismo que en v3.7, byte a byte", () => {
+    for (const k of Object.keys(v37)) {
+      const [escala, it, donde] = k.split("|"), m = donde === "zona" ? zona : null;
+      const a = fnv1a(reliefMap(syntheticImage(W, H, 4242), +it, m, {}, { escala: +escala }).data);
+      assert(a === v37[k], `${k}: checksum ${a}, en v3.7 era ${v37[k]}`);
+      if (escala === "0.25") {
+        const b = fnv1a(reliefMap(syntheticImage(W, H, 4242), +it, m, {}, opcionesRelieve(+escala, apagadas)).data);
+        assert(b === v37[k], `${k}: con las opciones apagadas el checksum es ${b}`);
+      }
+    }
+  });
+
+  test("las opciones solo viajan si están prendidas, y el nombre del archivo no cambia sin ellas", () => {
+    assert(JSON.stringify(opcionesRelieve(0.25, apagadas)) === '{"escala":0.25}', "apagadas: " + JSON.stringify(opcionesRelieve(0.25, apagadas)));
+    const todas = opcionesRelieve(0.25, { doble: 0.5, suave: true, clahe: true, mezcla: "lds", alfa: 0.75 });
+    assert(JSON.stringify(todas) === '{"escala":0.25,"doble":0.5,"suave":true,"clahe":true,"mezcla":"lds","alfa":0.75}', "prendidas: " + JSON.stringify(todas));
+    assert(JSON.stringify(opcionesRelieve(0, { doble: 0.5, suave: true })) === '{"escala":0}', "sin escala no valen");
+    assert(sufijoRelieve({ escala: 0.25 }) === "_e0.25" && sufijoRelieve({ escala: 0 }) === "" && sufijoRelieve(null) === "", "nombres de siempre");
+    assert(sufijoRelieve(todas) === "_e0.25_doble50_suave_clahe_lds75", "con todo: " + sufijoRelieve(todas));
+  });
+
+  test("Relieve doble: con peso 0 es la textura sola y con peso 1, el objeto solo", () => {
+    // Cada nivel se normaliza por su cuenta y la suma se vuelve a normalizar:
+    // en los extremos tiene que dar lo mismo que una escala sola, salvo el
+    // redondeo de un nivel de gris.
+    const img = texturaConDisco(400, 300, 3, 25, 6);
+    const dif = (a, b) => { let m = 0; for (let i = 0; i < a.data.length; i++) m = Math.max(m, Math.abs(a.data[i] - b.data[i])); return m; };
+    const tex = reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5, doble: 0 });
+    const obj = reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5, doble: 1 });
+    assert(dif(tex, reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5 })) <= 1, "con peso 0 no es la textura");
+    assert(dif(obj, reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5 * 4 })) <= 1, "con peso 1 no es el objeto (escala ×4)");
+    const mitad = reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5, doble: 0.5 });
+    assert(dif(mitad, tex) > 10 && dif(mitad, obj) > 10, "con peso 0.5 debería ser distinto de los dos");
+  });
+
+  test("compresión suave: casi no cambia el centro y no quema los extremos", () => {
+    const img = texturaConDisco(300, 300, 7, 0, 30);
+    const duro = reliefMap(cloneImage(img), 5, null, null, { escala: 1 }), suave = reliefMap(cloneImage(img), 5, null, null, { escala: 1, suave: true });
+    let quemadosDuro = 0, quemadosSuave = 0, peorCentro = 0;
+    for (let i = 0; i < duro.data.length; i += 4) {
+      if (duro.data[i] === 0 || duro.data[i] === 255) quemadosDuro++;
+      if (suave.data[i] === 0 || suave.data[i] === 255) quemadosSuave++;
+      if (Math.abs(duro.data[i] - 128) < 20) peorCentro = Math.max(peorCentro, Math.abs(duro.data[i] - suave.data[i]));
+    }
+    assert(quemadosDuro > 2000, "la prueba necesita extremos recortados: hubo " + quemadosDuro);
+    assert(quemadosSuave < quemadosDuro / 20, "la compresión suave sigue quemando " + quemadosSuave + " de " + quemadosDuro);
+    assert(peorCentro <= 2, "en el centro cambió hasta " + peorCentro + " niveles");
+  });
+
+  test("CLAHE sobre el Relieve: sigue gris y cambia el resultado", () => {
+    const img = texturaConDisco(200, 200, 5, 10, 8);
+    const sin = reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5 }), con = reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5, clahe: true });
+    let gris = true, distintos = 0;
+    for (let i = 0; i < con.data.length; i += 4) {
+      if (con.data[i] !== con.data[i + 1] || con.data[i] !== con.data[i + 2]) gris = false;
+      if (con.data[i] !== sin.data[i]) distintos++;
+    }
+    assert(gris && distintos > con.data.length / 8, "CLAHE: gris " + gris + ", distintos " + distintos);
+  });
+
+  test("mezcla con color: con alfa 0 es el filtro de color; con alfa 1, la luz es la del relieve", () => {
+    const img = syntheticImage(160, 120, 77);
+    for (const [mezcla, fn] of [["lds", ldsEnhance], ["dslab", dsLabEnhance]]) {
+      const color = fn(cloneImage(img), 1.5, null, null);
+      const cero = reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5, mezcla, alfa: 0 });
+      let peor = 0;
+      for (let i = 0; i < color.data.length; i++) peor = Math.max(peor, Math.abs(color.data[i] - cero.data[i]));
+      assert(peor <= 2, mezcla + ": con alfa 0 difiere del filtro de color en " + peor + " niveles");
+      const rel = reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5 });
+      const uno = reliefMap(cloneImage(img), 1.5, null, null, { escala: 0.5, mezcla, alfa: 1 });
+      let peorL = 0;
+      for (let i = 0; i < uno.data.length; i += 4) {
+        const L = rgb2lab(uno.data[i], uno.data[i + 1], uno.data[i + 2])[0], Lr = rgb2lab(rel.data[i], rel.data[i], rel.data[i])[0];
+        // Fuera de gama el color se recorta y la luz se corre algo: se mira la media
+        peorL += Math.abs(L - Lr);
+      }
+      peorL /= uno.data.length / 4;
+      assert(peorL < 2.5, mezcla + ": con alfa 1 la luminosidad se aparta del relieve en " + peorL.toFixed(2) + " de media");
+    }
+  });
+
+  test("en el lote, las opciones congelan sus estadísticas y pasan por JSON sin cambiar nada", () => {
+    const opts = { escala: 0.5, doble: 0.5, suave: true, clahe: true, mezcla: "lds", alfa: 0.5 };
+    const store = {};
+    reliefMap(syntheticImage(160, 120, 5), 1.5, null, store, opts);
+    const f = store.frozen;
+    assert(f && f.textura && f.objeto && typeof f.mid === "number" && f.sig > 0 && f.color && f.color.ev, "congeló: " + Object.keys(f || {}).join(","));
+    const otra = syntheticImage(160, 120, 6);
+    const conCongeladas = reliefMap(cloneImage(otra), 1.5, null, { frozen: f }, opts);
+    const porJSON = reliefMap(cloneImage(otra), 1.5, null, { frozen: JSON.parse(JSON.stringify(f)) }, opts);
+    const suelta = reliefMap(cloneImage(otra), 1.5, null, null, opts);
+    assert(fnv1a(conCongeladas.data) === fnv1a(porJSON.data), "las estadísticas no sobrevivieron al JSON");
+    assert(fnv1a(conCongeladas.data) !== fnv1a(suelta.data), "la foto del lote salió igual que suelta: no usó lo congelado");
+  });
+});
+
+// ============================================================
 // 12. Correspondencia entre el código fuente y el compilado
 //
 // Es la prueba que faltaba: en julio de 2026 se publicó un app.js que no
@@ -1420,7 +1535,7 @@ async function testAsync(name, fn) {
     const img = syntheticImage(40, 30, 4242);
     for (const id of ids) {
       for (const mask of [null, mascaraCentro(40, 30)]) {
-        const opts = id === "relief" ? { escala: 0.25 } : null;
+        const opts = id === "relief" ? { escala: 0.25, doble: 0.5, suave: true, clahe: true, mezcla: "dslab", alfa: 0.5 } : null;
         const esperado = directo(w, id, img, 2.2, mask, null, opts);
         await w.self.onmessage({ data: { id: 7, presetId: id, data: new Uint8ClampedArray(img.data), w: 40, h: 30,
           intensity: 2.2, mask, frozen: null, opts } });

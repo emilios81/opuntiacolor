@@ -386,6 +386,35 @@ ahí cualquier cuadrática.
 Memoria: cuatro arreglos `Float32` del tamaño de la imagen (16 B/px), menos que
 los filtros de decorrelación.
 
+#### Opciones del Relieve con escala (v3.8.0)
+
+Todas apagadas por defecto; apagadas, el cálculo es exactamente el de arriba
+(el pasabanda se separó en `relieveBanda` sin cambiar el orden de las
+operaciones).
+
+- **Doble.** Se calculan dos pasabandas: `Dₜ` con la escala elegida y `Dₒ`
+  con `4·e` (`RELIEF_OBJETO`). Cada uno se lleva a desvíos de su entorno con
+  su centro y su desvío robusto, se suman con el peso `p` del objeto,
+  `D = (1 − p)·zₜ + p·zₒ`, y la suma se vuelve a normalizar con sus cuartiles
+  antes del paso 3. Con `p = 0` o `p = 1` da una escala sola, salvo el
+  redondeo. Memoria: tres arreglos más.
+- **Compresión suave.** En el paso 3, en vez de `128 + x` (con
+  `x = (D − centro)/desvío · 40 · intensidad/1.5`, recortado a 0–255) la
+  salida es `128 + A · asinh(x/K)`, con `K = 40` (`RELIEF_SUAVE_K`) y
+  `A = 127 / asinh(3 · 127/K)` (`RELIEF_SUAVE_TOPE = 3`): la curva llega al
+  blanco o al negro donde la recta llegaba a tres veces el rango. La pendiente
+  en el centro es `A/K ≈ 1,08`.
+- **CLAHE.** `claheEnhance` con intensidad 1.5 sobre la salida gris, que queda
+  gris porque CLAHE escala los tres canales por igual.
+- **Mezcla.** Se aplica `dsLabEnhance` o `ldsEnhance` a la foto (intensidad
+  1.5, misma máscara). Para cada píxel, en CIE-LAB:
+  `L = (1 − α)·L_color + α·L_relieve` y `a, b` del filtro de color.
+  `L_relieve` es la luminosidad del gris del relieve (tabla de 256 valores).
+
+En el lote, las estadísticas congeladas llevan las de los dos niveles
+(`textura`, `objeto`), el centro y el desvío de la suma, y las del filtro de
+color (`color`).
+
 ---
 
 ## Técnico

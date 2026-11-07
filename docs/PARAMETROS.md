@@ -272,6 +272,36 @@ surcos— y quedaba una mancha borrosa.
 El nombre del archivo exportado la registra al lado de la intensidad
 (`IMG_0421_OPC_relief_i1.5_e0.25.png`). En Bordes se omite, como en v3.6.
 
+### Más opciones (v3.8.0)
+
+**Todas apagadas por defecto; apagadas, el Relieve da byte a byte lo mismo que
+en v3.7.** Aparecen en un desplegable debajo de los botones de escala, solo con
+una escala elegida (no en Bordes).
+
+| Opción | Valores | Qué hace |
+|---|---|---|
+| Doble: objeto y textura | peso del objeto 25, **50**, 75 % | Suma la escala elegida (textura) y otra 4 veces mayor (objeto), cada una normalizada en su entorno |
+| Compresión suave | sí / **no** | Los extremos se comprimen (asinh) en vez de recortarse |
+| Realzar con CLAHE | sí / **no** | CLAHE sobre el resultado. **Deja de ser una medida** |
+| Mezclar con color | **no**, DS-LAB, LDS; relieve 25, **50**, 75 % | El relieve entra como luminosidad del filtro de color |
+
+- **Doble.** Sirve cuando un motivo tiene a la vez forma y detalle: el objeto
+  muestra el surco entero y la textura, el picado. Con la foto calibrada, el
+  panel dice cuántos milímetros mide la escala del objeto. Con más peso en el
+  objeto se ve la forma de conjunto; con menos, el detalle.
+- **Compresión suave.** En el centro la pendiente es 1,08: casi no cambia.
+  Lo que el recorte llevaba a negro o blanco liso se comprime y entra con
+  detalle hasta el triple de lejos del gris medio.
+- **CLAHE.** Hace más legible un motivo débil, pero estira el contraste de
+  manera distinta en cada zona: dos zonas de la misma imagen ya no se pueden
+  comparar. Va con intensidad 1.5.
+- **Mezcla.** El filtro de color se calcula con su intensidad por defecto
+  (1.5) y con la misma zona que el Relieve. Con 50 %, la luminosidad es mitad
+  del filtro y mitad del relieve; el color es siempre el del filtro.
+
+Las opciones prendidas van al nombre del archivo, en este orden:
+`_e0.25_doble50_suave_clahe_lds50`.
+
 ---
 
 ## Escala métrica

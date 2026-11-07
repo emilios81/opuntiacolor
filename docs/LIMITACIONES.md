@@ -346,6 +346,12 @@ Para documentar relieve de verdad hacen falta datos de forma: fotogrametría
 (y un modelo de elevación, al que sí se le puede aplicar un Local Relief Model),
 RTI o escaneo. El Relieve de OPC sirve para encontrar y orientar, no para medir.
 
+Dos opciones de v3.8.0 alejan todavía más el resultado de una medida, y conviene
+decirlo al publicar: **Realzar con CLAHE** estira el contraste de manera
+distinta en cada zona, así que dos zonas de la misma imagen ya no se comparan;
+y **Mezclar con color** combina dos procesamientos distintos en una sola
+imagen. El registro y el nombre del archivo las anotan.
+
 ---
 
 ## 13. La escala métrica vale en un plano
