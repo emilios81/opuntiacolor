@@ -650,6 +650,52 @@ No interviene en el procesamiento.
 
 ---
 
+## Modo elevación (v3.9.0)
+
+Un DEM es una grilla de alturas `z` en coma flotante. Nada pasa por el canvas.
+
+1. **Celdas con dato** (`celdasValidas`): ni NaN, ni infinitas, ni el valor de
+   la etiqueta `GDAL_NODATA`, ni fuera de ±10³⁰ (los programas usan ±3.4·10³⁸,
+   el mayor Float32).
+2. **Tendencia** (`quitarTendenciaValidas`): la cuadrática
+   `c₀ + c₁u + c₂v + c₃u² + c₄uv + c₅v²` se ajusta por mínimos cuadrados solo
+   con las celdas con dato. Con huecos los momentos ya no son separables, así
+   que las ecuaciones normales (6 × 6) se arman celda por celda.
+3. **Suavizado con huecos** (`suavizarConHuecos`): convolución normalizada,
+   `S(z) = K * (z·v) / K * v`, con `v` la máscara de celdas con dato y `K` las
+   tres pasadas de promedio en caja de radio ρ (`boxBlur`). Junto a un hueco
+   el promedio usa solo celdas con dato; donde no queda ninguna en el alcance
+   da NaN. Es lo que hace TVT con los huecos de sus nubes de puntos.
+4. **Pasabanda** (`bandaDEM`): `D = S(r) − S(16·r)`, con
+   `r = max(1, round(escala_mm / (2 · celda_mm)))`.
+5. **Vista** (`relieveDEM`): igual que el paso 3 del Relieve sobre fotos, con
+   los cuartiles de las celdas con dato (y de la zona, si la hay); las opciones
+   doble, suave y CLAHE son las mismas. Las celdas sin dato salen negras.
+6. **Residuo** (`residuoDEM`): `D` por los milímetros que mide una unidad
+   vertical (`VerticalUnitsGeoKey`, o la lineal, o metros), sin normalizar;
+   «sin dato» = −9999.
+
+**Celda en mm.** De `ModelPixelScale` o de la matriz `ModelTransformation`, por
+los mm de la unidad lineal (`ProjLinearUnitsGeoKey`: 9001 metro, 9002 pie…).
+Si la clave falta, se suponen metros. Con `GTModelTypeGeoKey` = 2 (grados):
+`111 320 · cos(lat)` m por grado en x y 110 574 m en y, en la latitud del centro.
+
+**Sombreado** (`sombreadoDEM`): normal por diferencias centrales y luz desde el
+noroeste a 45°, `L = (−½, ½, √½)`; `v = 30 + 225 · max(0, n·L)`.
+
+**Por qué el residuo es menor que la profundidad.** El fondo `S(16·r)` abarca
+también parte del surco, así que queda algo más bajo que la roca alrededor, y
+el residuo, algo menor que la profundidad real. En el DEM de prueba, un surco
+de 2 mm de hondo y 6,5 mm de ancho da −1,7 mm con escala 2 mm. Es un relieve
+local, no una cota. Por la misma razón, junto a un surco hondo queda un borde
+algo positivo.
+
+**GeoTIFF de salida** (`tiffConEtiquetas`): TIFF sin comprimir, una tira,
+*little-endian*, con las etiquetas 33550, 33922, 34264, 34735, 34736 y 34737
+copiadas del DEM, y 42113 (`GDAL_NODATA`) en el residuo.
+
+---
+
 ## Referencias
 
 Gillespie, A. R., Kahle, A. B. y Walker, R. E. (1986). Color enhancement of

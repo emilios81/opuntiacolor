@@ -36,6 +36,16 @@ Todas son compatibles con la GPL v3.
 - **Uso:** solo en tiempo de compilación (`node build.js`). La aplicación en
   ejecución no lo carga.
 
+## geotiff.js 3.0.5
+
+- Archivo: `lib/geotiff.js` (la versión para navegador, `dist-browser/geotiff.js`
+  del paquete de npm, sin cambios)
+- Copyright (c) 2015 EOX IT Services GmbH
+- Licencia: MIT
+- Origen: https://geotiffjs.github.io · https://github.com/geotiffjs/geotiff.js
+- **Uso:** desde v3.9.0, para leer los modelos de elevación (DEM) en GeoTIFF.
+  Se carga solo cuando se abre un DEM.
+
 ### Texto de la licencia MIT
 
 ```

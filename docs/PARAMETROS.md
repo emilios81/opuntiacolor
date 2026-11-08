@@ -14,6 +14,7 @@ Rangos, valores por defecto y efecto real de cada control.
 | Resolución de trabajo | completa (hasta 8192 px) / 16 MP / 12 MP / 8 MP / 2000 px | — | **completa** (con más de 16 MP se pregunta al abrir; recomendada 16 MP) |
 | Resolución del lote | 2000 / 4000 / 8192 px | — | **8192 px** |
 | Escala métrica | dos puntos sobre la escala de la foto y los mm entre ellos | — | **sin escala** |
+| Escala del Relieve sobre un DEM | cinco valores según la celda (con 0,5 mm: 1 a 20 mm; con 8 cm: 20 cm a 5 m) | — | **la segunda** |
 
 ---
 
@@ -540,3 +541,82 @@ el `.json` o la propia imagen exportada. Tiene:
 
 Sale en el idioma de la interfaz, en A4. Si la foto tiene GPS, el informe dice
 que lo tiene pero no copia las coordenadas. El lote no hace informes.
+
+---
+
+## Modo elevación (DEM)
+
+**Desde v3.9.0.** Se abre igual que una foto: arrastrando el archivo o con un
+clic. Un TIFF de una sola banda de alturas (en coma flotante, o entera de 16
+bits o más con georreferencia) se abre como **modelo de elevación**; cualquier
+otro TIFF avisa que no lo es (el navegador no muestra TIFF de fotos).
+
+Al abrirlo:
+
+- se resta la superficie cuadrática que mejor ajusta las alturas (la
+  inclinación y la curvatura del panel);
+- el «original» es el **sombreado** del DEM, con luz desde el noroeste a 45°;
+- se aplica el Relieve, con la escala por defecto;
+- el panel muestra el tamaño de la celda en mm, el tamaño en celdas, el EPSG,
+  el relieve que queda sin la inclinación y el porcentaje de celdas con dato,
+  con avisos si las unidades se suponen, si la celda es aproximada (grados) o
+  si se leyó reducido.
+
+### Escala y opciones
+
+| Control | Valores | Por defecto |
+|---|---|---|
+| Escala | cinco valores redondos según la celda (ver abajo) | **la segunda** |
+| Doble: objeto y textura | peso del objeto 25, 50, 75 % (objeto = 4 × escala) | apagado |
+| Compresión suave | sí / no | no |
+| Realzar con CLAHE | sí / no | no |
+
+Las escalas se adaptan a la celda: son cinco valores redondos (1-2-5) desde el
+menor que abarca al menos dos celdas. Con celdas de 0,5 mm (un panel
+fotografiado de cerca) son 1, 2, 5, 10 y 20 mm; con celdas de 8 cm (un vuelo de
+dron), 20 cm, 50 cm, 1 m, 2 m y 5 m; con celdas de 50 cm, de 2 a 50 m.
+
+La escala es lo más chico que se conserva, en mm de verdad: el radio del
+suavizado es la mitad de la escala dividida por el lado de la celda (al menos
+una celda). El fondo que se resta es 16 veces más grande. Con una escala chica
+el fondo también es chico y se va casi toda la ondulación del panel; con una
+grande, parte de la ondulación queda. Para grabados de algunos milímetros de
+ancho, 2 mm suele ser la que mejor se lee. En un DEM de dron, que es un modelo
+de superficie, la vegetación aparece como el relieve más fuerte; las escalas
+mayores la borran y dejan las formas del terreno. La mezcla con color no está, porque
+un DEM no tiene colores.
+
+### Qué baja
+
+Siempre un `.zip`, porque son varios archivos:
+
+| Archivo | Qué es |
+|---|---|
+| `…_e2mm.png` (o JPG o TIFF) | La imagen para ver, con su registro adentro |
+| `…_e2mm_georref.tif` | La misma imagen, como GeoTIFF RGB de 8 bits |
+| `…_e2mm_residuo_mm.tif` | El residuo en mm, GeoTIFF Float32 de una banda; «sin dato» = −9999 |
+| `.json` y `.pdf` | Con `+JSON` y `+PDF`, como con fotos |
+
+El **residuo** es el pasabanda sin normalizar, pasado a milímetros: positivo
+donde la superficie está más alta que su entorno a esa escala, negativo donde
+está más baja. No lleva la compresión suave ni CLAHE, que son solo para ver; con
+el Relieve doble es la suma pesada de los dos niveles, también en mm.
+
+Los dos GeoTIFF llevan las etiquetas de coordenadas del DEM copiadas tal cual,
+así que QGIS los ubica en el mismo lugar y con el mismo sistema. Si el DEM se
+leyó reducido, la escala de la celda se ajusta.
+
+### Límites de tamaño
+
+Hasta **16 MP** y **8192 celdas** de lado. Un DEM más grande se lee reducido por
+vecino más cercano, que no mezcla el valor de «sin dato» con las alturas.
+
+### Registro
+
+El registro agrega el campo `dem`: `celda_mm` (y `celda_x_mm`, `celda_y_mm`),
+`unidad`, `unidad_supuesta`, `aproximado`, `epsg`, `sin_dato`, el tamaño
+original, `reducido`, `con_dato` (fracción de celdas con dato) y
+`sha256_alturas`, la huella de las alturas tal como se leyeron (Float32, fila
+por fila, antes de quitar la inclinación). Las opciones del Relieve van con
+`escala_mm` en vez de `escala`. Reproducir un registro de un DEM todavía no
+está disponible.

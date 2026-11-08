@@ -2044,6 +2044,193 @@ async function testAsync(name, fn) {
     assert(en.includes(cad("Processing report").slice(1, -1)) && en.includes(cad("Eyedropper 45").slice(1, -1)) && !en.includes(cad("Gotero").slice(1, -1)), "en inglés");
   });
 
+  // ============================================================
+  // Modo elevación (v3.9.0)
+  //
+  // Un DEM inventado: 600 × 400 celdas de 0,5 mm, alturas en metros cerca de
+  // 1200 m, con inclinación, curvatura y grano de ±0,1 mm; un surco de 2 mm de
+  // hondo y 6,5 mm de ancho; un hueco (NaN) y una franja marcada con −32767.
+  // Se escribe con el GeoTIFF de OPC y se lee con la geotiff.js de lib/, la
+  // misma que usa la página.
+  // ============================================================
+
+  console.log("\n\x1b[1mModo elevación (v3.9.0)\x1b[0m");
+  const demCtx = cargarApp({ postMessage() {}, TextEncoder, TextDecoder, setTimeout, clearTimeout });
+  vm.runInContext(fs.readFileSync(path.join(ROOT, "lib", "geotiff.js"), "utf8"), demCtx);
+  const D = (nombre) => vm.runInContext(nombre, demCtx);
+  const GT = D("GeoTIFF");
+  const DW = 600, DH = 400, CELDA = 0.0005;
+  const alturasPrueba = () => {
+    let s = 7; const rnd = () => (s = (s * 1103515245 + 12345) % 2147483648) / 2147483648;
+    const z = new Float32Array(DW * DH);
+    for (let y = 0; y < DH; y++) for (let x = 0; x < DW; x++) {
+      const u = x * CELDA, v = y * CELDA;
+      let alt = 1200 + 0.08 * u - 0.05 * v + 0.6 * u * u + (rnd() - 0.5) * 0.0002;
+      if (Math.abs(x - 300) <= 6) alt -= 0.002;
+      if ((x - 100) ** 2 + (y - 100) ** 2 < 900) alt = NaN;
+      if (y >= 380) alt = -32767;
+      z[y * DW + x] = alt;
+    }
+    return z;
+  };
+  const GEO_PRUEBA = { ModelPixelScale: [CELDA, CELDA, 0], ModelTiepoint: [0, 0, 0, 350000, 6900000, 0],
+    GeoKeyDirectory: [1, 1, 0, 4, 1024, 0, 1, 1, 1025, 0, 1, 1, 3072, 0, 1, 32719, 3076, 0, 1, 9001] };
+  const buf = (u8) => u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.length);
+  const demPrueba = async (maxMP) => {
+    const tif = D("geotiffFloat32")(alturasPrueba(), DW, DH, GEO_PRUEBA, -32767);
+    return D("leerDEM")(GT, buf(tif), maxMP || 16, 8192);
+  };
+
+  await testAsync("las celdas sin dato son NaN, los centinelas de ±3.4e38 y el valor declarado", () => {
+    const v = D("celdasValidas")(new Float32Array([1, NaN, -32767, 3.4e38, -3.4e38, 0, 1e5]), -32767);
+    assert(Array.from(v).join("") === "1000011", "válidas: " + Array.from(v).join(""));
+    assert(Array.from(D("celdasValidas")(new Float32Array([1, -32767]), null)).join("") === "11", "sin valor declarado, −32767 es un dato");
+  });
+
+  await testAsync("la tendencia se quita con huecos: una cuadrática exacta queda en cero y los huecos no se tocan", () => {
+    const w = 41, h = 27, z = new Float32Array(w * h), valido = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x, hueco = (x - 12) ** 2 + (y - 9) ** 2 < 30;
+      z[i] = hueco ? NaN : 50 + 0.3 * x - 0.2 * y + 0.01 * x * x - 0.02 * x * y + 0.015 * y * y;
+      valido[i] = hueco ? 0 : 1;
+    }
+    assert(D("quitarTendenciaValidas")(z, valido, w, h), "no ajustó");
+    for (let i = 0; i < z.length; i++) {
+      if (valido[i]) assert(Math.abs(z[i]) < 1e-4, "quedó " + z[i] + " en " + i);
+      else assert(z[i] !== z[i], "tocó un hueco");
+    }
+  });
+
+  await testAsync("el suavizado con huecos no mezcla el valor de «sin dato»", () => {
+    const w = 60, h = 40, z = new Float32Array(w * h).fill(5), valido = new Uint8Array(w * h).fill(1);
+    for (let i = 0; i < z.length; i++) if (i % 7 === 0 || (i % w) > 50) { z[i] = -32767; valido[i] = 0; }
+    for (const r of [1, 4, 20]) {
+      const s = D("suavizarConHuecos")(z, valido, w, h, r);
+      // Donde no hay ningún dato al alcance da NaN; donde hay, exactamente 5
+      for (let i = 0; i < s.length; i++) {
+        if (valido[i]) assert(s[i] === s[i], `r=${r}: NaN en una celda con dato (${i})`);
+        if (s[i] === s[i]) assert(Math.abs(s[i] - 5) < 1e-4, `r=${r}: ${s[i]} en ${i}`);
+      }
+    }
+  });
+
+  await testAsync("leerDEM lee el GeoTIFF: celda, unidades, sistema de coordenadas y «sin dato»", async () => {
+    const dem = await demPrueba();
+    assert(dem && dem.w === DW && dem.h === DH && !dem.reducido, "tamaño");
+    assert(Math.abs(dem.pxmm - 0.5) < 1e-9 && dem.mmPorUnidad === 1000 && dem.unidad === "m" && !dem.supuesto && !dem.aproximado, "celda y unidades: " + JSON.stringify({ pxmm: dem.pxmm, k: dem.mmPorUnidad, u: dem.unidad }));
+    assert(dem.nodata === -32767 && dem.epsg === 32719, "sin dato " + dem.nodata + ", EPSG " + dem.epsg);
+    const esperado = 1 - (20 * DW + 2821) / (DW * DH);   // franja de 20 filas y hueco de radio 30 (2821 celdas)
+    assert(Math.abs(dem.conDato - esperado) < 0.002, "celdas con dato: " + dem.conDato + ", esperado ~" + esperado.toFixed(4));
+  });
+
+  await testAsync("un DEM grande se lee reducido, sin mezclar «sin dato», y la celda crece en proporción", async () => {
+    const dem = await demPrueba(0.06);   // 60 000 celdas de tope para 240 000
+    assert(dem.reducido && dem.w === 300 && dem.h === 200, "tamaño reducido: " + dem.w + " × " + dem.h);
+    assert(Math.abs(dem.pxmm - 1) < 1e-9 && Math.abs(dem.geo.ModelPixelScale[0] - 2 * CELDA) < 1e-12, "celda: " + dem.pxmm);
+    let raros = 0;
+    for (let i = 0; i < dem.z.length; i++) if (dem.valido[i] && (dem.z[i] < 1199 || dem.z[i] > 1201)) raros++;
+    assert(raros === 0, raros + " celdas con alturas mezcladas con el «sin dato»");
+  });
+
+  await testAsync("leerDEM no toma por DEM un TIFF de color ni uno gris de 8 bits", async () => {
+    const color = D("tiffRGB")(new Uint8ClampedArray(20 * 10 * 4).fill(100), 20, 10);
+    assert(await D("leerDEM")(GT, buf(color), 16, 8192) === null, "TIFF de color");
+    const gris = D("tiffConEtiquetas")(20, 10, 1, 8, 1, new Uint8Array(200).fill(50), []);
+    assert(await D("leerDEM")(GT, buf(gris), 16, 8192) === null, "TIFF gris de 8 bits");
+  });
+
+  await testAsync("sin unidades declaradas se suponen metros; en grados, la celda en mm es aproximada", async () => {
+    const z = new Float32Array(100).fill(10);
+    const sinUnidad = { ModelPixelScale: [0.001, 0.001, 0], ModelTiepoint: [0, 0, 0, 0, 0, 0], GeoKeyDirectory: [1, 1, 0, 1, 1024, 0, 1, 1] };
+    const a = await D("leerDEM")(GT, buf(D("geotiffFloat32")(z, 10, 10, sinUnidad, null)), 16, 8192);
+    assert(a.supuesto && Math.abs(a.pxmm - 1) < 1e-9, "supuesto: " + JSON.stringify({ s: a.supuesto, p: a.pxmm }));
+    // 1e-6 grados en latitud −27°: ~99,2 mm este-oeste y ~110,6 mm norte-sur
+    const grados = { ModelPixelScale: [1e-6, 1e-6, 0], ModelTiepoint: [0, 0, 0, -67, -27, 0], GeoKeyDirectory: [1, 1, 0, 2, 1024, 0, 1, 2, 2048, 0, 1, 4326] };
+    const b = await D("leerDEM")(GT, buf(D("geotiffFloat32")(z, 10, 10, grados, null)), 16, 8192);
+    assert(b.aproximado && b.geografico && Math.abs(b.mmX - 99.19) < 0.05 && Math.abs(b.mmY - 110.57) < 0.05 && b.epsg === 4326, "grados: " + JSON.stringify({ x: b.mmX, y: b.mmY }));
+  });
+
+  await testAsync("el residuo mide el surco en mm, deja en cero lo lejano y marca los huecos", async () => {
+    const dem = await demPrueba();
+    D("quitarTendenciaValidas")(dem.z, dem.valido, dem.w, dem.h);
+    const res = D("residuoDEM")(dem, dem.w, dem.h, { escala_mm: 2 });
+    const en = (x, y) => res[y * DW + x];
+    // El fondo abarca también parte del surco, así que el residuo es algo
+    // menor que la profundidad real (2 mm): es un relieve local, no una cota
+    assert(en(300, 200) < -1.4 && en(300, 200) > -2.05, "en el surco: " + en(300, 200).toFixed(3) + " mm");
+    assert(Math.abs(en(500, 200)) < 0.05 && Math.abs(en(500, 50)) < 0.05, "lejos: " + en(500, 200).toFixed(3) + ", " + en(500, 50).toFixed(3));
+    assert(en(100, 100) === -9999 && en(10, 390) === -9999, "huecos: " + en(100, 100) + ", " + en(10, 390));
+    const doble = D("residuoDEM")(dem, dem.w, dem.h, { escala_mm: 2, doble: 0.5 });
+    assert(doble[200 * DW + 300] < -1 && doble[100 * DW + 100] === -9999, "doble: " + doble[200 * DW + 300]);
+  });
+
+  await testAsync("la vista del DEM: gris, el surco oscuro, los huecos en negro y el centro congelado para el lote", async () => {
+    const dem = await demPrueba();
+    D("quitarTendenciaValidas")(dem.z, dem.valido, dem.w, dem.h);
+    const store = {};
+    const img = D("relieveDEM")(dem, DW, DH, 1.5, null, store, { escala_mm: 2 });
+    const px = (x, y) => img.data[(y * DW + x) * 4];
+    assert(px(300, 200) < 40 && Math.abs(px(500, 200) - 128) < 30, "surco " + px(300, 200) + ", lejos " + px(500, 200));
+    assert(px(100, 100) === 0 && px(10, 390) === 0, "huecos en negro");
+    assert(store.frozen && store.frozen.sig > 0, "congeló el centro y el desvío");
+    const suave = D("relieveDEM")(dem, DW, DH, 1.5, null, null, { escala_mm: 2, suave: true, clahe: true, doble: 0.5 });
+    assert(suave.data[(100 * DW + 100) * 4] === 0 || suave.data[(100 * DW + 100) * 4] < 20, "con opciones, el hueco sigue oscuro");
+  });
+
+  await testAsync("el residuo y la imagen georreferenciada vuelven a leerse con su lugar, su celda y su «sin dato»", async () => {
+    const dem = await demPrueba();
+    D("quitarTendenciaValidas")(dem.z, dem.valido, dem.w, dem.h);
+    const res = D("residuoDEM")(dem, DW, DH, { escala_mm: 2 });
+    const t = await GT.fromArrayBuffer(buf(D("geotiffFloat32")(res, DW, DH, dem.geo, -9999))), im = await t.getImage();
+    const r = await im.readRasters({ interleave: true });
+    let iguales = r.length === res.length;
+    for (let i = 0; i < res.length && iguales; i++) if (r[i] !== res[i]) iguales = false;
+    assert(iguales && r instanceof Float32Array, "los valores no volvieron iguales");
+    assert(im.getGDALNoData() === -9999 && im.getOrigin().join() === "350000,6900000,0" && im.getResolution()[0] === CELDA, "georreferencia");
+    assert(im.getGeoKeys().ProjectedCSTypeGeoKey === 32719 && im.getGeoKeys().ProjLinearUnitsGeoKey === 9001, "claves: " + JSON.stringify(im.getGeoKeys()));
+    // La imagen georreferenciada lleva también el registro, que OPC sabe leer
+    const rgba = new Uint8ClampedArray(DW * DH * 4).fill(90), texto = JSON.stringify({ formato: "OPC-registro", version_formato: 1, prueba: "ñandú" });
+    const g = D("geotiffRGB")(rgba, DW, DH, dem.geo, texto);
+    const tg = await GT.fromArrayBuffer(buf(g)), ig = await tg.getImage();
+    assert(ig.getSamplesPerPixel() === 3 && ig.getGeoKeys().ProjectedCSTypeGeoKey === 32719, "RGB georreferenciado");
+    assert(D("leerRegistro")(g).prueba === "ñandú", "el registro adentro del GeoTIFF");
+  });
+
+  await testAsync("la escala en mm se vuelve radio en celdas según la celda; las opciones y el nombre del archivo", () => {
+    const rd = D("radioDEM");
+    assert(rd(2, 0.5) === 2 && rd(2, 1) === 1 && rd(20, 0.5) === 20 && rd(1, 2) === 1, "radios");
+    assert(JSON.stringify(D("opcionesRelieveDEM")(2, { doble: null, suave: false, clahe: false })) === '{"escala_mm":2}', "apagadas");
+    assert(JSON.stringify(D("opcionesRelieveDEM")(5, { doble: 0.5, suave: true, clahe: true })) === '{"escala_mm":5,"doble":0.5,"suave":true,"clahe":true}', "prendidas");
+    assert(D("sufijoRelieve")({ escala_mm: 2 }) === "_e2mm" && D("sufijoRelieve")({ escala_mm: 5, doble: 0.25, suave: true }) === "_e5mm_doble25_suave", "nombre");
+    assert(D("sufijoRelieve")({ escala: 0.25 }) === "_e0.25", "con fotos, como siempre");
+    const cg = D("clavesGeo")([1, 1, 0, 3, 1024, 0, 1, 1, 3072, 0, 1, 32719, 3076, 0, 1, 9001]);
+    assert(cg[1024] === 1 && cg[3072] === 32719 && cg[3076] === 9001, "claves: " + JSON.stringify(cg));
+  });
+
+  await testAsync("las escalas se adaptan a la celda: mm para un panel, cm y m para un vuelo de dron", () => {
+    const e = (pxmm) => D("escalasDEM")(pxmm).join(",");
+    assert(e(0.5) === "1,2,5,10,20", "panel de 0,5 mm: " + e(0.5));
+    assert(e(80.2) === "200,500,1000,2000,5000", "dron de 8 cm: " + e(80.2));
+    assert(e(518) === "2000,5000,10000,20000,50000", "celda de 52 cm: " + e(518));
+    assert(e(1e7) === "5000,10000,20000,50000,100000", "celdas enormes: las últimas cinco");
+    assert(e(0.01) === "1,2,5,10,20", "celdas diminutas: desde 1 mm");
+    // La menor siempre abarca al menos dos celdas: radio de una celda o más
+    for (const px of [0.3, 0.5, 2.7, 80.2, 518]) assert(D("radioDEM")(D("escalasDEM")(px)[0], px) >= 1, "radio con celda " + px);
+  });
+
+  await testAsync("el worker hace el Relieve sobre el DEM igual que la página", async () => {
+    const dem = await demPrueba(0.06);
+    D("quitarTendenciaValidas")(dem.z, dem.valido, dem.w, dem.h);
+    const w = cargarWorker(), opts = { escala_mm: 2, doble: 0.5, suave: true };
+    const esperado = D("relieveDEM")({ z: dem.z, valido: dem.valido, pxmm: dem.pxmm }, dem.w, dem.h, 1.8, null, {}, opts);
+    const origen = new Uint8ClampedArray(dem.w * dem.h * 4).fill(77);
+    await w.self.onmessage({ data: { id: 9, presetId: "relief", data: origen, w: dem.w, h: dem.h, intensity: 1.8, mask: null, frozen: null, opts,
+      dem: { z: dem.z, valido: dem.valido, pxmm: dem.pxmm } } });
+    const r = w.salida.pop();
+    assert(r && r.id === 9 && !r.error, "el worker no respondió bien (" + (r && r.error) + ")");
+    assert(fnv1a(r.data) === fnv1a(esperado.data), "el worker dio otro resultado");
+  });
+
   // Con +JSON o +PDF, la imagen y lo demás bajan juntos en una carpeta. Si el
   // navegador no deja elegir dónde, en un .zip que la trae adentro.
   await testAsync("el .zip guarda los archivos tal cual, adentro de su carpeta, con nombres en UTF-8", () => {

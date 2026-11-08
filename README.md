@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.8.0
+# OPC – OpuntiaColor v3.9.0
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -137,6 +137,21 @@ Cada archivo se guarda con el nombre del original y conserva su propio EXIF/GPS
 estándar de reemplazo de texturas: alinear el modelo con las fotografías
 originales y reconstruir la textura con las realzadas.
 
+## Modelos de elevación (DEM)
+
+Desde v3.9.0, OPC abre un **DEM en GeoTIFF**, como los que exporta Metashape:
+alturas en coma flotante, que nunca pasan a 8 bits. Se ve sombreado, como una
+foto con luz rasante, y el **Relieve trabaja sobre las alturas**, con la escala
+en milímetros que da el tamaño de la celda. Los huecos sin dato no contaminan
+el resultado (convolución normalizada). La descarga trae, además de la imagen,
+la imagen **georreferenciada** y el **residuo en mm** como GeoTIFF Float32, para
+medir en QGIS u otro SIG ([detalle](docs/PARAMETROS.md#modo-elevación-dem)).
+Las escalas se adaptan a la celda, así que sirve tanto para un panel
+fotografiado de cerca (milímetros) como para un DEM de dron (centímetros y
+metros). Se verificó con DEM de Metashape de vuelos de dron; falta uno de cerca,
+de un panel con grabados
+([limitaciones](docs/LIMITACIONES.md#14-el-modo-elevación-falta-probarlo-con-un-dem-real)).
+
 ## Entrada y salida
 
 | | |
@@ -211,7 +226,7 @@ index.html              Página principal (carga app.js precompilado)
 app.js                  Aplicación compilada — NO editar a mano
 src/app.jsx             Código fuente (editar acá)
 build.js                Compila src/app.jsx → app.js  (node build.js)
-lib/                    React, Babel y tipografías incluidas localmente
+lib/                    React, Babel, geotiff.js y tipografías incluidas localmente
 tests/                  Pruebas automáticas del núcleo de procesamiento
 docs/                   Documentación técnica
 OpuntiaColor.bat        Acceso directo para Windows
@@ -223,7 +238,8 @@ React 18 con JSX precompilado, y procesamiento de imagen píxel a píxel en
 JavaScript puro: eigendecomposición de Jacobi con ordenamiento por eigenvalor,
 summed-area tables para el contraste local, conversiones RGB ↔ CIE-LAB ↔ YCbCr,
 parser y reinyector EXIF/GPS propios y encoder TIFF integrado. Sin dependencias
-en tiempo de ejecución más allá de React.
+en tiempo de ejecución más allá de React, y de geotiff.js para leer los modelos
+de elevación (v3.9.0), que se carga solo al abrir uno.
 
 ---
 
@@ -257,7 +273,7 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.8.0)
+para el realce digital de pigmentos y grabados en arte rupestre* (v3.9.0)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://doi.org/10.5281/zenodo.21796290
 

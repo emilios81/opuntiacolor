@@ -4,7 +4,119 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v3.9.0 (2026-11-08)
+
+**Con fotos, no cambia ningún resultado:** los filtros, el gotero, los ajustes y
+el Relieve dan los mismos píxeles que en v3.8.0. Lo nuevo es un modo aparte para
+modelos de elevación.
+
+### Modo elevación: un DEM en GeoTIFF
+
+- **El problema.** El Relieve trabaja sobre el brillo de una foto: con luz
+  rasante eso se parece al relieve, pero no lo es, y no se puede medir
+  ([LIMITACIONES.md §12](docs/LIMITACIONES.md#12-el-relieve-mide-brillo-no-altura)).
+  Con fotogrametría ya se tiene la forma de verdad: un modelo de elevación.
+
+- **El cambio.** OPC abre un **DEM en GeoTIFF**, como los que exporta
+  Metashape: una banda de alturas en coma flotante. Se lee con geotiff.js
+  (licencia MIT, en `lib/`, se carga solo cuando hace falta) y **no pasa por el
+  canvas**: las alturas no se reducen a 8 bits. Se detecta solo: un TIFF de una
+  banda en coma flotante, o entera de 16 bits o más con georreferencia.
+
+- **Cómo se ve.** El «original» es el DEM sombreado, como una foto con luz
+  rasante desde el noroeste. A la izquierda del deslizador va el Relieve, que
+  se aplica solo al abrir el archivo. Los filtros de color se apagan (un DEM no
+  tiene colores) y también el gotero, el modo Acumular y el lote.
+
+- **El Relieve sobre alturas.** Es el mismo pasabanda que sobre fotos (un
+  *Local Relief Model*), pero sobre las alturas y con la escala **en
+  milímetros**, que salen del tamaño de la celda. Las escalas se adaptan a la
+  celda: cinco valores redondos desde el menor que abarca dos celdas. Para un
+  panel con celdas de 0,5 mm son 1, 2, 5, 10 y 20 mm; para un vuelo de dron con
+  celdas de 8 cm, de 20 cm a 5 m. Por defecto, la segunda. Antes se resta la superficie cuadrática que mejor ajusta las alturas
+  con dato: la inclinación y la curvatura del panel. Valen el Relieve doble, la
+  compresión suave y CLAHE; la mezcla con color no.
+
+- **Los huecos.** Las celdas sin dato (el valor que declara el archivo, NaN o
+  los centinelas de ±3.4·10³⁸) no entran en ninguna cuenta: el suavizado usa
+  **convolución normalizada**, como TVT, y junto a un hueco promedia solo las
+  celdas con dato. En la imagen salen en negro y en el residuo, con −9999.
+
+- **Tres salidas**, juntas en el `.zip` de la descarga:
+  - la imagen para ver (PNG, JPG o TIFF, con su registro);
+  - `…_georref.tif`: la misma imagen como GeoTIFF RGB;
+  - `…_residuo_mm.tif`: el **residuo en milímetros** como GeoTIFF Float32, con
+    «sin dato» = −9999, para medir en QGIS u otro SIG.
+
+  Las dos llevan las etiquetas de coordenadas del DEM copiadas tal cual
+  (escala, punto de amarre o transformación, claves y parámetros), así que el
+  SIG las ubica en el mismo lugar y con el mismo sistema.
+
+- **Lo que se lee y lo que se supone.** El tamaño de la celda sale de la
+  georreferencia. Las unidades, de la clave de unidades lineales; si el archivo
+  no las dice, se suponen metros y el panel lo avisa. Con coordenadas en grados,
+  la celda se pasa a mm en la latitud del centro (aproximado, con aviso). Un DEM
+  de más de 16 MP o de más de 8192 celdas de lado se lee reducido, por vecino
+  más cercano para no mezclar el «sin dato», y la georreferencia se ajusta.
+
+- **Registro e informe.** El registro anota el DEM (celda, unidades, sistema de
+  coordenadas, «sin dato», tamaño original y la huella SHA-256 de las alturas
+  leídas) y las opciones del Relieve con `escala_mm`. El informe en PDF lo
+  nombra. **Reproducir un registro de un DEM todavía no está disponible.**
+
+- **Trece pruebas nuevas** (123 en total), con un DEM inventado de 600 × 400
+  celdas de 0,5 mm con un surco de 2 mm, un hueco y una franja sin dato, escrito
+  por OPC y leído con la misma geotiff.js de `lib/`: celdas sin dato, la
+  tendencia con huecos, el suavizado con huecos, la lectura (celda, unidades,
+  EPSG, «sin dato»), la lectura reducida, que un TIFF de color o gris de 8 bits
+  no se tome por DEM, las unidades supuestas y los grados, el residuo del surco,
+  la vista, la ida y vuelta de los dos GeoTIFF, las escalas adaptadas a la
+  celda y el worker.
+
+### Verificado en el navegador, con un DEM inventado
+
+No hay todavía un DEM real de Metashape. Con uno inventado de 1200 × 800 celdas
+de 0,5 mm (un panel inclinado y ondulado, un surco curvo de 1,5 mm, un anillo y
+una cúpula de 3 mm, un hueco y un borde sin dato):
+
+- Se abre en 3,5 s, carga geotiff.js recién ahí y muestra la celda (0,50 mm), el
+  EPSG y el porcentaje con dato. Quedan habilitados solo el Relieve y sus
+  opciones.
+- A 2 mm el grabado se ve nítido y la ondulación del panel desaparece; a 5 mm
+  entra parte de la ondulación. Por eso 2 mm es la escala por defecto.
+- La descarga baja un `.zip` con la imagen, la georreferenciada, el residuo, el
+  `.json` y el informe. El residuo da −2,1 mm en la cúpula, −1,0 mm en el
+  surco y −0,06 mm lejos; los huecos, −9999; el sistema de coordenadas y el
+  origen, los del DEM.
+- Un TIFF de color avisa que no es un DEM; una foto común vuelve al modo de
+  siempre.
+
+### Verificado con DEM reales de Metashape
+
+Con cuatro DEM exportados por Metashape de vuelos de dron del laboratorio (Finca
+Rodríguez, morteros de Tinogasta, «7P» y UNCA):
+
+- Son GeoTIFF Float32 con **compresión LZW, en mosaicos y con vistas
+  reducidas**: geotiff.js los lee y OPC toma la imagen completa.
+- El **«sin dato» es −32767**, declarado en `GDAL_NODATA`: OPC lo reconoce (en
+  Finca Rodríguez, el 15 % de las celdas, los bordes del vuelo).
+- Las coordenadas vienen en **WGS 84, en grados** (EPSG:4326), con la clave de
+  unidades verticales en metros: OPC pasa la celda a mm en la latitud del centro
+  y lo avisa (8 cm en Finca Rodríguez, 52 cm en los morteros).
+- Con las escalas fijas en mm los cinco botones daban lo mismo con estas celdas.
+  Por eso **las escalas se adaptan a la celda**. En Finca Rodríguez, a 50 cm se
+  destacan los arbustos (es un modelo de superficie) y a 2 m, las formas del
+  terreno.
+- La descarga baja la imagen georreferenciada y el residuo con **el mismo
+  origen, la misma celda y el mismo EPSG** que el DEM de Metashape.
+
+Falta todavía un DEM de cerca, de un panel con grabados y celdas de menos de un
+milímetro, exportado con proyección planar
+([LIMITACIONES.md §14](docs/LIMITACIONES.md#14-el-modo-elevación-falta-probarlo-con-un-dem-real)).
+
 ## v3.8.0 (2026-11-07)
+
+No tuvo publicación propia: salió junto con la v3.9.0, el 8 de noviembre de 2026.
 
 **No cambia ningún resultado.** Los filtros, el gotero y los ajustes dan los
 mismos píxeles que en v3.7.3. Cambian los archivos: llevan el registro adentro.

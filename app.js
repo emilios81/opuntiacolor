@@ -33,11 +33,11 @@ const {
 // Dirección de app.js, para lanzar el worker con exactamente el mismo código
 const APP_SRC = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : null;
 // Versión que se anota en el registro de cada exportación (v3.8.0)
-const OPC_VERSION = "3.8.0";
+const OPC_VERSION = "3.9.0";
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.8.0
+// OPC – OpuntiaColor v3.9.0
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -62,6 +62,9 @@ const OPC_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 // v3.8.0: registro de sesión dentro de cada exportación y en un .json
 //       aparte (y un .csv por lote); un registro se puede reproducir y
 //       comprobar píxel a píxel. No cambia ningún resultado
+// v3.9.0: modo elevación: abre un DEM en GeoTIFF (alturas en coma flotante)
+//       y aplica el Relieve sobre las alturas, con la escala en mm;
+//       baja el residuo en mm como GeoTIFF. Con fotos no cambia nada
 // ============================================================
 
 // --- Color Conversion Core ---
@@ -1149,13 +1152,535 @@ function opcionesRelieve(escala, o) {
 // Lo que el Relieve agrega al nombre del archivo: _e0.25_doble50_suave_clahe_lds50.
 // Con escala 0 (bordes) no agrega nada, como en v3.6.
 function sufijoRelieve(opts) {
-  if (!opts || !opts.escala) return "";
-  let s = `_e${opts.escala}`;
+  if (!opts || !(opts.escala || opts.escala_mm)) return "";
+  // Sobre un DEM (v3.9.0) la escala va en mm: _e5mm
+  let s = opts.escala_mm ? `_e${opts.escala_mm}mm` : `_e${opts.escala}`;
   if (opts.doble != null) s += `_doble${Math.round(opts.doble * 100)}`;
   if (opts.suave) s += "_suave";
   if (opts.clahe) s += "_clahe";
   if (opts.mezcla) s += `_${opts.mezcla}${Math.round((opts.alfa == null ? 0.5 : opts.alfa) * 100)}`;
   return s;
+}
+
+// ============================================================
+// MODO ELEVACIÓN (v3.9.0)
+// Un modelo de elevación (DEM) en GeoTIFF: alturas en coma flotante, no
+// colores. No pasa por el canvas, así que no se pierde nada a 8 bits. Sobre
+// las alturas se aplica el mismo pasabanda que el Relieve usa sobre el brillo
+// —un Local Relief Model—, pero acá sí es relieve, y en milímetros. Las
+// funciones de esta sección no usan el documento: corren en el worker.
+// ============================================================
+
+// Escalas del Relieve sobre un DEM, en mm: lo más chico que se conserva. Se
+// adaptan a la celda: cinco valores redondos (1-2-5) desde el menor que abarca
+// al menos dos celdas. Con celdas de 0,5 mm (un panel fotografiado de cerca)
+// son 1, 2, 5, 10 y 20 mm; con celdas de 8 cm (un vuelo de dron), de 20 cm a
+// 5 m. Por defecto, la segunda.
+const DEM_REDONDOS_MM = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
+const DEM_ESCALA_DEFECTO = 2;
+function escalasDEM(pxmm) {
+  let i = DEM_REDONDOS_MM.findIndex(v => v >= 2 * pxmm - 1e-9);
+  if (i < 0) i = DEM_REDONDOS_MM.length;
+  i = Math.min(i, DEM_REDONDOS_MM.length - 5);
+  return DEM_REDONDOS_MM.slice(i, i + 5);
+}
+// Tope del tamaño de trabajo de un DEM, en megaceldas, y del lado mayor
+const DEM_MAX_MP = 16;
+const DEM_MAX_LADO = 8192;
+// Valor de «sin dato» del residuo exportado
+const DEM_SIN_DATO = -9999;
+
+// Celdas con dato: ni NaN ni infinitas, ni el valor de «sin dato» del archivo,
+// ni los centinelas habituales de los programas (±3.4e38, el mayor Float32)
+function celdasValidas(z, nodata) {
+  const n = z.length,
+    v = new Uint8Array(n),
+    nd = nodata != null && isFinite(nodata) ? Math.fround(nodata) : null;
+  for (let i = 0; i < n; i++) {
+    const x = z[i];
+    v[i] = x === x && x > -1e30 && x < 1e30 && x !== nd ? 1 : 0;
+  }
+  return v;
+}
+
+// Resta, en el lugar, la superficie cuadrática que mejor ajusta las alturas
+// con dato: la inclinación y la curvatura de conjunto del panel. Es
+// quitarTendencia, pero con huecos: arma las ecuaciones normales solo con las
+// celdas válidas. Devuelve los coeficientes, o null si no alcanzan las celdas.
+function quitarTendenciaValidas(z, valido, w, h) {
+  const cx = (w - 1) / 2,
+    cy = (h - 1) / 2,
+    sx = Math.max(cx, 1),
+    sy = Math.max(cy, 1);
+  const M = [0, 1, 2, 3, 4, 5].map(() => [0, 0, 0, 0, 0, 0]),
+    b = [0, 0, 0, 0, 0, 0],
+    f = [1, 0, 0, 0, 0, 0];
+  let cuenta = 0;
+  for (let y = 0; y < h; y++) {
+    const v = (y - cy) / sy;
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      if (!valido[i]) continue;
+      const u = (x - cx) / sx,
+        Z = z[i];
+      f[1] = u;
+      f[2] = v;
+      f[3] = u * u;
+      f[4] = u * v;
+      f[5] = v * v;
+      for (let a = 0; a < 6; a++) {
+        b[a] += f[a] * Z;
+        for (let c = a; c < 6; c++) M[a][c] += f[a] * f[c];
+      }
+      cuenta++;
+    }
+  }
+  if (cuenta < 6) return null;
+  for (let a = 0; a < 6; a++) for (let c = 0; c < a; c++) M[a][c] = M[c][a];
+  for (let c = 0; c < 6; c++) {
+    let p = c;
+    for (let r = c + 1; r < 6; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    if (Math.abs(M[p][c]) < 1e-12) return null;
+    [M[c], M[p]] = [M[p], M[c]];
+    [b[c], b[p]] = [b[p], b[c]];
+    for (let r = c + 1; r < 6; r++) {
+      const k = M[r][c] / M[c][c];
+      for (let j = c; j < 6; j++) M[r][j] -= k * M[c][j];
+      b[r] -= k * b[c];
+    }
+  }
+  const co = [0, 0, 0, 0, 0, 0];
+  for (let c = 5; c >= 0; c--) {
+    let s = b[c];
+    for (let j = c + 1; j < 6; j++) s -= M[c][j] * co[j];
+    co[c] = s / M[c][c];
+  }
+  for (let y = 0; y < h; y++) {
+    const v = (y - cy) / sy,
+      k0 = co[0] + co[2] * v + co[5] * v * v,
+      k1 = co[1] + co[4] * v;
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      if (valido[i]) {
+        const u = (x - cx) / sx;
+        z[i] -= k0 + k1 * u + co[3] * u * u;
+      }
+    }
+  }
+  return co;
+}
+
+// Suavizado con huecos (convolución normalizada, como en TVT): se suaviza el
+// dato con ceros donde falta y se divide por la máscara suavizada igual. Junto
+// a un hueco el promedio usa solo las celdas con dato, en vez de mezclar el
+// valor de «sin dato». Tres pasadas de promedio en caja de radio r. Donde no
+// queda ninguna celda con dato en el entorno devuelve NaN.
+function suavizarConHuecos(z, valido, w, h, r) {
+  const n = w * h,
+    num = new Float32Array(n),
+    den = new Float32Array(n),
+    tmp = new Float32Array(n);
+  for (let i = 0; i < n; i++) if (valido[i]) {
+    num[i] = z[i];
+    den[i] = 1;
+  }
+  for (let k = 0; k < 3; k++) {
+    boxBlur(num, num, tmp, w, h, r);
+    boxBlur(den, den, tmp, w, h, r);
+  }
+  for (let i = 0; i < n; i++) num[i] = den[i] > 1e-6 ? num[i] / den[i] : NaN;
+  return num;
+}
+
+// El pasabanda sobre alturas: suavizado(r) − suavizado(RELIEF_FONDO · r), los
+// dos con huecos. En las unidades del DEM; NaN donde no hay dato.
+function bandaDEM(z, valido, w, h, r) {
+  const fino = suavizarConHuecos(z, valido, w, h, r),
+    fondo = suavizarConHuecos(z, valido, w, h, r * RELIEF_FONDO);
+  for (let i = 0; i < fino.length; i++) fino[i] = valido[i] ? fino[i] - fondo[i] : NaN;
+  return fino;
+}
+
+// Radio del suavizado, en celdas, para una escala en mm: la escala es lo más
+// chico que se conserva, el doble del radio, como en el Relieve sobre fotos
+function radioDEM(escalaMM, pxmm) {
+  return Math.max(1, Math.round(escalaMM / (2 * pxmm)));
+}
+
+// El Relieve sobre un DEM. dem: {z (alturas ya sin tendencia), valido, pxmm
+// (lado de la celda en mm)}. opts: {escala_mm, doble, suave, clahe}, las mismas
+// opciones que el Relieve sobre fotos menos la mezcla con color. Normaliza con
+// los cuartiles de las celdas con dato (y de la zona, si la hay), igual que
+// sobre fotos, y deja el centro y el desvío en store.frozen. Las celdas sin
+// dato salen negras.
+function relieveDEM(dem, w, h, intensity, mask, store, opts) {
+  const o = opts || {},
+    n = w * h,
+    valido = dem.valido;
+  const escala = o.escala_mm || DEM_ESCALA_DEFECTO;
+  const sel = new Uint8Array(n);
+  for (let i = 0; i < n; i++) sel[i] = valido[i] && (!mask || mask[i]) ? 1 : 0;
+  const estad = D => {
+    const q = tukeyFences(D, n, sel, 0);
+    return {
+      mid: (q.lo + q.hi) / 2,
+      sig: (q.hi - q.lo) / 1.349 || 1
+    };
+  };
+  let st = store && store.frozen,
+    D;
+  if (o.doble == null) {
+    D = bandaDEM(dem.z, valido, w, h, radioDEM(escala, dem.pxmm));
+    if (!st) st = estad(D);
+  } else {
+    const p = Math.max(0, Math.min(1, o.doble));
+    D = bandaDEM(dem.z, valido, w, h, radioDEM(escala, dem.pxmm));
+    const obj = bandaDEM(dem.z, valido, w, h, radioDEM(escala * RELIEF_OBJETO, dem.pxmm));
+    if (!st) st = {
+      textura: estad(D),
+      objeto: estad(obj)
+    };
+    const t = st.textura,
+      b = st.objeto;
+    for (let i = 0; i < n; i++) D[i] = (1 - p) * (D[i] - t.mid) / t.sig + p * (obj[i] - b.mid) / b.sig;
+    if (st.mid == null) Object.assign(st, estad(D));
+  }
+  if (store) store.frozen = st;
+  const g = 40 * intensity / 1.5 / st.sig;
+  const K = RELIEF_SUAVE_K,
+    A = 127 / Math.asinh(127 * RELIEF_SUAVE_TOPE / K);
+  const output = new Uint8ClampedArray(n * 4);
+  for (let i = 0; i < n; i++) {
+    let v = 0;
+    if (valido[i] && D[i] === D[i]) {
+      const d = (D[i] - st.mid) * g;
+      v = 128 + (o.suave ? A * Math.asinh(d / K) : d);
+    }
+    output[i * 4] = v;
+    output[i * 4 + 1] = v;
+    output[i * 4 + 2] = v;
+    output[i * 4 + 3] = 255;
+  }
+  let out = new ImageData(output, w, h);
+  if (o.clahe) out = claheEnhance(out, 1.5);
+  return out;
+}
+
+// El residuo métrico: el pasabanda sin normalizar, en milímetros, sin
+// compresión ni CLAHE, para medir en un SIG. Con el Relieve doble es la suma
+// pesada de los dos niveles, también en mm. Sin dato: DEM_SIN_DATO.
+function residuoDEM(dem, w, h, opts) {
+  const o = opts || {},
+    escala = o.escala_mm || DEM_ESCALA_DEFECTO;
+  const D = bandaDEM(dem.z, dem.valido, w, h, radioDEM(escala, dem.pxmm));
+  if (o.doble != null) {
+    const p = Math.max(0, Math.min(1, o.doble)),
+      obj = bandaDEM(dem.z, dem.valido, w, h, radioDEM(escala * RELIEF_OBJETO, dem.pxmm));
+    for (let i = 0; i < D.length; i++) D[i] = (1 - p) * D[i] + p * obj[i];
+  }
+  const k = dem.mmPorUnidad || 1000;
+  for (let i = 0; i < D.length; i++) D[i] = dem.valido[i] && D[i] === D[i] ? D[i] * k : DEM_SIN_DATO;
+  return D;
+}
+
+// Sombreado del DEM, con la luz desde el noroeste a 45° de altura: es lo que
+// se muestra como «original», como una foto con luz rasante. px y py: lado de
+// la celda en las mismas unidades que las alturas. Sin dato, negro.
+function sombreadoDEM(z, valido, w, h, px, py) {
+  const out = new Uint8ClampedArray(w * h * 4);
+  const L = [-0.5, 0.5, Math.SQRT1_2];
+  const zz = (x, y, i) => {
+    const j = y * w + x;
+    return x >= 0 && y >= 0 && x < w && y < h && valido[j] ? z[j] : z[i];
+  };
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x;
+    let v = 0;
+    if (valido[i]) {
+      const dx = (zz(x + 1, y, i) - zz(x - 1, y, i)) / (2 * px);
+      const dy = -(zz(x, y + 1, i) - zz(x, y - 1, i)) / (2 * py); // hacia el norte, que es hacia arriba
+      const nn = Math.sqrt(dx * dx + dy * dy + 1);
+      v = 30 + 225 * Math.max(0, (-dx * L[0] - dy * L[1] + L[2]) / nn);
+    }
+    out[i * 4] = v;
+    out[i * 4 + 1] = v;
+    out[i * 4 + 2] = v;
+    out[i * 4 + 3] = 255;
+  }
+  return out;
+}
+
+// Las opciones del Relieve sobre un DEM, como opcionesRelieve: solo las
+// prendidas. La escala va en mm (escala_mm) y no hay mezcla con color.
+function opcionesRelieveDEM(escalaMM, o) {
+  const r = {
+    escala_mm: escalaMM
+  };
+  if (!o) return r;
+  if (o.doble != null) r.doble = o.doble;
+  if (o.suave) r.suave = true;
+  if (o.clahe) r.clahe = true;
+  return r;
+}
+
+// GeoKeyDirectory (etiqueta 34735) → {clave: valor}, solo las claves que guardan
+// el valor en línea, que son las de unidades, modelo y sistema de coordenadas
+function clavesGeo(dir) {
+  const r = {};
+  if (!dir || dir.length < 4) return r;
+  for (let k = 0; k < dir[3]; k++) {
+    const p = 4 + 4 * k;
+    if (p + 3 >= dir.length) break;
+    if (dir[p + 1] === 0) r[dir[p]] = dir[p + 3];
+  }
+  return r;
+}
+
+// Milímetros por unidad lineal de GeoTIFF (ProjLinearUnits, VerticalUnits)
+function mmPorUnidadGeo(codigo) {
+  return {
+    9001: 1000,
+    9002: 304.8,
+    9003: 1200 / 3937 * 1000,
+    9030: 1852000,
+    9036: 1e6
+  }[codigo] || null;
+}
+
+// Lee un DEM con geotiff.js. GT es el módulo (window.GeoTIFF en la página).
+// Devuelve null si el archivo no es un DEM: una sola banda de alturas, en coma
+// flotante o entera de 16 bits o más con georreferencia. Si pasa del tope, lo
+// lee reducido por vecino más cercano, que no mezcla el valor de «sin dato».
+async function leerDEM(GT, buffer, maxMP, maxLado) {
+  const tiff = await GT.fromArrayBuffer(buffer),
+    img = await tiff.getImage();
+  if (img.getSamplesPerPixel() !== 1) return null;
+  const fd = img.getFileDirectory();
+  const etiqueta = async nombre => {
+    try {
+      return fd.hasTag(nombre) ? await fd.loadValue(nombre) : null;
+    } catch (e) {
+      return null;
+    }
+  };
+  const geo = {};
+  for (const nombre of ["ModelPixelScale", "ModelTiepoint", "ModelTransformation", "GeoKeyDirectory", "GeoDoubleParams", "GeoAsciiParams"]) {
+    const v = await etiqueta(nombre);
+    if (v != null) geo[nombre] = typeof v === "string" ? v : Array.from(v);
+  }
+  const fmt = await etiqueta("SampleFormat"),
+    bits = await etiqueta("BitsPerSample");
+  const flotante = fmt && (fmt[0] === 3 || fmt === 3),
+    b0 = bits ? bits[0] || bits : 8;
+  const conGeo = !!(geo.ModelPixelScale || geo.ModelTransformation);
+  if (!flotante && !(b0 >= 16 && conGeo)) return null;
+  const W0 = img.getWidth(),
+    H0 = img.getHeight();
+  const s = Math.min(1, Math.sqrt(maxMP * 1e6 / (W0 * H0)), maxLado / Math.max(W0, H0));
+  const w = Math.max(1, Math.round(W0 * s)),
+    h = Math.max(1, Math.round(H0 * s));
+  const leido = s < 1 ? await img.readRasters({
+    interleave: true,
+    width: w,
+    height: h,
+    resampleMethod: "nearest"
+  }) : await img.readRasters({
+    interleave: true
+  });
+  const z = leido instanceof Float32Array ? leido : Float32Array.from(leido);
+  const ndTxt = await etiqueta("GDAL_NODATA");
+  const nodata = ndTxt != null && String(ndTxt).trim() !== "" ? Number(String(ndTxt).replace(/\0/g, "").trim()) : null;
+  const valido = celdasValidas(z, nodata);
+  // Tamaño de la celda y unidades
+  const claves = clavesGeo(geo.GeoKeyDirectory);
+  const geografico = claves[1024] === 2;
+  let rx = 1,
+    ry = 1;
+  if (geo.ModelPixelScale) {
+    rx = Math.abs(geo.ModelPixelScale[0]);
+    ry = Math.abs(geo.ModelPixelScale[1]);
+  } else if (geo.ModelTransformation) {
+    const t = geo.ModelTransformation;
+    rx = Math.hypot(t[0], t[4]);
+    ry = Math.hypot(t[1], t[5]);
+  }
+  rx /= s;
+  ry /= s; // con la lectura reducida, cada celda abarca más
+  let mmX,
+    mmY,
+    unidad = "m",
+    supuesto = false,
+    aproximado = false;
+  if (geografico) {
+    // Grados: se pasan a mm en la latitud del centro (aproximado)
+    let lat = 0;
+    if (geo.ModelTiepoint) lat = geo.ModelTiepoint[4] - H0 / 2 * ry * s;else if (geo.ModelTransformation) lat = geo.ModelTransformation[7] + H0 / 2 * geo.ModelTransformation[5];
+    mmX = rx * 111320e3 * Math.cos(lat * Math.PI / 180);
+    mmY = ry * 110574e3;
+    unidad = "°";
+    aproximado = true;
+  } else {
+    let k = mmPorUnidadGeo(claves[3076]);
+    if (!k) {
+      k = 1000;
+      supuesto = true;
+    }
+    mmX = rx * k;
+    mmY = ry * k;
+    unidad = {
+      1000: "m",
+      304.8: "ft"
+    }[k] || "?";
+  }
+  const kz = mmPorUnidadGeo(claves[4099]) || (geografico ? 1000 : mmPorUnidadGeo(claves[3076]) || 1000);
+  // La georreferencia de la versión reducida: celdas más grandes, mismo origen
+  if (s < 1) {
+    if (geo.ModelPixelScale) geo.ModelPixelScale = [geo.ModelPixelScale[0] / s, geo.ModelPixelScale[1] / s, geo.ModelPixelScale[2] || 0];
+    if (geo.ModelTransformation) {
+      const t = geo.ModelTransformation.slice();
+      t[0] /= s;
+      t[1] /= s;
+      t[4] /= s;
+      t[5] /= s;
+      geo.ModelTransformation = t;
+    }
+  }
+  let cuenta = 0;
+  for (let i = 0; i < valido.length; i++) cuenta += valido[i];
+  return {
+    w,
+    h,
+    anchoOriginal: W0,
+    altoOriginal: H0,
+    reducido: s < 1,
+    z,
+    valido,
+    nodata,
+    conDato: cuenta / valido.length,
+    pxmm: (mmX + mmY) / 2,
+    mmX,
+    mmY,
+    mmPorUnidad: kz,
+    unidad,
+    supuesto,
+    aproximado,
+    geografico,
+    epsg: claves[3072] || claves[2048] || null,
+    geo: conGeo ? geo : null
+  };
+}
+
+// TIFF sin comprimir, una tira, little-endian, con las etiquetas que se pasen
+// (además de las básicas) y los bytes de la imagen. etiquetas: [[tag, tipo,
+// valores]], tipo 2 (ASCII: valores es un texto), 3 (SHORT), 4 (LONG) o 12
+// (DOUBLE). Sirve para los GeoTIFF del modo elevación: las etiquetas de
+// coordenadas se copian tal cual del DEM, así el SIG lo ubica igual.
+function tiffConEtiquetas(w, h, muestras, bits, formato, datos, extras) {
+  const TAM = {
+    2: 1,
+    3: 2,
+    4: 4,
+    12: 8
+  };
+  const base = [[256, 4, w], [257, 4, h], [258, 3, Array(muestras).fill(bits)], [259, 3, 1], [262, 3, muestras === 3 ? 2 : 1], [273, 4, 0], [277, 3, muestras], [278, 4, h], [279, 4, datos.length], [284, 3, 1], [339, 3, Array(muestras).fill(formato)]];
+  const ents = [...base, ...(extras || [])].sort((a, b) => a[0] - b[0]).map(([tag, tipo, val]) => {
+    const vals = tipo === 2 ? Array.from(String(val) + "\0", c => c.charCodeAt(0) & 0xFF) : typeof val === "number" ? [val] : Array.from(val);
+    return {
+      tag,
+      tipo,
+      vals,
+      bytes: vals.length * TAM[tipo],
+      off: 0
+    };
+  });
+  const ifdTam = 2 + ents.length * 12 + 4;
+  let fin = 8 + ifdTam;
+  for (const e of ents) if (e.bytes > 4) {
+    fin += fin & 1;
+    e.off = fin;
+    fin += e.bytes;
+  }
+  const datosOff = fin + (8 - fin % 8) % 8;
+  ents.find(e => e.tag === 273).vals[0] = datosOff;
+  const buf = new ArrayBuffer(datosOff + datos.length),
+    dv = new DataView(buf),
+    u8 = new Uint8Array(buf);
+  dv.setUint16(0, 0x4949, false);
+  dv.setUint16(2, 42, true);
+  dv.setUint32(4, 8, true);
+  dv.setUint16(8, ents.length, true);
+  const escribir = (pos, tipo, vals) => {
+    vals.forEach((v, k) => {
+      if (tipo === 2) dv.setUint8(pos + k, v);else if (tipo === 3) dv.setUint16(pos + 2 * k, v, true);else if (tipo === 4) dv.setUint32(pos + 4 * k, v, true);else dv.setFloat64(pos + 8 * k, v, true);
+    });
+  };
+  ents.forEach((e, k) => {
+    const p = 10 + 12 * k;
+    dv.setUint16(p, e.tag, true);
+    dv.setUint16(p + 2, e.tipo, true);
+    dv.setUint32(p + 4, e.vals.length, true);
+    if (e.bytes > 4) {
+      dv.setUint32(p + 8, e.off, true);
+      escribir(e.off, e.tipo, e.vals);
+    } else escribir(p + 8, e.tipo, e.vals);
+  });
+  dv.setUint32(10 + 12 * ents.length, 0, true);
+  u8.set(datos, datosOff);
+  return u8;
+}
+
+// Las etiquetas GeoTIFF de un DEM leído, listas para tiffConEtiquetas
+function etiquetasGeo(geo) {
+  if (!geo) return [];
+  const r = [];
+  if (geo.ModelPixelScale) r.push([33550, 12, geo.ModelPixelScale]);
+  if (geo.ModelTiepoint) r.push([33922, 12, geo.ModelTiepoint]);
+  if (geo.ModelTransformation) r.push([34264, 12, geo.ModelTransformation]);
+  if (geo.GeoKeyDirectory) r.push([34735, 3, geo.GeoKeyDirectory]);
+  if (geo.GeoDoubleParams) r.push([34736, 12, geo.GeoDoubleParams]);
+  if (geo.GeoAsciiParams) r.push([34737, 2, String(geo.GeoAsciiParams).replace(/\0+$/, "")]);
+  return r;
+}
+
+// GeoTIFF Float32 de una banda (el residuo en mm), con «sin dato» declarado
+function geotiffFloat32(valores, w, h, geo, nodata) {
+  const datos = new Uint8Array(valores.buffer.slice(valores.byteOffset, valores.byteOffset + w * h * 4));
+  const extras = etiquetasGeo(geo);
+  if (nodata != null) extras.push([42113, 2, String(nodata)]);
+  return tiffConEtiquetas(w, h, 1, 32, 3, datos, extras);
+}
+
+// GeoTIFF RGB de 8 bits (la imagen para ver), desde RGBA
+function geotiffRGB(rgba, w, h, geo, descripcion) {
+  const datos = new Uint8Array(w * h * 3);
+  for (let i = 0, j = 0; i < w * h; i++) {
+    datos[j++] = rgba[i * 4];
+    datos[j++] = rgba[i * 4 + 1];
+    datos[j++] = rgba[i * 4 + 2];
+  }
+  const extras = etiquetasGeo(geo);
+  if (descripcion) extras.push([270, 2, descripcion.replace(/[^\x20-\x7e\n]/g, c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"))]);
+  return tiffConEtiquetas(w, h, 3, 8, 1, datos, extras);
+}
+
+// Lo que el registro guarda de un DEM: la celda, las unidades, el sistema de
+// coordenadas, el valor de «sin dato» y la huella de las alturas leídas
+function demARegistro(d) {
+  return {
+    celda_mm: d.pxmm,
+    celda_x_mm: d.mmX,
+    celda_y_mm: d.mmY,
+    unidad: d.unidad,
+    unidad_supuesta: !!d.supuesto,
+    aproximado: !!d.aproximado,
+    epsg: d.epsg || null,
+    sin_dato: d.nodata,
+    ancho_original: d.anchoOriginal,
+    alto_original: d.altoOriginal,
+    reducido: !!d.reducido,
+    con_dato: Math.round(d.conDato * 1e4) / 1e4,
+    sha256_alturas: d.sha256Alturas || null
+  };
 }
 
 // --- Técnico ---
@@ -2230,6 +2755,9 @@ function armarRegistro(d) {
     entrada: d.entrada || null,
     trabajo: d.trabajo || null,
     escala: d.escala || null,
+    ...(d.dem ? {
+      dem: d.dem
+    } : {}),
     pasos: d.pasos.map(p => ({
       filtro: p.presetId,
       intensidad: p.intensity,
@@ -2784,14 +3312,19 @@ function informePDF(reg, x) {
   }[trab.resolucion];
   fila(t("Resolución de trabajo", "Working resolution"), `${aw} × ${ah} px` + (res ? ` · ${res}` : trab.lado_max ? t(` · lote, lado mayor ${trab.lado_max} px`, ` · batch, long side ${trab.lado_max} px`) : ""));
   fila(t("SHA-256 de los píxeles", "Pixel SHA-256"), trab.sha256_pixeles || "—", true);
+  if (reg.dem) {
+    const dm = reg.dem;
+    fila(t("Modelo de elevación", "Elevation model"), `${t("celda de", "cell of")} ${dec(numCorto(dm.celda_mm))} mm${dm.epsg ? ` · EPSG:${dm.epsg}` : ""} · ${dec(Math.round(dm.con_dato * 1000) / 10)} % ${t("con dato", "with data")}` + (dm.unidad_supuesta ? t(" · unidades supuestas: metros", " · units assumed: metres") : "") + (dm.aproximado ? t(" · celda aproximada (grados)", " · approximate cell (degrees)") : ""));
+    if (dm.sha256_alturas) fila(t("SHA-256 de las alturas", "Heights SHA-256"), dm.sha256_alturas, true);
+  }
 
   // ---- Procedimiento
   seccion(t("Procedimiento", "Procedure"));
   pasos.forEach((p, i) => {
     const d = [`${nombre(p.filtro)}`, `${t("intensidad", "intensity")} ${dec(p.intensidad)}`];
-    if (p.opciones && p.opciones.escala) {
+    if (p.opciones && (p.opciones.escala || p.opciones.escala_mm)) {
       const op = p.opciones;
-      d.push(`${t("escala", "scale")} ${dec(op.escala)} %`);
+      d.push(op.escala_mm ? `${t("escala", "scale")} ${dec(op.escala_mm)} mm` : `${t("escala", "scale")} ${dec(op.escala)} %`);
       if (op.doble != null) d.push(t(`doble, objeto al ${Math.round(op.doble * 100)} %`, `double, object at ${Math.round(op.doble * 100)} %`));
       if (op.suave) d.push(t("compresión suave", "soft compression"));
       if (op.clahe) d.push(t("realzado con CLAHE (no métrico)", "enhanced with CLAHE (not metric)"));
@@ -3250,7 +3783,7 @@ function crearProcesador() {
     const store = t.frozen ? {
       frozen: t.frozen
     } : {};
-    const r = p.fn(new ImageData(new Uint8ClampedArray(t.origen), t.w, t.h), t.intensity, t.mask, store, t.opts);
+    const r = t.dem ? relieveDEM(t.dem, t.w, t.h, t.intensity, t.mask, store, t.opts) : p.fn(new ImageData(new Uint8ClampedArray(t.origen), t.w, t.h), t.intensity, t.mask, store, t.opts);
     return {
       data: aplicarMascara(t.origen, r.data, t.mask, t.w * t.h),
       frozen: store.frozen || null,
@@ -3344,6 +3877,7 @@ function crearProcesador() {
       mask: t.mask,
       frozen: t.frozen,
       opts: t.opts,
+      dem: t.dem || null,
       png: true
     }, [copia.buffer]);
   });
@@ -3808,7 +4342,17 @@ function RockArtEnhancer() {
   const [relMezcla, setRelMezcla] = useState(null),
     [relAlfa, setRelAlfa] = useState(50);
   const [relMas, setRelMas] = useState(false); // el desplegable de opciones
-  const relOpts = opcionesRelieve(reliefScale, {
+  // Modo elevación (v3.9.0): el DEM abierto (alturas, celdas con dato,
+  // georreferencia) va en una referencia; demInfo es lo que muestra el panel
+  const demRef = useRef(null);
+  const [demInfo, setDemInfo] = useState(null);
+  const [demEscala, setDemEscala] = useState(DEM_ESCALA_DEFECTO);
+  const [avisoDEM, setAvisoDEM] = useState(null);
+  const relOpts = demInfo ? opcionesRelieveDEM(demEscala, {
+    doble: relDoble ? relObjeto / 100 : null,
+    suave: relSuave,
+    clahe: relClahe
+  }) : opcionesRelieve(reliefScale, {
     doble: relDoble ? relObjeto / 100 : null,
     suave: relSuave,
     clahe: relClahe,
@@ -4188,7 +4732,17 @@ function RockArtEnhancer() {
   // navegador inventa detalle y en un panel rupestre eso se confunde con textura.
   const zoomPx = view.z >= 3 ? "pixelated" : "auto";
   const handleFile = useCallback(file => {
-    if (!file || !file.type.startsWith("image/")) return;
+    if (!file) return;
+    // Un TIFF puede ser un modelo de elevación (v3.9.0). El navegador no
+    // muestra TIFF, así que va por otro camino.
+    if (/\.tiff?$/i.test(file.name) || file.type === "image/tiff") {
+      abrirDEM(file);
+      return;
+    }
+    if (!file.type.startsWith("image/")) return;
+    demRef.current = null;
+    setDemInfo(null);
+    setAvisoDEM(null);
     setFileName(file.name);
     setExifData(null);
     setExifRaw(null);
@@ -4260,6 +4814,145 @@ function RockArtEnhancer() {
     };
     dr.readAsDataURL(file);
   }, [resId]);
+
+  // ============================================================
+  // MODO ELEVACIÓN (v3.9.0): abrir un DEM
+  // geotiff.js (lib/) se carga recién la primera vez que se abre un TIFF.
+  // ============================================================
+  const cargarGeoTIFF = () => new Promise((ok, mal) => {
+    if (window.GeoTIFF) return ok(window.GeoTIFF);
+    const sc = document.createElement("script");
+    sc.src = "lib/geotiff.js?v=" + OPC_VERSION;
+    sc.onload = () => window.GeoTIFF ? ok(window.GeoTIFF) : mal(new Error("lib/geotiff.js"));
+    sc.onerror = () => mal(new Error("lib/geotiff.js"));
+    document.head.appendChild(sc);
+  });
+  const abrirDEM = async file => {
+    cancelarProceso();
+    setAvisoDEM(null);
+    setRegistroInfo(null);
+    setProcessing(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const sha = huellaSHA256(new Uint8Array(buf));
+      const GT = await cargarGeoTIFF();
+      const dem = await leerDEM(GT, buf, DEM_MAX_MP, DEM_MAX_LADO);
+      if (!dem || dem.conDato < 0.001) {
+        setAvisoDEM(!dem ? {
+          es: "Este TIFF no es un modelo de elevación (una sola banda de alturas). Las fotos van en JPG o PNG: el navegador no muestra TIFF.",
+          en: "This TIFF is not an elevation model (a single band of heights). Photos go as JPG or PNG: the browser does not display TIFF."
+        } : {
+          es: "El modelo de elevación no tiene celdas con dato.",
+          en: "The elevation model has no cells with data."
+        });
+        setProcessing(false);
+        return;
+      }
+      // La huella de las alturas tal como se leyeron, antes de quitarles la inclinación
+      dem.sha256Alturas = await huellaSHA256(new Uint8Array(dem.z.buffer, dem.z.byteOffset, dem.z.byteLength));
+      quitarTendenciaValidas(dem.z, dem.valido, dem.w, dem.h);
+      let zmin = Infinity,
+        zmax = -Infinity;
+      for (let i = 0; i < dem.z.length; i++) if (dem.valido[i]) {
+        const v = dem.z[i];
+        if (v < zmin) zmin = v;
+        if (v > zmax) zmax = v;
+      }
+      // El «original» es el sombreado: el DEM como una foto con luz rasante
+      const sh = sombreadoDEM(dem.z, dem.valido, dem.w, dem.h, dem.mmX / dem.mmPorUnidad, dem.mmY / dem.mmPorUnidad);
+      const cv = document.createElement("canvas");
+      cv.width = dem.w;
+      cv.height = dem.h;
+      cv.getContext("2d").putImageData(new ImageData(sh, dem.w, dem.h), 0, 0);
+      const url = cv.toDataURL("image/png");
+      const img = await new Promise((ok, mal) => {
+        const im = new Image();
+        im.onload = () => ok(im);
+        im.onerror = mal;
+        im.src = url;
+      });
+      demRef.current = dem;
+      entradaRef.current = {
+        archivo: file.name,
+        bytes: file.size,
+        sha256: sha,
+        file
+      };
+      huellasEntradaRef.current = {};
+      setFileName(file.name);
+      setExifData(null);
+      setExifRaw(null);
+      setEscalaCal(null);
+      setCalibrando(null);
+      setMmDraft("");
+      setResId("full");
+      setPreguntaRes(false);
+      setImageSize({
+        w: dem.w,
+        h: dem.h
+      });
+      setImage(img);
+      setImageSrc(url);
+      setProcessedSrc(null);
+      setActivePreset(null);
+      setStackMode(false);
+      setSelData(null);
+      setSelTool("none");
+      setContrast(0);
+      setSaturation(0);
+      setPickColor(null);
+      setPickSteps([]);
+      setPicking(false);
+      setPickSrc(null);
+      processedDataRef.current = null;
+      pickBaseRef.current = null;
+      drawRef.current = {
+        active: false,
+        tool: "",
+        start: null,
+        pts: []
+      };
+      pipelineRef.current = [];
+      setView({
+        z: 1,
+        tx: 0,
+        ty: 0
+      });
+      setPanTool(false);
+      setDemEscala(escalasDEM(dem.pxmm)[1]);
+      setDemInfo({
+        w: dem.w,
+        h: dem.h,
+        anchoOriginal: dem.anchoOriginal,
+        altoOriginal: dem.altoOriginal,
+        reducido: dem.reducido,
+        pxmm: dem.pxmm,
+        unidad: dem.unidad,
+        supuesto: dem.supuesto,
+        aproximado: dem.aproximado,
+        epsg: dem.epsg,
+        conDato: dem.conDato,
+        georref: !!dem.geo,
+        desnivel: (zmax - zmin) * dem.mmPorUnidad
+      });
+      setProcessing(false);
+    } catch (e) {
+      console.error("DEM:", e);
+      setAvisoDEM({
+        es: `No se pudo abrir el TIFF: ${e && e.message || e}`,
+        en: `Could not open the TIFF: ${e && e.message || e}`
+      });
+      setProcessing(false);
+    }
+  };
+
+  // Con el DEM abierto, el Relieve se aplica solo
+  useEffect(() => {
+    if (!demInfo || !image || activePreset) return;
+    const p = PRESETS.find(x => x.id === "relief");
+    const t = setTimeout(() => processImage(p, intensity), 60);
+    return () => clearTimeout(t);
+  }, [demInfo, image]);
   const setWorkingRes = nv => {
     setPreguntaRes(false);
     if (nv === resId) return;
@@ -4286,13 +4979,15 @@ function RockArtEnhancer() {
   // nuevo —otro filtro, otra intensidad— cancela el que estaba en curso.
   const processImage = useCallback((preset, int) => {
     if (!image) return;
+    // Sobre un DEM (v3.9.0) solo vale el Relieve: los demás filtros trabajan con colores
+    if (demRef.current && preset.id !== "relief") return;
     const job = ++jobRef.current;
     procRef.current.cancelar();
     omitirAutoRef.current = null;
     setProcessing(true);
     setActivePreset(preset.id);
     setRegistroInfo(null);
-    const apilar = stackMode && !!processedSrc;
+    const apilar = stackMode && !!processedSrc && !demRef.current;
     // setTimeout directo (no requestAnimationFrame): rAF se pausa si la
     // pestaña pierde visibilidad y el procesamiento quedaba colgado
     setTimeout(async () => {
@@ -4325,6 +5020,7 @@ function RockArtEnhancer() {
         const sourceData = ctx.getImageData(0, 0, w, h);
         // La máscara también se pasa al filtro: las estadísticas se calculan
         // sobre la zona seleccionada (decorrelación local, como DStretch)
+        const dm = demRef.current;
         const r = await procRef.current.correr({
           presetId: preset.id,
           origen: sourceData.data,
@@ -4333,7 +5029,12 @@ function RockArtEnhancer() {
           intensity: int,
           mask,
           frozen: null,
-          opts
+          opts,
+          dem: dm && preset.id === "relief" ? {
+            z: dm.z,
+            valido: dm.valido,
+            pxmm: dm.pxmm
+          } : null
         });
         if (job !== jobRef.current) return; // llegó otro pedido mientras tanto
         // Ya viene combinado con la selección (aplicarMascara)
@@ -4615,6 +5316,7 @@ function RockArtEnhancer() {
             ancho: w,
             alto: h
           }) : null,
+          dem: demRef.current ? demARegistro(demRef.current) : null,
           pasos: pipelineRef.current,
           gotero: gPasos,
           contraste: contrast,
@@ -4654,6 +5356,24 @@ function RockArtEnhancer() {
         nombre: `${base}.${ext}`,
         blob
       }];
+      // Sobre un DEM (v3.9.0) van además la imagen georreferenciada y el
+      // residuo métrico en mm, para abrir y medir en un SIG
+      const demA = demRef.current;
+      if (demA) {
+        const optsDEM = pasoRel ? pasoRel.opts : relOpts;
+        if (demA.geo) archivos.push({
+          nombre: `${base}_georref.tif`,
+          blob: new Blob([geotiffRGB(pix.data, cv.width, cv.height, demA.geo, texto)], {
+            type: "image/tiff"
+          })
+        });
+        archivos.push({
+          nombre: `${base}_residuo_mm.tif`,
+          blob: new Blob([geotiffFloat32(residuoDEM(demA, demA.w, demA.h, optsDEM), demA.w, demA.h, demA.geo, DEM_SIN_DATO)], {
+            type: "image/tiff"
+          })
+        });
+      }
       if (extras && reg) {
         // Afuera lleva además la huella del archivo ya armado (adentro no
         // puede ir: cambiaría el archivo que describe)
@@ -4762,6 +5482,13 @@ function RockArtEnhancer() {
     try {
       const pasos = pasosDesdeRegistro(rec),
         lote = !!rec.lote;
+      if (rec.dem || demRef.current) {
+        nota(false, "Reproducir el registro de un modelo de elevación todavía no está disponible (v3.9.0). El procedimiento queda anotado en el registro y en el informe.", "Replaying the record of an elevation model is not available yet (v3.9.0). The procedure is written down in the record and in the report.");
+        return terminar({
+          es: "No se pudo reproducir",
+          en: "Could not replay"
+        });
+      }
       const desconocidos = pasos.filter(p => !PRESETS.some(x => x.id === p.presetId)).map(p => p.presetId);
       if (!pasos.length || desconocidos.length) {
         nota(false, `El registro usa filtros que esta versión no tiene: ${desconocidos.join(", ") || "ninguno"}.`, `The record uses filters this version does not have: ${desconocidos.join(", ") || "none"}.`);
@@ -5400,6 +6127,9 @@ function RockArtEnhancer() {
     setCalibrando(null);
     setMmDraft("");
     setAvisoGuardado(null);
+    demRef.current = null;
+    setDemInfo(null);
+    setAvisoDEM(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -5483,7 +6213,7 @@ function RockArtEnhancer() {
   };
   // Píxeles por milímetro a la resolución de trabajo, y la escala del Relieve
   // en mm para el texto del panel
-  const ppmm = escalaCal ? pxPorMM(escalaCal, imageSize.w, imageSize.h) : 0;
+  const ppmm = demInfo ? 1 / demInfo.pxmm : escalaCal ? pxPorMM(escalaCal, imageSize.w, imageSize.h) : 0;
   const pxRelieve = Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100));
   const mmRelieve = ppmm && reliefScale ? ` ≈ ${numCorto(pxRelieve / ppmm)} mm` : "";
   const handleSelDown = e => {
@@ -5658,7 +6388,7 @@ function RockArtEnhancer() {
       color: T.tm,
       fontFamily: mono
     }
-  }, "v3.8.0")))), /*#__PURE__*/React.createElement("div", {
+  }, "v3.9.0")))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 6,
@@ -5723,7 +6453,32 @@ function RockArtEnhancer() {
       color: T.ac,
       fontSize: 15
     }
-  }, "OPC v3.8.0 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+  }, "OPC v3.9.0 \u2014 ", tr("Novedades", "What\u2019s new")), lang === "es" ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Modelos de elevaci\xF3n (v3.9.0)"), " \u2014 OPC abre un ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "DEM en GeoTIFF"), " exportado de Metashape u otro programa: alturas en coma flotante, sin pasar a 8 bits. Se ve con sombreado, como una foto con luz rasante, y el Relieve trabaja sobre las alturas, con la escala en mil\xEDmetros que da el tama\xF1o de la celda; los huecos sin dato no contaminan el resultado. Al descargar, adem\xE1s de la imagen, bajan la imagen ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "georreferenciada"), " y el ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "residuo en mm"), " como GeoTIFF, para medir en QGIS u otro SIG. Con fotos, ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "ning\xFAn resultado cambia"), "."), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -6058,6 +6813,31 @@ function RockArtEnhancer() {
       color: T.text
     }
   }, "DStretch"), " (J. Harman). OPC es una implementaci\xF3n independiente de c\xF3digo abierto, escrita desde cero a partir de la bibliograf\xEDa publicada, sin c\xF3digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci\xF3n entre herramientas.")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      color: T.tm
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.ac
+    }
+  }, "Elevation models (v3.9.0)"), " \u2014 OPC opens a ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "DEM in GeoTIFF"), " exported from Metashape or another program: floating-point heights, never reduced to 8 bits. It is shown hillshaded, like a photo under raking light, and the Relief works on the heights, with the scale in millimetres given by the cell size; cells without data do not contaminate the result. On download, besides the image, you get the ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "georeferenced"), " image and the ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "residual in mm"), " as GeoTIFF, to measure in QGIS or another GIS. With photos, ", /*#__PURE__*/React.createElement("strong", {
+    style: {
+      color: T.text
+    }
+  }, "no result changes"), "."), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 8px",
       color: T.tm
@@ -6460,17 +7240,46 @@ function RockArtEnhancer() {
       color: solar ? "#555" : "#8a7e6e",
       margin: 0
     }
-  }, tr("o hac\u00E9 clic para seleccionar \u00B7 JPG, PNG, WebP", "or click to browse \u00B7 JPG, PNG, WebP")), /*#__PURE__*/React.createElement("p", {
+  }, tr("o hac\u00E9 clic para seleccionar \u00B7 JPG, PNG, WebP \u00B7 DEM GeoTIFF", "or click to browse \u00B7 JPG, PNG, WebP \u00B7 DEM GeoTIFF")), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 10,
       color: solar ? "#777" : "#6a5e4e",
       margin: "14px 0 0",
       fontFamily: mono
     }
-  }, tr("Procesamiento 100% local, sin conexi\u00F3n \u00B7 RAW: convertir antes a JPG/PNG", "100% local processing, works offline \u00B7 RAW: convert to JPG/PNG first"))), /*#__PURE__*/React.createElement("input", {
+  }, tr("Procesamiento 100% local, sin conexi\u00F3n \u00B7 RAW: convertir antes a JPG/PNG", "100% local processing, works offline \u00B7 RAW: convert to JPG/PNG first"))), avisoDEM && /*#__PURE__*/React.createElement("div", {
+    role: "alert",
+    style: {
+      maxWidth: 680,
+      margin: image ? "0 0 10px" : "-30px auto 24px",
+      padding: "8px 12px",
+      borderRadius: 8,
+      background: T.acBg,
+      border: `1px solid ${T.acBd}`,
+      color: T.ac,
+      fontFamily: mono,
+      fontSize: 10,
+      lineHeight: 1.5,
+      display: "flex",
+      gap: 10,
+      justifyContent: "space-between",
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("span", null, tr(avisoDEM.es, avisoDEM.en)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAvisoDEM(null),
+    title: tr("Cerrar", "Close"),
+    style: {
+      background: "none",
+      border: "none",
+      color: T.ac,
+      cursor: "pointer",
+      fontSize: 11,
+      padding: 0
+    }
+  }, "\u2715")), /*#__PURE__*/React.createElement("input", {
     ref: fileInputRef,
     type: "file",
-    accept: "image/*",
+    accept: "image/*,.tif,.tiff",
     style: {
       display: "none"
     },
@@ -6588,7 +7397,7 @@ function RockArtEnhancer() {
       cursor: "pointer",
       color: conInforme ? T.gn : T.td
     }
-  }, conInforme ? "+PDF" : "PDF")), processedSrc && (conJSON || conInforme) && /*#__PURE__*/React.createElement("div", {
+  }, conInforme ? "+PDF" : "PDF")), processedSrc && (conJSON || conInforme || demInfo) && /*#__PURE__*/React.createElement("div", {
     role: "status",
     style: {
       fontSize: 8,
@@ -6598,9 +7407,9 @@ function RockArtEnhancer() {
       padding: "1px 2px 2px"
     }
   }, avisoGuardado ? `✓ ${tr(`Bajó ${avisoGuardado.zip}: adentro, una carpeta con los ${avisoGuardado.cuantos} archivos`, `Downloaded ${avisoGuardado.zip}: inside, a folder with the ${avisoGuardado.cuantos} files`)}` : (() => {
-    const p = [tr("la imagen", "the image"), conJSON && tr("el .json", "the .json"), conInforme && tr("el informe", "the report")].filter(Boolean);
+    const p = [tr("la imagen", "the image"), demInfo && demInfo.georref && tr("la georreferenciada", "the georeferenced one"), demInfo && tr("el residuo en mm", "the residual in mm"), conJSON && tr("el .json", "the .json"), conInforme && tr("el informe", "the report")].filter(Boolean);
     return /*#__PURE__*/React.createElement(React.Fragment, null, "📦", " ", tr("Baja un .zip con una carpeta adentro:", "Downloads a .zip with a folder inside:"), " ", p.slice(0, -1).join(", "), tr(" y ", " and "), p[p.length - 1]);
-  })()), processedSrc && /*#__PURE__*/React.createElement("button", {
+  })()), processedSrc && !demInfo && /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       setShowBatch(true);
       setBatchFiles([]);
@@ -6690,7 +7499,7 @@ function RockArtEnhancer() {
       color: it.ok === false ? T.ac : T.tm,
       marginTop: 2
     }
-  }, it.ok === false ? "\u26A0" : "\u2713", " ", tr(it.es, it.en))))), image && Math.max(image.naturalWidth, image.naturalHeight) > 2000 && (() => {
+  }, it.ok === false ? "\u26A0" : "\u2713", " ", tr(it.es, it.en))))), image && !demInfo && Math.max(image.naturalWidth, image.naturalHeight) > 2000 && (() => {
     const grande = esFotoGrande(image.naturalWidth, image.naturalHeight);
     return /*#__PURE__*/React.createElement("div", {
       style: {
@@ -6749,8 +7558,11 @@ function RockArtEnhancer() {
     }
   }, tr("Filtros", "Filters")), PRESETS.map(p => /*#__PURE__*/React.createElement("button", {
     key: p.id,
+    disabled: !!demInfo && p.id !== "relief",
+    title: demInfo && p.id !== "relief" ? tr("No se aplica a un modelo de elevación: no tiene colores", "Does not apply to an elevation model: it has no colors") : undefined,
     onClick: () => processImage(p, intensity),
     style: {
+      opacity: demInfo && p.id !== "relief" ? 0.35 : 1,
       display: "flex",
       alignItems: "center",
       gap: 8,
@@ -6783,7 +7595,7 @@ function RockArtEnhancer() {
       fontFamily: mono,
       lineHeight: 1.3
     }
-  }, tr(p.desc, p.descEn))))), /*#__PURE__*/React.createElement("button", {
+  }, tr(p.desc, p.descEn))))), !demInfo && /*#__PURE__*/React.createElement("button", {
     onClick: () => setStackMode(!stackMode),
     style: {
       margin: "6px 0 2px",
@@ -6894,7 +7706,72 @@ function RockArtEnhancer() {
       marginTop: 4,
       lineHeight: 1.4
     }
-  }, selTool !== "none" ? `${tr("Dibuj\u00E1 sobre la imagen", "Draw on the image")} \u2192 ${selTool === "rect" ? tr("rect\u00E1ngulo", "rectangle") : selTool === "circle" ? tr("c\u00EDrculo", "circle") : tr("forma libre", "freehand")}` : selData ? tr("\u2713 Zona seleccionada \u2014 el filtro se aplica solo ah\u00ED", "\u2713 Area selected \u2014 the filter is applied only there") : tr("Sin selecci\u00F3n \u2014 filtro en toda la imagen", "No selection \u2014 filter applied to the whole image"))), (() => {
+  }, selTool !== "none" ? `${tr("Dibuj\u00E1 sobre la imagen", "Draw on the image")} \u2192 ${selTool === "rect" ? tr("rect\u00E1ngulo", "rectangle") : selTool === "circle" ? tr("c\u00EDrculo", "circle") : tr("forma libre", "freehand")}` : selData ? tr("\u2713 Zona seleccionada \u2014 el filtro se aplica solo ah\u00ED", "\u2713 Area selected \u2014 the filter is applied only there") : tr("Sin selecci\u00F3n \u2014 filtro en toda la imagen", "No selection \u2014 filter applied to the whole image"))), demInfo && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 6,
+      padding: "9px 10px 10px",
+      background: T.cBg,
+      border: `1px solid ${T.cBd}`,
+      borderRadius: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 8.5,
+      fontFamily: mono,
+      color: T.td,
+      letterSpacing: "1.5px",
+      textTransform: "uppercase"
+    }
+  }, tr("Modelo de elevación", "Elevation model")), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 8.5,
+      fontFamily: mono,
+      color: T.gn
+    }
+  }, "DEM")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "baseline",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "'Crimson Pro',serif",
+      fontSize: 26,
+      fontWeight: 600,
+      color: T.text,
+      lineHeight: 1
+    }
+  }, numCorto(demInfo.pxmm)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: mono,
+      fontSize: 9.5,
+      color: T.tm
+    }
+  }, tr("mm por celda", "mm per cell"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: mono,
+      fontSize: 8.5,
+      color: T.tm,
+      marginTop: 6,
+      lineHeight: 1.55
+    }
+  }, /*#__PURE__*/React.createElement("div", null, demInfo.w, " \xD7 ", demInfo.h, " ", tr("celdas", "cells"), demInfo.epsg ? ` · EPSG:${demInfo.epsg}` : ""), /*#__PURE__*/React.createElement("div", null, tr(`relieve sin la inclinación: ${numCorto(demInfo.desnivel)} mm`, `relief without the tilt: ${numCorto(demInfo.desnivel)} mm`)), /*#__PURE__*/React.createElement("div", null, tr(`${Math.round(demInfo.conDato * 1000) / 10} % de las celdas con dato`, `${Math.round(demInfo.conDato * 1000) / 10} % of cells with data`))), (!demInfo.georref || demInfo.supuesto || demInfo.aproximado || demInfo.reducido) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: mono,
+      fontSize: 8,
+      color: T.ac,
+      marginTop: 7,
+      lineHeight: 1.45
+    }
+  }, !demInfo.georref && /*#__PURE__*/React.createElement("div", null, "\u26A0 ", tr("Sin georreferencia: se toma un metro por celda y las medidas en mm no valen.", "No georeferencing: one metre per cell is assumed, and measurements in mm are not valid.")), demInfo.georref && demInfo.supuesto && /*#__PURE__*/React.createElement("div", null, "\u26A0 ", tr("El archivo no dice sus unidades: se suponen metros.", "The file does not state its units: metres are assumed.")), demInfo.aproximado && /*#__PURE__*/React.createElement("div", null, "\u26A0 ", tr("Coordenadas en grados: la celda en mm es aproximada.", "Coordinates in degrees: the cell in mm is approximate.")), demInfo.reducido && /*#__PURE__*/React.createElement("div", null, "\u26A0 ", tr(`Reducido para trabajar (de ${demInfo.anchoOriginal} × ${demInfo.altoOriginal}): las celdas son más grandes.`, `Reduced to work with (from ${demInfo.anchoOriginal} × ${demInfo.altoOriginal}): cells are larger.`)))), !demInfo && (() => {
     const serif = "'Crimson Pro',serif";
     const rotulo = {
       fontSize: 8.5,
@@ -7313,7 +8190,46 @@ function RockArtEnhancer() {
     style: {
       marginTop: 10
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, demInfo ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      fontFamily: mono,
+      color: T.td,
+      letterSpacing: "1.5px",
+      textTransform: "uppercase",
+      marginBottom: 4
+    }
+  }, tr("Escala", "Scale"), ": ", etiquetaLargo(demEscala)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 3,
+      flexWrap: "wrap"
+    }
+  }, escalasDEM(demInfo.pxmm).map(e => /*#__PURE__*/React.createElement("button", {
+    key: e,
+    onClick: () => setDemEscala(e),
+    style: {
+      flex: 1,
+      minWidth: 30,
+      padding: "4px 2px",
+      fontSize: 8.5,
+      fontFamily: mono,
+      fontWeight: demEscala === e ? 700 : 400,
+      background: demEscala === e ? T.acBg : T.cBg,
+      border: `1px solid ${demEscala === e ? T.acBd : T.cBd}`,
+      borderRadius: 5,
+      cursor: "pointer",
+      color: demEscala === e ? T.ac : T.tm
+    }
+  }, etiquetaLargo(e)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 8,
+      fontFamily: mono,
+      color: T.td,
+      marginTop: 4,
+      lineHeight: 1.4
+    }
+  }, tr(`Borra lo que mide menos de ${etiquetaLargo(demEscala)} (~${2 * radioDEM(demEscala, demInfo.pxmm)} celdas) y resta el fondo: queda el relieve local de las alturas. El residuo en mm se descarga como GeoTIFF, para medir en un SIG.`, `Erases what measures less than ${etiquetaLargo(demEscala)} (~${2 * radioDEM(demEscala, demInfo.pxmm)} cells) and subtracts the background: what remains is the local relief of the heights. The residual in mm is downloaded as a GeoTIFF, to measure in a GIS.`))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 9,
       fontFamily: mono,
@@ -7352,8 +8268,8 @@ function RockArtEnhancer() {
       marginTop: 4,
       lineHeight: 1.4
     }
-  }, reliefScale ? tr(`Borra lo que mide menos de ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px${mmRelieve} (${reliefScale}% del lado mayor) y resta el fondo: se van el grano y la iluminación despareja. Si el motivo se empasta, bajá la escala.`, `Erases what measures less than ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px${mmRelieve} (${reliefScale}% of the long side) and subtracts the background: grain and uneven lighting drop out. If the motif blurs, lower the scale.`) : tr("Mapa de bordes de v3.6: todo detalle por igual, para calcar. Para grabados, probá una escala.", "v3.6 edge map: every detail alike, for tracing. For engravings, try a scale.")), reliefScale > 0 && (() => {
-    const activas = [relDoble, relSuave, relClahe, !!relMezcla].filter(Boolean).length;
+  }, reliefScale ? tr(`Borra lo que mide menos de ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px${mmRelieve} (${reliefScale}% del lado mayor) y resta el fondo: se van el grano y la iluminación despareja. Si el motivo se empasta, bajá la escala.`, `Erases what measures less than ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px${mmRelieve} (${reliefScale}% of the long side) and subtracts the background: grain and uneven lighting drop out. If the motif blurs, lower the scale.`) : tr("Mapa de bordes de v3.6: todo detalle por igual, para calcar. Para grabados, probá una escala.", "v3.6 edge map: every detail alike, for tracing. For engravings, try a scale."))), (reliefScale > 0 || demInfo) && (() => {
+    const activas = [relDoble, relSuave, relClahe, !demInfo && !!relMezcla].filter(Boolean).length;
     const fila = {
       display: "flex",
       alignItems: "center",
@@ -7423,7 +8339,7 @@ function RockArtEnhancer() {
         lineHeight: 1.4
       }
     }, txt);
-    const mmObjeto = ppmm ? `, ~${numCorto(pxRelieve * RELIEF_OBJETO / ppmm)} mm` : "";
+    const mmObjeto = demInfo ? `, ${etiquetaLargo(demEscala * RELIEF_OBJETO)}` : ppmm ? `, ~${numCorto(pxRelieve * RELIEF_OBJETO / ppmm)} mm` : "";
     return /*#__PURE__*/React.createElement("div", {
       style: {
         marginTop: 8,
@@ -7468,7 +8384,7 @@ function RockArtEnhancer() {
       "aria-checked": relClahe,
       onClick: () => setRelClahe(!relClahe),
       style: fila
-    }, llave(relClahe), tr("Realzar con CLAHE", "Enhance with CLAHE")), relClahe && nota(`⚠ ${tr("Realza, pero ya no es una medida: CLAHE estira el contraste distinto en cada zona.", "Enhances, but it is no longer a measurement: CLAHE stretches contrast differently in each area.")}`, T.ac), /*#__PURE__*/React.createElement("div", {
+    }, llave(relClahe), tr("Realzar con CLAHE", "Enhance with CLAHE")), relClahe && nota(`⚠ ${tr("Realza, pero ya no es una medida: CLAHE estira el contraste distinto en cada zona.", "Enhances, but it is no longer a measurement: CLAHE stretches contrast differently in each area.")}`, T.ac), !demInfo && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
       style: {
         ...fila,
         cursor: "default",
@@ -7481,7 +8397,7 @@ function RockArtEnhancer() {
         textAlign: "center",
         fontSize: 10
       }
-    }, "◑"), tr("Mezclar con color", "Blend with color")), chips([null, "dslab", "lds"], relMezcla, setRelMezcla, v => v === null ? tr("no", "no") : v === "lds" ? "LDS" : "DS-LAB"), relMezcla && /*#__PURE__*/React.createElement(React.Fragment, null, nota(tr("El relieve, como luz y sombra sobre los colores del filtro. Cuánto relieve:", "The relief, as light and shade over the filter’s colors. How much relief:")), chips([25, 50, 75], relAlfa, setRelAlfa, v => `${v} %`))));
+    }, "◑"), tr("Mezclar con color", "Blend with color")), chips([null, "dslab", "lds"], relMezcla, setRelMezcla, v => v === null ? tr("no", "no") : v === "lds" ? "LDS" : "DS-LAB"), relMezcla && /*#__PURE__*/React.createElement(React.Fragment, null, nota(tr("El relieve, como luz y sombra sobre los colores del filtro. Cuánto relieve:", "The relief, as light and shade over the filter’s colors. How much relief:")), chips([25, 50, 75], relAlfa, setRelAlfa, v => `${v} %`)))));
   })()), activePreset === "map" && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 8,
@@ -7580,7 +8496,7 @@ function RockArtEnhancer() {
       width: "100%",
       accentColor: T.ac
     }
-  }))), processedSrc && /*#__PURE__*/React.createElement("div", {
+  }))), processedSrc && !demInfo && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 4,
       padding: "10px 12px",
@@ -8616,7 +9532,7 @@ function RockArtEnhancer() {
       color: T.gn,
       fontWeight: 500
     }
-  }, "OPC"), " \u2013 OpuntiaColor v3.8.0 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+  }, "OPC"), " \u2013 OpuntiaColor v3.9.0 \xB7 ", tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline", "12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
       color: T.tm
     }
@@ -8758,7 +9674,8 @@ if (typeof document !== "undefined") {
       } : {};
       // Con selección se guarda la foto: fuera de la zona queda tal cual
       const origen = t.mask ? new Uint8ClampedArray(t.data) : null;
-      const r = p.fn(new ImageData(t.data, t.w, t.h), t.intensity, t.mask, store, t.opts);
+      // Sobre un DEM (v3.9.0) llegan también las alturas: el Relieve va sobre ellas
+      const r = t.dem ? relieveDEM(t.dem, t.w, t.h, t.intensity, t.mask, store, t.opts) : p.fn(new ImageData(t.data, t.w, t.h), t.intensity, t.mask, store, t.opts);
       const data = aplicarMascara(origen, r.data, t.mask, t.w * t.h);
       // El PNG para mostrar también se arma acá: con 29 MP, codificarlo en la
       // página la congelaba un segundo más. Si no se puede, lo hace la página.

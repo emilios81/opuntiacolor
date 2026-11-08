@@ -25,6 +25,7 @@ todavía no se corrigieron.
 6. [RAW no está soportado](#6-raw-no-está-soportado)
 7. [La resolución de trabajo cambia el resultado](#7-la-resolución-de-trabajo-cambia-el-resultado)
 8. [Sin calibración fotométrica](#8-sin-calibración-fotométrica)
+14. [El modo elevación: falta probarlo con un DEM real](#14-el-modo-elevación-falta-probarlo-con-un-dem-real)
 
 **De reproducibilidad**
 9. [Lo que queda registrado y lo que no](#9-lo-que-queda-registrado-y-lo-que-no)
@@ -376,6 +377,44 @@ Para medir sobre la foto conviene que la escala esté en el mismo plano que el
 motivo y cerca de él, con la cámara perpendicular. Para medir de verdad sobre
 una superficie irregular hace falta un modelo de fotogrametría escalado o un
 ortomosaico.
+
+---
+
+## 14. El modo elevación: falta probarlo con un DEM real
+
+El modo elevación (v3.9.0) se hizo con DEM inventados y se verificó con cuatro
+DEM reales exportados por Metashape de vuelos de dron (celdas de 8 cm a 1 m):
+GeoTIFF Float32 con LZW, en mosaicos y con vistas reducidas; «sin dato» −32767
+declarado en `GDAL_NODATA`; coordenadas WGS 84 en grados. Los leyó bien y las
+salidas conservaron su georreferencia. Falta:
+
+- **Un DEM de cerca**, de un panel con grabados y celdas de menos de un
+  milímetro. Es para lo que se pensó el modo y no hay todavía ninguno.
+- **Un panel vertical con proyección planar.** Puede traer un sistema local sin
+  EPSG, o sin la clave de unidades: en ese caso se suponen metros (el panel lo
+  avisa). Si el modelo se escaló en otra unidad, los mm salen mal.
+- **Otras convenciones de «sin dato».** OPC reconoce el valor declarado en
+  `GDAL_NODATA`, NaN y los centinelas de ±3.4·10³⁸. Un programa que use otro
+  valor sin declararlo haría pasar esas celdas por alturas.
+- **En grados, la celda es aproximada.** Se calcula en la latitud del centro;
+  en un DEM de unos cientos de metros la diferencia es despreciable.
+- **Un DEM de dron es de superficie.** La vegetación sale como el relieve más
+  fuerte; las escalas mayores la atenúan, pero no la distinguen de una
+  estructura del mismo tamaño.
+
+Además, con cualquier DEM:
+
+- **Bordes y huecos.** Junto al borde y a un hueco, el fondo se calcula con
+  celdas de un solo lado. Si el panel tiene una ondulación fuerte, ahí queda un
+  halo claro u oscuro.
+- **El residuo no es una cota.** Es relieve local: un surco sale algo menos
+  hondo de lo que es, porque el fondo abarca parte del surco, y a su lado queda
+  un borde algo positivo. Para medir profundidades, conviene una escala chica
+  respecto del ancho del fondo y comparar con un perfil del DEM.
+- **Tamaño.** Por encima de 16 MP el DEM se lee reducido por vecino más cercano:
+  las celdas son más grandes y se pierde detalle fino.
+- **Reproducir un registro de un DEM** todavía no está disponible: el registro
+  anota todo, pero OPC no lo rehace.
 
 ---
 
