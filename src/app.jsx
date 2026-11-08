@@ -27,11 +27,11 @@ const { useState, useRef, useCallback, useEffect } = typeof React !== "undefined
 // Dirección de app.js, para lanzar el worker con exactamente el mismo código
 const APP_SRC = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : null;
 // Versión que se anota en el registro de cada exportación (v3.8.0)
-const OPC_VERSION = "3.9.0";
+const OPC_VERSION = "4.0.0";
 const OPC_LOGO = "data:image/jpeg;base64,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";
 
 // ============================================================
-// OPC – OpuntiaColor v3.9.0
+// OPC – OpuntiaColor v4.0.0
 // Decorrelation Stretch & pigment enhancement for archaeology
 // v3.1: PCs ordenados, estadísticas por zona, CLAHE real,
 //       imagen integral (rápido), TIFF válido, EXIF preservado
@@ -59,6 +59,10 @@ const OPC_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 // v3.9.0: modo elevación: abre un DEM en GeoTIFF (alturas en coma flotante)
 //       y aplica el Relieve sobre las alturas, con la escala en mm;
 //       baja el residuo en mm como GeoTIFF. Con fotos no cambia nada
+// v4.0.0: modo multi-luz: una serie de fotos con la luz desde distintos
+//       lados. Con una esfera brillante, estéreo fotométrico (normales,
+//       albedo y el Relieve sobre las alturas); sin esfera, el promedio de
+//       las luces. Con fotos sueltas no cambia nada
 // ============================================================
 
 // --- Color Conversion Core ---
@@ -424,13 +428,16 @@ function crgbEnhance(imageData, intensity = 1.5, mask = null, store = null) {
 // Con escala 0 (por defecto) es el mapa de bordes multi-escala de v3.0–v3.6,
 // byte a byte el mismo: un calco digital, útil sobre todo en pinturas. Con una
 // escala mayor que 0 pasa a reliefEscala (v3.7.0), pensado para grabados.
-function reliefMap(imageData, intensity = 1.5, mask = null, store = null, opts = null) {
+// alturas (v4.0.0): las de una serie multi-luz, sacadas de las normales. Si
+// llegan, el Relieve va sobre ellas en vez de sobre el brillo de la imagen.
+function reliefMap(imageData, intensity = 1.5, mask = null, store = null, opts = null, alturas = null) {
   const escala = (opts && opts.escala) || 0;
-  if (escala > 0) return reliefEscala(imageData, intensity, mask, store, escala, opts);
+  if (escala > 0) return reliefEscala(imageData, intensity, mask, store, escala, opts, alturas);
   const data = imageData.data, w = imageData.width, h = imageData.height, n = w * h;
   const output = new Uint8ClampedArray(data.length);
   const lum = new Float64Array(n);
-  for (let i = 0; i < n; i++) lum[i] = 0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2];
+  if (alturas) lum.set(alturas);
+  else for (let i = 0; i < n; i++) lum[i] = 0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2];
 
   // Multi-scale Sobel: escala fina (surcos) + gruesa (paneles)
   const edges = new Float64Array(n);
@@ -602,11 +609,17 @@ function quitarTendencia(lum, w, h) {
 //   clahe: CLAHE sobre el resultado. Realza, pero deja de ser una medida.
 //   mezcla ("dslab" o "lds") y alfa (0–1): el relieve entra como luminosidad
 //     de ese filtro de color, en proporción alfa; el color queda del filtro.
-function reliefEscala(imageData, intensity, mask, store, escala, opts) {
+//
+// alturas (v4.0.0): en una serie multi-luz con esfera, las alturas sacadas de
+// las normales. El pasabanda va sobre ellas y no sobre el brillo: lo hundido
+// sale oscuro venga de donde venga la luz. La imagen sigue dando el color de
+// la mezcla.
+function reliefEscala(imageData, intensity, mask, store, escala, opts, alturas) {
   const o = opts || {};
   const data = imageData.data, w = imageData.width, h = imageData.height, n = w * h;
   const lum = new Float32Array(n);
-  for (let i = 0; i < n; i++) lum[i] = 0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2];
+  if (alturas) lum.set(alturas);
+  else for (let i = 0; i < n; i++) lum[i] = 0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2];
   quitarTendencia(lum, w, h);
   const estad = (D) => { const q = tukeyFences(D, n, mask, 0); return { mid: (q.lo + q.hi) / 2, sig: (q.hi - q.lo) / 1.349 || 1 }; };   // k = 0: Q1 y Q3
   let st = store && store.frozen, D;
@@ -1059,6 +1072,468 @@ function demARegistro(d) {
   return { celda_mm: d.pxmm, celda_x_mm: d.mmX, celda_y_mm: d.mmY, unidad: d.unidad, unidad_supuesta: !!d.supuesto, aproximado: !!d.aproximado,
     epsg: d.epsg || null, sin_dato: d.nodata, ancho_original: d.anchoOriginal, alto_original: d.altoOriginal, reducido: !!d.reducido,
     con_dato: Math.round(d.conDato * 1e4) / 1e4, sha256_alturas: d.sha256Alturas || null };
+}
+
+// ============================================================
+// MODO MULTI-LUZ (v4.0.0)
+// Una serie de fotos del mismo panel, con la cámara quieta en el trípode y la
+// luz desde distintos lados en cada toma. Dos caminos:
+//
+//   - Con una esfera brillante en el encuadre, estéreo fotométrico
+//     (Woodham 1980): en cada punto, el brillo cambia con la dirección de la
+//     luz según hacia dónde mire la superficie. Con tres luces conocidas o más
+//     salen, por mínimos cuadrados, la inclinación de la superficie (la
+//     normal) y su color sin la sombra (el albedo). Integrando las normales
+//     salen alturas, y sobre ellas va el Relieve, como sobre un DEM.
+//   - Sin esfera, el promedio de las luces: la serie promediada es como una
+//     foto con luz rasante desde todos lados a la vez. Lo hundido recibe menos
+//     luz venga de donde venga, y queda oscuro.
+//
+// La dirección de cada luz sale del brillo que deja sobre la esfera, como en
+// la captura de RTI. Las cuentas van en luz lineal: el JPG guarda el brillo
+// con la curva sRGB, que se deshace antes con SRGB_LINEAL.
+//
+// Las funciones de esta sección no usan el documento: corren en el worker.
+// ============================================================
+
+// Tope del tamaño de trabajo, en megapíxeles: con ocho fotos, cada una ocupa
+// en memoria 32 MB a 8 MP, y el cálculo tiene que tenerlas todas a la vez
+const ML_MAX_MP = 8;
+// Luces que tiene que haber, como mínimo, en cada punto
+const ML_MIN_LUCES = 3;
+// Desde cuántas luces se descartan, en cada punto, la toma más clara (puede
+// ser un brillo) y la más oscura (puede ser una sombra)
+const ML_DESCARTE_DESDE = 5;
+// Un canal de 8 bits desde este valor se toma como recortado
+const ML_SATURADO = 250;
+// Luminancia lineal por debajo de la cual el punto está en sombra
+const ML_SOMBRA = 0.003;
+// Diferencia mínima, en niveles de gris, entre el brillo de la esfera y el
+// resto de la esfera para tomarlo como el reflejo de la luz
+const ML_BRILLO_MIN = 25;
+// Tope de la pendiente al integrar las normales (5 ≈ 79°)
+const ML_PENDIENTE_MAX = 5;
+// Ciclos de multigrid al integrar
+const ML_CICLOS = 5;
+
+// Lineal (0–1) → sRGB de 8 bits, en una tabla de 4097 pasos
+const LINEAL_SRGB = Uint8Array.from({ length: 4097 }, (_, i) => {
+  const c = i / 4096;
+  return Math.round(255 * (c > 0.0031308 ? 1.055 * Math.pow(c, 1 / 2.4) - 0.055 : 12.92 * c));
+});
+function aSRGB(v) { return v <= 0 ? 0 : v >= 1 ? 255 : LINEAL_SRGB[(v * 4096 + 0.5) | 0]; }
+
+// Exposición de una imagen calculada (el albedo, el promedio), cuya escala no
+// dice nada: el factor que lleva la mediana de la luminancia a un gris medio
+// (0,18 en lineal), sin dejar que más del 0,5 % de los puntos se recorte.
+// muestra: luminancias lineales de una muestra de puntos.
+function exposicionML(muestra) {
+  if (!muestra.length) return 1;
+  const o = Float64Array.from(muestra).sort();
+  const med = o[o.length >> 1], tope = o[Math.min(o.length - 1, Math.floor(o.length * 0.995))];
+  const k = Math.min(med > 0 ? 0.18 / med : Infinity, tope > 0 ? 0.95 / tope : Infinity);
+  return isFinite(k) ? k : 1;
+}
+
+// El reflejo de la luz en la esfera de una foto. esf: {cx, cy, r} en píxeles
+// de la imagen de trabajo (el centro de un píxel x está en x + 0,5). amb: la
+// foto sin luz, que se resta, o null. Devuelve {ok, x, y, pico, fondo}: el
+// centro del reflejo, su brillo y la mediana de la esfera. El reflejo es lo
+// que queda en el décimo superior entre la mediana y el máximo.
+function brilloEsfera(rgba, w, h, esf, amb) {
+  const r2 = (0.97 * esf.r) ** 2;
+  const x0 = Math.max(0, Math.floor(esf.cx - esf.r)), x1 = Math.min(w - 1, Math.ceil(esf.cx + esf.r));
+  const y0 = Math.max(0, Math.floor(esf.cy - esf.r)), y1 = Math.min(h - 1, Math.ceil(esf.cy + esf.r));
+  const vals = [], xs = [], ys = [];
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const dx = x + 0.5 - esf.cx, dy = y + 0.5 - esf.cy;
+    if (dx * dx + dy * dy > r2) continue;
+    const q = 4 * (y * w + x);
+    let v = 0.299 * rgba[q] + 0.587 * rgba[q + 1] + 0.114 * rgba[q + 2];
+    if (amb) v = Math.max(0, v - (0.299 * amb[q] + 0.587 * amb[q + 1] + 0.114 * amb[q + 2]));
+    vals.push(v); xs.push(x + 0.5); ys.push(y + 0.5);
+  }
+  if (vals.length < 9) return { ok: false, pico: 0, fondo: 0 };
+  const orden = Float64Array.from(vals).sort();
+  const fondo = orden[orden.length >> 1], pico = orden[orden.length - 1];
+  if (pico - fondo < ML_BRILLO_MIN) return { ok: false, pico, fondo };
+  const umbral = pico - 0.1 * (pico - fondo);
+  let sw = 0, sx = 0, sy = 0;
+  for (let k = 0; k < vals.length; k++) {
+    if (vals[k] < umbral) continue;
+    const p = vals[k] - umbral + 1;
+    sw += p; sx += p * xs[k]; sy += p * ys[k];
+  }
+  return { ok: true, x: sx / sw, y: sy / sw, pico, fondo };
+}
+
+// La dirección de la luz a partir del reflejo en la esfera: la normal de la
+// esfera en ese punto es la bisectriz entre la cámara y la luz. Ejes: x a la
+// derecha, y hacia arriba, z hacia la cámara. Supone la cámara lejos
+// comparada con la esfera (proyección ortográfica).
+function luzDesdeBrillo(hx, hy, esf) {
+  let nx = (hx - esf.cx) / esf.r, ny = -(hy - esf.cy) / esf.r;
+  const m = Math.hypot(nx, ny);
+  if (m > 0.99) { nx *= 0.99 / m; ny *= 0.99 / m; }
+  const nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
+  return [2 * nz * nx, 2 * nz * ny, 2 * nz * nz - 1];
+}
+
+// Altura sobre el horizonte del panel y rumbo (0° arriba, 90° a la derecha),
+// en grados, de una dirección de luz
+function angulosLuz(L) {
+  const elev = Math.asin(Math.max(-1, Math.min(1, L[2]))) * 180 / Math.PI;
+  let rumbo = Math.atan2(L[0], L[1]) * 180 / Math.PI;
+  if (rumbo < 0) rumbo += 360;
+  return { elev, rumbo };
+}
+
+// La potencia relativa de cada luz. Una linterna en la mano no queda siempre a
+// la misma distancia, y el doble de distancia es la cuarta parte de luz. Se
+// supone que el panel, en conjunto, mira a la cámara: entonces el brillo de un
+// punto con la luz k es proporcional a la potencia de k por la altura de k.
+// En una muestra de puntos que no están en sombra ni recortados con ninguna
+// luz, se divide cada brillo por la altura de su luz y por el promedio del
+// punto, y la mediana de cada luz es su potencia. Promedio 1.
+function potenciasLuces(fotos, amb, luces, w, h) {
+  const N = fotos.length, n = w * h, LIN = SRGB_LINEAL;
+  const s = new Array(N).fill(1);
+  if (luces.some(L => L[2] < 0.05)) return s;
+  const paso = Math.max(1, Math.floor(n / 100000)), muestras = luces.map(() => []), r = new Float64Array(N);
+  for (let p = 0; p < n; p += paso) {
+    const q = 4 * p;
+    const ya = amb ? 0.2126 * LIN[amb[q]] + 0.7152 * LIN[amb[q + 1]] + 0.0722 * LIN[amb[q + 2]] : 0;
+    let ok = true, suma = 0;
+    for (let k = 0; k < N && ok; k++) {
+      const f = fotos[k];
+      if (f[q] >= ML_SATURADO || f[q + 1] >= ML_SATURADO || f[q + 2] >= ML_SATURADO) { ok = false; break; }
+      const y = 0.2126 * LIN[f[q]] + 0.7152 * LIN[f[q + 1]] + 0.0722 * LIN[f[q + 2]] - ya;
+      if (y <= ML_SOMBRA) { ok = false; break; }
+      r[k] = y / luces[k][2]; suma += r[k];
+    }
+    if (!ok) continue;
+    for (let k = 0; k < N; k++) muestras[k].push(r[k] * N / suma);
+  }
+  if (muestras[0].length < 100) return s;
+  for (let k = 0; k < N; k++) { const m = Float64Array.from(muestras[k]).sort(); s[k] = m[m.length >> 1]; }
+  const media = s.reduce((a, b) => a + b, 0) / N;
+  return s.map(v => v / media);
+}
+
+// Estéreo fotométrico. fotos: las fotos con luz (RGBA de 8 bits, todas de
+// w × h); luces: su dirección, en el mismo orden; amb: la foto sin luz o null.
+// opts: {descartar (la toma más clara y la más oscura de cada punto, con
+// ML_DESCARTE_DESDE luces o más; sí por defecto), igualar (las potencias de
+// las luces; sí por defecto)}.
+//
+// En cada punto se juntan las luces que no lo dejan en sombra ni recortado, y
+// se resuelve por mínimos cuadrados I_k = ρ (n · L_k): g = ρ n = (Σ L Lᵀ)⁻¹ Σ I L.
+// Devuelve {nx, ny, nz (Float32Array), valido (Uint8Array: 0 donde no hubo
+// luces suficientes), albedo (RGBA de 8 bits, expuesto para verse), potencias,
+// lucesPorPunto (cuántas entraron en promedio), conDato (fracción con normal)}.
+function estereoFotometrico(fotos, amb, luces, w, h, opts) {
+  const o = opts || {}, N = fotos.length, n = w * h, LIN = SRGB_LINEAL;
+  const descartar = o.descartar !== false && N >= ML_DESCARTE_DESDE;
+  const s = o.igualar === false ? new Array(N).fill(1) : potenciasLuces(fotos, amb, luces, w, h);
+  const nx = new Float32Array(n), ny = new Float32Array(n), nz = new Float32Array(n), rho = new Float32Array(n);
+  const valido = new Uint8Array(n), usadas = new Uint16Array(n);
+  const I = new Float64Array(N), usa = new Uint8Array(N);
+  const Lx = luces.map(L => L[0]), Ly = luces.map(L => L[1]), Lz = luces.map(L => L[2]);
+  let totalLuces = 0, conDato = 0;
+  for (let p = 0; p < n; p++) {
+    const q = 4 * p;
+    const ya = amb ? 0.2126 * LIN[amb[q]] + 0.7152 * LIN[amb[q + 1]] + 0.0722 * LIN[amb[q + 2]] : 0;
+    let cnt = 0;
+    for (let k = 0; k < N; k++) {
+      const f = fotos[k];
+      usa[k] = 0;
+      if (f[q] >= ML_SATURADO || f[q + 1] >= ML_SATURADO || f[q + 2] >= ML_SATURADO) continue;
+      const y = (0.2126 * LIN[f[q]] + 0.7152 * LIN[f[q + 1]] + 0.0722 * LIN[f[q + 2]] - ya) / s[k];
+      if (y <= ML_SOMBRA) continue;
+      I[k] = y; usa[k] = 1; cnt++;
+    }
+    if (descartar && cnt >= ML_DESCARTE_DESDE) {
+      let kmax = -1, kmin = -1;
+      for (let k = 0; k < N; k++) if (usa[k]) { if (kmax < 0 || I[k] > I[kmax]) kmax = k; if (kmin < 0 || I[k] < I[kmin]) kmin = k; }
+      usa[kmax] = 0; usa[kmin] = 0; cnt -= 2;
+    }
+    nz[p] = 1;
+    if (cnt < ML_MIN_LUCES) continue;
+    let a = 0, b = 0, c = 0, d = 0, e = 0, f6 = 0, b0 = 0, b1 = 0, b2 = 0, mask = 0;
+    for (let k = 0; k < N; k++) {
+      if (!usa[k]) continue;
+      const x = Lx[k], y = Ly[k], z = Lz[k], v = I[k];
+      a += x * x; b += x * y; c += x * z; d += y * y; e += y * z; f6 += z * z;
+      b0 += v * x; b1 += v * y; b2 += v * z; mask |= 1 << k;
+    }
+    // Inversa de la matriz simétrica [[a b c] [b d e] [c e f6]] por adjuntos
+    const A00 = d * f6 - e * e, A01 = c * e - b * f6, A02 = b * e - c * d;
+    const det = a * A00 + b * A01 + c * A02;
+    if (!(Math.abs(det) > 1e-9)) continue;
+    const A11 = a * f6 - c * c, A12 = b * c - a * e, A22 = a * d - b * b;
+    const gx = (A00 * b0 + A01 * b1 + A02 * b2) / det;
+    const gy = (A01 * b0 + A11 * b1 + A12 * b2) / det;
+    const gz = (A02 * b0 + A12 * b1 + A22 * b2) / det;
+    const r = Math.sqrt(gx * gx + gy * gy + gz * gz);
+    if (!(r > 1e-6) || gz <= 0) continue;
+    nx[p] = gx / r; ny[p] = gy / r; nz[p] = gz / r; rho[p] = r;
+    valido[p] = 1; usadas[p] = mask; totalLuces += cnt; conDato++;
+  }
+  // El albedo de cada canal, con las mismas luces de cada punto:
+  // ρ_c = Σ C_k (n · L_k) / Σ (n · L_k)². Donde no hubo luces suficientes, el
+  // promedio de las fotos. La escala del albedo es arbitraria (depende de la
+  // potencia de las luces): se expone con exposicionML.
+  const muestra = [];
+  for (let p = 0, paso = Math.max(1, Math.floor(n / 200000)); p < n; p += paso) if (valido[p]) muestra.push(rho[p]);
+  const k0 = exposicionML(muestra);
+  const albedo = new Uint8ClampedArray(n * 4), nl = new Float64Array(N);
+  for (let p = 0; p < n; p++) {
+    const q = 4 * p;
+    for (let c = 0; c < 3; c++) {
+      const ca = amb ? LIN[amb[q + c]] : 0;
+      let num = 0, den = 0;
+      if (valido[p]) {
+        const m = usadas[p];
+        for (let k = 0; k < N; k++) {
+          if (!(m & (1 << k))) continue;
+          if (c === 0) nl[k] = nx[p] * Lx[k] + ny[p] * Ly[k] + nz[p] * Lz[k];
+          num += Math.max(0, LIN[fotos[k][q + c]] - ca) / s[k] * nl[k]; den += nl[k] * nl[k];
+        }
+      } else {
+        for (let k = 0; k < N; k++) { num += Math.max(0, LIN[fotos[k][q + c]] - ca) / s[k]; den += Lz[k] > 0.05 ? Lz[k] : 0.05; }
+      }
+      albedo[q + c] = aSRGB(den > 0 ? k0 * num / den : 0);
+    }
+    albedo[q + 3] = 255;
+  }
+  return { nx, ny, nz, valido, albedo, potencias: s, lucesPorPunto: conDato ? totalLuces / conDato : 0, conDato: conDato / n };
+}
+
+// El promedio de las luces, para una serie sin esfera: cada foto, sin el
+// ambiente y en luz lineal, se divide por la mediana de su brillo (así la luz
+// más cercana no pesa más) y se promedian. Expuesto como el albedo.
+function promedioLuces(fotos, amb, w, h) {
+  const N = fotos.length, n = w * h, LIN = SRGB_LINEAL;
+  const paso = Math.max(1, Math.floor(n / 100000));
+  const Yp = (f, q) => 0.2126 * LIN[f[q]] + 0.7152 * LIN[f[q + 1]] + 0.0722 * LIN[f[q + 2]] - (amb ? 0.2126 * LIN[amb[q]] + 0.7152 * LIN[amb[q + 1]] + 0.0722 * LIN[amb[q + 2]] : 0);
+  const kf = fotos.map(f => {
+    const v = [];
+    for (let p = 0; p < n; p += paso) v.push(Yp(f, 4 * p));
+    const o = Float64Array.from(v).sort(), m = o[o.length >> 1];
+    return m > 1e-4 ? 1 / m : 1;
+  });
+  const muestra = [];
+  for (let p = 0; p < n; p += paso) { let y = 0; for (let k = 0; k < N; k++) y += Math.max(0, Yp(fotos[k], 4 * p)) * kf[k]; muestra.push(y / N); }
+  const k0 = exposicionML(muestra) / N;
+  const out = new Uint8ClampedArray(n * 4);
+  for (let p = 0; p < n; p++) {
+    const q = 4 * p;
+    for (let c = 0; c < 3; c++) {
+      const ca = amb ? LIN[amb[q + c]] : 0;
+      let v = 0;
+      for (let k = 0; k < N; k++) v += Math.max(0, LIN[fotos[k][q + c]] - ca) * kf[k];
+      out[q + c] = aSRGB(v * k0);
+    }
+    out[q + 3] = 255;
+  }
+  return out;
+}
+
+// --- Integrar las normales ---
+//
+// De la normal sale la pendiente: ∂z/∂x = −nx/nz, ∂z/∂fila = ny/nz (las filas
+// crecen hacia abajo). Se busca la altura z cuyas diferencias entre vecinos
+// mejor ajustan esas pendientes, por mínimos cuadrados: es la ecuación de
+// Poisson, Σ_vecinos (z_j − z_i) = divergencia, con bordes libres. Se resuelve
+// con multigrid: Gauss-Seidel en la grilla fina saca el error de detalle y el
+// de gran escala se resuelve en grillas cada vez más gruesas. Las alturas
+// quedan en píxeles, con promedio 0. Donde no hay normal, la pendiente es 0.
+
+// Una pasada de Gauss-Seidel sobre Σ_vecinos (z_j − z_i) = f_i. Los bordes,
+// con los vecinos que tengan; el interior, con los cuatro y sin preguntar
+function gaussSeidel(z, f, w, h) {
+  const borde = (i, x, y) => {
+    let s = 0, d = 0;
+    if (x > 0) { s += z[i - 1]; d++; }
+    if (x < w - 1) { s += z[i + 1]; d++; }
+    if (y > 0) { s += z[i - w]; d++; }
+    if (y < h - 1) { s += z[i + w]; d++; }
+    if (d) z[i] = (s - f[i]) / d;
+  };
+  for (let y = 0; y < h; y++) {
+    const o = y * w;
+    if (y === 0 || y === h - 1 || w < 3) { for (let x = 0; x < w; x++) borde(o + x, x, y); continue; }
+    borde(o, 0, y);
+    for (let i = o + 1, fin = o + w - 1; i < fin; i++) z[i] = (z[i - 1] + z[i + 1] + z[i - w] + z[i + w] - f[i]) * 0.25;
+    borde(o + w - 1, w - 1, y);
+  }
+}
+
+// El residuo f − A z, sumado de a bloques de 2 × 2 en la grilla gruesa
+function restringirResiduo(z, f, w, h, fc, W) {
+  fc.fill(0);
+  for (let y = 0; y < h; y++) {
+    const o = y * w, oc = (y >> 1) * W;
+    for (let x = 0; x < w; x++) {
+      const i = o + x, zi = z[i];
+      let a = 0;
+      if (x > 0) a += z[i - 1] - zi;
+      if (x < w - 1) a += z[i + 1] - zi;
+      if (y > 0) a += z[i - w] - zi;
+      if (y < h - 1) a += z[i + w] - zi;
+      fc[oc + (x >> 1)] += f[i] - a;
+    }
+  }
+}
+
+// Suma a z la corrección de la grilla gruesa, interpolada (bilineal, con los
+// centros de las celdas)
+function prolongarSumar(z, e, w, h, W, H) {
+  for (let y = 0; y < h; y++) {
+    const Y = y >> 1, Y2 = (y & 1) ? Math.min(H - 1, Y + 1) : Math.max(0, Y - 1);
+    const o = y * w, a = Y * W, b = Y2 * W;
+    for (let x = 0; x < w; x++) {
+      const X = x >> 1, X2 = (x & 1) ? Math.min(W - 1, X + 1) : Math.max(0, X - 1);
+      z[o + x] += 0.5625 * e[a + X] + 0.1875 * (e[a + X2] + e[b + X]) + 0.0625 * e[b + X2];
+    }
+  }
+}
+
+// Alturas a partir de las pendientes gx (∂z/∂x) y gy (∂z/∂fila)
+function integrarGradientes(gx, gy, w, h, ciclos) {
+  const n = w * h, f = new Float32Array(n);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x;
+    if (x < w - 1) { const ex = (gx[i] + gx[i + 1]) / 2; f[i] += ex; f[i + 1] -= ex; }
+    if (y < h - 1) { const ey = (gy[i] + gy[i + w]) / 2; f[i] += ey; f[i + w] -= ey; }
+  }
+  const niveles = [{ w, h, z: new Float32Array(n), f }];
+  for (;;) {
+    const L = niveles[niveles.length - 1];
+    if (L.w <= 3 || L.h <= 3) break;
+    const W = (L.w + 1) >> 1, H = (L.h + 1) >> 1;
+    niveles.push({ w: W, h: H, z: new Float32Array(W * H), f: new Float32Array(W * H) });
+  }
+  const vciclo = (l) => {
+    const L = niveles[l];
+    if (l === niveles.length - 1) { for (let k = 0; k < 60; k++) gaussSeidel(L.z, L.f, L.w, L.h); return; }
+    gaussSeidel(L.z, L.f, L.w, L.h); gaussSeidel(L.z, L.f, L.w, L.h);
+    const C = niveles[l + 1];
+    restringirResiduo(L.z, L.f, L.w, L.h, C.f, C.w);
+    // Bordes libres: el residuo tiene que sumar cero, o la solución se corre
+    let m = 0; for (let i = 0; i < C.f.length; i++) m += C.f[i];
+    m /= C.f.length; for (let i = 0; i < C.f.length; i++) C.f[i] -= m;
+    C.z.fill(0);
+    vciclo(l + 1);
+    prolongarSumar(L.z, C.z, L.w, L.h, C.w, C.h);
+    gaussSeidel(L.z, L.f, L.w, L.h); gaussSeidel(L.z, L.f, L.w, L.h);
+  };
+  for (let c = 0; c < (ciclos || ML_CICLOS); c++) vciclo(0);
+  const z = niveles[0].z;
+  let m = 0; for (let i = 0; i < n; i++) m += z[i];
+  m /= n; for (let i = 0; i < n; i++) z[i] -= m;
+  return z;
+}
+
+function integrarNormales(nx, ny, nz, valido, w, h, ciclos) {
+  const n = w * h, gx = new Float32Array(n), gy = new Float32Array(n), T = ML_PENDIENTE_MAX;
+  for (let i = 0; i < n; i++) {
+    if (!valido[i]) continue;
+    const z = Math.max(nz[i], 1e-3);
+    gx[i] = Math.max(-T, Math.min(T, -nx[i] / z));
+    gy[i] = Math.max(-T, Math.min(T, ny[i] / z));
+  }
+  return integrarGradientes(gx, gy, w, h, ciclos);
+}
+
+// Las normales como imagen, con la convención de los mapas de normales: rojo
+// hacia la derecha, verde hacia arriba, azul hacia la cámara
+function mapaNormales(nx, ny, nz, n) {
+  const out = new Uint8ClampedArray(n * 4);
+  for (let i = 0; i < n; i++) {
+    out[i*4] = (nx[i] + 1) * 127.5; out[i*4+1] = (ny[i] + 1) * 127.5; out[i*4+2] = (nz[i] + 1) * 127.5; out[i*4+3] = 255;
+  }
+  return out;
+}
+
+// Sombreado de las normales, con la luz desde arriba a la izquierda a 45° de
+// altura, como el del DEM: la forma sola, sin el color
+function sombreadoNormales(nx, ny, nz, valido, n) {
+  const out = new Uint8ClampedArray(n * 4), L = [-0.5, 0.5, Math.SQRT1_2];
+  for (let i = 0; i < n; i++) {
+    const v = valido[i] ? 30 + 225 * Math.max(0, nx[i] * L[0] + ny[i] * L[1] + nz[i] * L[2]) : 0;
+    out[i*4] = v; out[i*4+1] = v; out[i*4+2] = v; out[i*4+3] = 255;
+  }
+  return out;
+}
+
+// El cálculo de una serie, de una vez; corre en el worker. t: {fotos (RGBA de
+// las fotos con luz), ambiente (RGBA de la foto sin luz, o null), luces (la
+// dirección de cada foto, o null si no se encontró su brillo en la esfera),
+// esfera ({cx, cy, r} en píxeles, o null), w, h, opts}. Con ML_MIN_LUCES
+// luces conocidas o más, estéreo fotométrico; si no, el promedio de las
+// luces. Devuelve las imágenes de base (RGBA) y, con el estéreo, las alturas.
+function calcularMultiluz(t) {
+  const w = t.w, h = t.h, n = w * h;
+  const promedio = promedioLuces(t.fotos, t.ambiente, w, h);
+  const con = (t.luces || []).map((L, k) => L ? k : -1).filter(k => k >= 0);
+  if (con.length < ML_MIN_LUCES) return { metodo: "promedio", w, h, promedio };
+  const r = estereoFotometrico(con.map(k => t.fotos[k]), t.ambiente, con.map(k => t.luces[k]), w, h, t.opts);
+  // La esfera no es parte del panel: queda afuera de la integración
+  if (t.esfera) {
+    const e = t.esfera, m = e.r + 3;
+    for (let y = Math.max(0, Math.floor(e.cy - m)); y <= Math.min(h - 1, Math.ceil(e.cy + m)); y++)
+      for (let x = Math.max(0, Math.floor(e.cx - m)); x <= Math.min(w - 1, Math.ceil(e.cx + m)); x++) {
+        if ((x + 0.5 - e.cx) ** 2 + (y + 0.5 - e.cy) ** 2 > m * m) continue;
+        const i = y * w + x;
+        r.valido[i] = 0; r.nx[i] = 0; r.ny[i] = 0; r.nz[i] = 1;
+      }
+  }
+  const z = integrarNormales(r.nx, r.ny, r.nz, r.valido, w, h);
+  const potencias = (t.luces || []).map(() => null);
+  con.forEach((k, j) => { potencias[k] = r.potencias[j]; });
+  let cuenta = 0;
+  for (let i = 0; i < n; i++) cuenta += r.valido[i];
+  return { metodo: "fotometrico", w, h, promedio, albedo: r.albedo, normales: mapaNormales(r.nx, r.ny, r.nz, n),
+    sombreado: sombreadoNormales(r.nx, r.ny, r.nz, r.valido, n), z, potencias, lucesPorPunto: r.lucesPorPunto, conNormal: cuenta / n };
+}
+
+// Lo que el registro guarda de una serie: cada foto con su huella, la
+// dirección y la potencia de su luz; la foto sin luz; la esfera, en fracción
+// del ancho y del alto de la imagen de trabajo; las opciones y la imagen de
+// base. m: lo que la página guardó de la serie, con las huellas ya resueltas.
+function multiluzARegistro(m) {
+  const r4 = (v) => Math.round(v * 1e4) / 1e4, r1 = (v) => Math.round(v * 10) / 10;
+  return {
+    metodo: m.metodo,
+    fotos: m.fotos.map((f, k) => {
+      const a = f.luz ? angulosLuz(f.luz) : null;
+      return { archivo: f.archivo, bytes: f.bytes, sha256: f.sha256 || null, luz: f.luz ? f.luz.map(r4) : null,
+        altura_luz_grados: a ? r1(a.elev) : null, rumbo_luz_grados: a ? r1(a.rumbo) : null,
+        potencia: m.potencias && m.potencias[k] != null ? r4(m.potencias[k]) : null };
+    }),
+    ambiente: m.ambiente || null,
+    esfera: m.esfera ? { cx: r4(m.esfera.cx / m.w), cy: r4(m.esfera.cy / m.h), r: r4(m.esfera.r / m.w) } : null,
+    opciones: { descartar: !(m.opts && m.opts.descartar === false), igualar: !(m.opts && m.opts.igualar === false) },
+    base: m.base,
+    luces_por_punto: m.lucesPorPunto != null ? r1(m.lucesPorPunto) : null,
+    con_normal: m.conNormal != null ? r4(m.conNormal) : null,
+  };
+}
+
+// El nombre de una serie para los archivos: lo que tienen en común los nombres
+// de las fotos (sin extensión ni separadores al final), o el de la primera, y
+// cuántas fotos con luz entraron: «panel3_multiluz8». Sin puntos, porque lo
+// que sigue al último punto se toma como extensión.
+function nombreSerie(nombres, n) {
+  const sin = nombres.map(s => s.replace(/\.[^.]+$/, ""));
+  let p = sin[0] || "serie";
+  for (const s of sin) { let i = 0; while (i < p.length && i < s.length && p[i] === s[i]) i++; p = p.slice(0, i); }
+  // Si lo común corta un número (DSC_0101, DSC_0102 → DSC_010), se saca el pedazo
+  if (/\d$/.test(p) && sin.some(s => /\d/.test(s.charAt(p.length)))) p = p.replace(/\d+$/, "");
+  p = p.replace(/[\s_\-.(]+$/, "");
+  if (p.length < 3) p = sin[0] || "serie";
+  return `${p.replace(/\./g, "_")}_multiluz${n}`;
 }
 
 // --- Técnico ---
@@ -1772,6 +2247,7 @@ function armarRegistro(d) {
     trabajo: d.trabajo || null,
     escala: d.escala || null,
     ...(d.dem ? { dem: d.dem } : {}),
+    ...(d.multiluz ? { multiluz: d.multiluz } : {}),
     pasos: d.pasos.map(p => ({
       filtro: p.presetId,
       intensidad: p.intensity,
@@ -2183,6 +2659,26 @@ function informePDF(reg, x) {
       + (dm.unidad_supuesta ? t(" · unidades supuestas: metros", " · units assumed: metres") : "") + (dm.aproximado ? t(" · celda aproximada (grados)", " · approximate cell (degrees)") : ""));
     if (dm.sha256_alturas) fila(t("SHA-256 de las alturas", "Heights SHA-256"), dm.sha256_alturas, true);
   }
+  if (reg.multiluz) {
+    const ml = reg.multiluz, fotosML = ml.fotos || [], nl = fotosML.filter(f => f.luz).length;
+    fila(t("Serie multi-luz", "Multi-light series"), ml.metodo === "fotometrico"
+      ? t(`${fotosML.length} fotos · estéreo fotométrico con ${nl} luces desde la esfera`, `${fotosML.length} photos · photometric stereo with ${nl} lights from the sphere`)
+        + (ml.luces_por_punto != null ? t(` · ${dec(ml.luces_por_punto)} luces por punto`, ` · ${dec(ml.luces_por_punto)} lights per point`) : "")
+        + (ml.con_normal != null ? t(` · ${dec(Math.round(ml.con_normal * 1000) / 10)} % con normal`, ` · ${dec(Math.round(ml.con_normal * 1000) / 10)} % with a normal`) : "")
+      : t(`${fotosML.length} fotos · promedio de las luces (sin esfera)`, `${fotosML.length} photos · average of the lights (no sphere)`));
+    const bases = { albedo: t("albedo: el color, sin sombras", "albedo: the colour, without shadows"), promedio: t("promedio de las luces", "average of the lights"),
+      sombreado: t("sombreado de las normales", "shading of the normals"), normales: t("mapa de normales", "normal map") };
+    fila(t("Imagen de base", "Base image"), bases[ml.base] || ml.base || "—");
+    if (ml.ambiente) fila(t("Foto sin luz", "Unlit photo"), ml.ambiente.archivo);
+    const op = ml.opciones || {};
+    if (ml.metodo === "fotometrico") fila(t("Opciones", "Options"), [op.descartar ? t("descarta la toma más clara y la más oscura de cada punto", "drops the brightest and the darkest shot at each point") : t("usa todas las tomas", "uses every shot"),
+      op.igualar ? t("potencias igualadas", "powers equalized") : t("potencias sin igualar", "powers not equalized")].join(" · "));
+    // Los nombres y las huellas de cada foto están en el .json; acá, las luces
+    const nombres = fotosML.map(f => f.archivo);
+    fila(t("Fotos", "Photos"), nombres.length > 3 ? `${nombres[0]} … ${nombres[nombres.length - 1]} (${nombres.length})` : nombres.join(", "));
+    if (ml.metodo === "fotometrico") fila(t("Luces", "Lights"), t("altura / rumbo · potencia — ", "elevation / bearing · power — ") +
+      fotosML.map((f, i) => f.luz ? `${i + 1}: ${dec(Math.round(f.altura_luz_grados))}° / ${dec(Math.round(f.rumbo_luz_grados))}°${f.potencia != null ? ` · ${dec(Math.round(f.potencia * 100) / 100)}` : ""}` : `${i + 1}: —`).join(";  "));
+  }
 
   // ---- Procedimiento
   seccion(t("Procedimiento", "Procedure"));
@@ -2196,6 +2692,7 @@ function informePDF(reg, x) {
       if (op.clahe) d.push(t("realzado con CLAHE (no métrico)", "enhanced with CLAHE (not metric)"));
       if (op.mezcla) { const al = Math.round((op.alfa == null ? 0.5 : op.alfa) * 100), nm = op.mezcla === "lds" ? "LDS" : "DS-LAB"; d.push(t(`mezclado con ${nm} al ${al} %`, `blended with ${nm} at ${al} %`)); }
     }
+    if (p.opciones && p.opciones.sobre === "normales") d.push(t("sobre las alturas sacadas de las normales", "on the heights taken from the normals"));
     const s = p.seleccion;
     if (!s) d.push(t("toda la imagen", "whole image"));
     else {
@@ -2235,7 +2732,10 @@ function informePDF(reg, x) {
 
   // ---- Reproducir y citar, en dos columnas
   const bloque = [
-    [t("Cómo reproducirlo", "How to reproduce it"), t(`En OPC ${version} o posterior: cargar la foto original y abrir el registro con «Reproducir un registro». Sirve el .json que bajó con este informe o la propia imagen exportada, que lo lleva adentro. OPC rehace la imagen y comprueba que salga idéntica, píxel a píxel.`,
+    [t("Cómo reproducirlo", "How to reproduce it"), reg.multiluz || reg.dem
+      ? t(`En OPC ${version} o posterior: abrir ${reg.multiluz ? "las mismas fotos de la serie, marcar la esfera y elegir la foto sin luz y las opciones" : "el mismo modelo de elevación"} que dice el registro, y aplicar los mismos pasos. La comprobación automática con «Reproducir un registro» todavía no está disponible para ${reg.multiluz ? "una serie multi-luz" : "un modelo de elevación"}.`,
+        `In OPC ${version} or later: open ${reg.multiluz ? "the same photos of the series, mark the sphere and choose the unlit photo and the options" : "the same elevation model"} given in the record, and apply the same steps. Automatic checking with “Replay a record” is not available yet for ${reg.multiluz ? "a multi-light series" : "an elevation model"}.`)
+      : t(`En OPC ${version} o posterior: cargar la foto original y abrir el registro con «Reproducir un registro». Sirve el .json que bajó con este informe o la propia imagen exportada, que lo lleva adentro. OPC rehace la imagen y comprueba que salga idéntica, píxel a píxel.`,
       `In OPC ${version} or later: load the original photo and open the record with “Replay a record”. Use the .json downloaded with this report, or the exported image itself, which carries it inside. OPC rebuilds the image and checks that it comes out identical, pixel for pixel.`)],
     [t("Cómo citar", "How to cite"), `Villafañez, E. A. (${fecha.getFullYear()}). OPC – OpuntiaColor (${t("versión", "version")} ${version}) [Software]. LATDAA, ${t("Universidad Nacional de Catamarca", "National University of Catamarca")}. https://doi.org/10.5281/zenodo.21796290`],
   ];
@@ -2449,7 +2949,9 @@ function crearProcesador() {
   const local = (t) => {
     const p = PRESETS.find(x => x.id === t.presetId);
     const store = t.frozen ? { frozen: t.frozen } : {};
+    if (t.tipo === "multiluz") return { multiluz: calcularMultiluz(t) };
     const r = t.dem ? relieveDEM(t.dem, t.w, t.h, t.intensity, t.mask, store, t.opts)
+      : t.alturas && t.presetId === "relief" ? reliefMap(new ImageData(new Uint8ClampedArray(t.origen), t.w, t.h), t.intensity, t.mask, store, t.opts, t.alturas)
       : p.fn(new ImageData(new Uint8ClampedArray(t.origen), t.w, t.h), t.intensity, t.mask, store, t.opts);
     return { data: aplicarMascara(t.origen, r.data, t.mask, t.w * t.h), frozen: store.frozen || null, png: null };
   };
@@ -2462,6 +2964,7 @@ function crearProcesador() {
       enCurso = null;
       // Un error dentro del worker se repite en la página, donde queda a la vista
       if (e.data.error) resolverLocal(t);
+      else if (e.data.multiluz) t.resolve({ multiluz: e.data.multiluz });
       else t.resolve({ data: e.data.data, frozen: e.data.frozen, png: e.data.png });
     };
     worker.onerror = (e) => {
@@ -2480,8 +2983,10 @@ function crearProcesador() {
     if (worker) { worker.terminate(); worker = null; }
     t.reject(PROC_CANCELADO);
   };
-  // t: { presetId, origen (Uint8ClampedArray RGBA), w, h, intensity, mask, frozen, opts }
-  // Devuelve { data: RGBA ya combinado con la selección, frozen, png: Blob o null }
+  // t: { presetId, origen (Uint8ClampedArray RGBA), w, h, intensity, mask, frozen, opts, dem, alturas }
+  // Devuelve { data: RGBA ya combinado con la selección, frozen, png: Blob o null }.
+  // Con t.tipo = "multiluz" (v4.0.0) calcula una serie: t trae fotos, ambiente,
+  // luces, esfera, w, h y opts, y devuelve { multiluz } (ver calcularMultiluz).
   const correr = (t) => new Promise((resolve, reject) => {
     cancelar();
     const job = { ...t, id: ++n, resolve, reject };
@@ -2492,10 +2997,17 @@ function crearProcesador() {
       return;
     }
     enCurso = job;
+    if (t.tipo === "multiluz") {
+      // Copias de las fotos: la página guarda las suyas para volver a calcular
+      const fotos = t.fotos.map(f => new Uint8ClampedArray(f)), amb = t.ambiente ? new Uint8ClampedArray(t.ambiente) : null;
+      worker.postMessage({ id: job.id, tipo: "multiluz", fotos, ambiente: amb, luces: t.luces, esfera: t.esfera, w: t.w, h: t.h, opts: t.opts },
+        [...fotos.map(f => f.buffer), ...(amb ? [amb.buffer] : [])]);
+      return;
+    }
     // Se transfiere una copia de los píxeles: pasa al worker sin duplicarse
     const copia = new Uint8ClampedArray(t.origen);
     worker.postMessage({ id: job.id, presetId: t.presetId, data: copia, w: t.w, h: t.h,
-      intensity: t.intensity, mask: t.mask, frozen: t.frozen, opts: t.opts, dem: t.dem || null, png: true }, [copia.buffer]);
+      intensity: t.intensity, mask: t.mask, frozen: t.frozen, opts: t.opts, dem: t.dem || null, alturas: t.alturas || null, png: true }, [copia.buffer]);
   });
   return { correr, cancelar };
 }
@@ -2715,6 +3227,471 @@ function BarraEscala({ contRef, getBounds, view, ppmm, anchoTrabajo, solar }) {
 // MAIN COMPONENT
 // ============================================================
 
+// ============================================================
+// SERIE MULTI-LUZ (v4.0.0): la ventana para armar la serie
+// Muestra las fotos juntas (el máximo de todas: se ven a la vez los brillos
+// que cada luz dejó en la esfera), deja marcar la esfera con un círculo, elegir
+// la foto sin luz y ver la luz que se encontró en cada toma. El cálculo lo
+// pide la página (onCalcular).
+// a: {fotos [{archivo, brillo}], w, h, w0, h0, vista (URL), ambiente (índice
+// o -1), esfera ({cx, cy, r} en píxeles de trabajo, o null), brillos, luces,
+// opts {descartar, igualar}, calculando, error}
+// ============================================================
+function ArmadoSerie({ a, onCambiar, onCalcular, onCancelar, tr, T, mono }) {
+  const svgRef = useRef(null), arrastre = useRef(null);
+  // La vista acercada: un cuadrado alrededor de la esfera que queda quieto
+  // mientras se ajusta el círculo. Si siguiera al círculo, al soltarlo la
+  // vista se volvería a centrar y a escalar sobre él, y parecería que el
+  // círculo no se movió ni cambió de tamaño.
+  const marcoDe = (c) => [c.cx - c.r * 1.7, c.cy - c.r * 1.7, c.r * 3.4, c.r * 3.4];
+  const [cerca, setCerca] = useState(!!a.esfera);
+  const [marco, setMarco] = useState(a.esfera ? marcoDe(a.esfera) : null);
+  const acercar = (c) => { setMarco(marcoDe(c)); setCerca(true); };
+  // El círculo que se ve mientras se arrastra. También va en una referencia:
+  // al soltar hay que leer el último, y el estado puede no haberse redibujado
+  const [circ, setCircEstado] = useState(a.esfera), circRef = useRef(a.esfera);
+  const setCirc = (c) => { circRef.current = c; setCircEstado(c); };
+  const [masOp, setMasOp] = useState(false);
+  useEffect(() => { setCirc(a.esfera); if (!a.esfera) setCerca(false); }, [a.esfera]);
+  useEffect(() => {
+    const k = (e) => { if (e.key === "Escape" && !a.calculando) onCancelar(); };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [a.calculando, onCancelar]);
+  const { w, h } = a, esf = a.esfera;
+  // Lo que se ve: toda la foto, o un cuadrado alrededor de la esfera
+  const vb = cerca && esf && marco ? marco : [0, 0, w, h];
+  const u = vb[2] / 100;   // una unidad de dibujo: el 1 % del ancho visible
+  const punto = (e) => {
+    const r = svgRef.current.getBoundingClientRect(), s = Math.min(r.width / vb[2], r.height / vb[3]);
+    return [vb[0] + (e.clientX - r.left - (r.width - vb[2] * s) / 2) / s, vb[1] + (e.clientY - r.top - (r.height - vb[3] * s) / 2) / s];
+  };
+  const bajar = (e) => {
+    if (a.calculando) return;
+    e.preventDefault();
+    const [x, y] = punto(e);
+    try { svgRef.current.setPointerCapture(e.pointerId); } catch (err) {}
+    const c = circRef.current;
+    if (cerca && c) {
+      // De cerca: el borde cambia el tamaño; adentro se arrastra el círculo, y
+      // afuera su centro salta ahí. Para marcar otra esfera, «Ver toda la foto».
+      const d = Math.hypot(x - c.cx, y - c.cy);
+      if (Math.abs(d - c.r) < Math.max(c.r * 0.2, 2 * u)) { arrastre.current = { modo: "radio" }; return; }
+      arrastre.current = d < c.r ? { modo: "mover", dx: x - c.cx, dy: y - c.cy } : { modo: "mover", dx: 0, dy: 0 };
+      if (d >= c.r) setCirc({ ...c, cx: x, cy: y });
+      return;
+    }
+    arrastre.current = { modo: "nuevo", x, y };
+    setCirc({ cx: x, cy: y, r: 0 });
+  };
+  const mover = (e) => {
+    const g = arrastre.current;
+    if (!g) return;
+    const [x, y] = punto(e);
+    const c = circRef.current;
+    if (g.modo === "nuevo") setCirc({ cx: g.x, cy: g.y, r: Math.hypot(x - g.x, y - g.y) });
+    else if (g.modo === "mover") setCirc({ ...c, cx: x - g.dx, cy: y - g.dy });
+    else setCirc({ ...c, r: Math.max(2, Math.hypot(x - c.cx, y - c.cy)) });
+  };
+  const soltar = () => {
+    const g = arrastre.current, actual = circRef.current;
+    arrastre.current = null;
+    if (!g || !actual) return;
+    // Un toque solo marca el centro: el círculo arranca chico y se ajusta de cerca
+    const c = g.modo === "nuevo" && actual.r < 2 * u ? { ...actual, r: Math.max(w, h) * 0.02 } : actual;
+    setCirc(c);
+    // Solo un círculo nuevo acerca la vista; al ajustarlo, la vista no se mueve
+    if (g.modo === "nuevo") acercar(c);
+    onCambiar({ esfera: c });
+  };
+  const conLuz = a.luces.filter(Boolean).length, nFotos = a.fotos.length - (a.ambiente >= 0 ? 1 : 0);
+  const fotometrico = conLuz >= ML_MIN_LUCES;
+  const rotulo = { fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:5 };
+  const enlace = { background:"none",border:"none",padding:0,fontFamily:mono,fontSize:9,color:T.tm,cursor:"pointer",textDecoration:"underline",textUnderlineOffset:2 };
+  const llave = (on) => (
+    <span style={{ position:"relative",width:22,height:12,borderRadius:6,flexShrink:0,boxSizing:"border-box",background:on?T.ac:T.bBg,border:`1px solid ${on?T.ac:T.cBd}`,transition:"background .15s" }}>
+      <span style={{ position:"absolute",top:1,left:on?11:1,width:8,height:8,borderRadius:"50%",background:on?"#fff":T.tm,transition:"left .15s" }} />
+    </span>
+  );
+  const estado = (k) => {
+    if (k === a.ambiente) return { txt: tr("sin luz (ambiente)", "unlit (ambient)"), color: T.td };
+    if (!esf) return { txt: "—", color: T.td };
+    const L = a.luces[k];
+    if (!L) return { txt: tr("no se ve el brillo", "no highlight found"), color: T.ac };
+    const g = angulosLuz(L);
+    return { txt: tr(`luz a ${Math.round(g.elev)}°, desde ${Math.round(g.rumbo)}°`, `light at ${Math.round(g.elev)}°, from ${Math.round(g.rumbo)}°`), color: T.gn };
+  };
+  return (
+    <div style={{ position:"fixed",inset:0,zIndex:60,background:"rgba(0,0,0,0.65)",display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
+      <div role="dialog" aria-modal="true" aria-label={tr("Serie multi-luz","Multi-light series")} style={{ width:"100%",maxWidth:1060,maxHeight:"94vh",overflow:"auto",background:T.bg,border:`1px solid ${T.acBd}`,borderRadius:12,padding:"16px 18px 14px",color:T.text,fontFamily:mono,boxShadow:"0 12px 40px rgba(0,0,0,0.45)" }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:12,marginBottom:10,flexWrap:"wrap" }}>
+          <div style={{ fontFamily:"'Crimson Pro',serif",fontSize:20,fontWeight:600,color:T.text }}>{tr("Serie multi-luz","Multi-light series")}</div>
+          <div style={{ fontSize:9.5,color:T.tm }}>
+            {tr(`${a.fotos.length} fotos · ${w} × ${h} px`, `${a.fotos.length} photos · ${w} × ${h} px`)}
+            {(w !== a.w0 || h !== a.h0) && tr(` (reducidas de ${a.w0} × ${a.h0})`, ` (reduced from ${a.w0} × ${a.h0})`)}
+          </div>
+        </div>
+        <div style={{ display:"flex",gap:16,flexWrap:"wrap" }}>
+          {/* La vista, para marcar la esfera */}
+          <div style={{ flex:"1 1 460px",minWidth:280 }}>
+            <div style={{ position:"relative",height:"min(58vh, 560px)",background:"#000",borderRadius:8,overflow:"hidden",border:`1px solid ${T.cBd}` }}>
+              <svg ref={svgRef} viewBox={vb.join(" ")} preserveAspectRatio="xMidYMid meet" onPointerDown={bajar} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar}
+                style={{ width:"100%",height:"100%",display:"block",touchAction:"none",cursor:a.calculando?"wait":"crosshair" }}>
+                <image href={a.vista} x={0} y={0} width={w} height={h} style={{ imageRendering:cerca?"pixelated":"auto" }} />
+                {circ && circ.r > 0 && (<>
+                  <circle cx={circ.cx} cy={circ.cy} r={circ.r} fill="none" stroke="#000" strokeOpacity={0.7} strokeWidth={4} vectorEffect="non-scaling-stroke" />
+                  <circle cx={circ.cx} cy={circ.cy} r={circ.r} fill="none" stroke={ORO_ESCALA} strokeWidth={1.6} vectorEffect="non-scaling-stroke" />
+                  <path d={`M${circ.cx - u * 1.5} ${circ.cy}H${circ.cx + u * 1.5}M${circ.cx} ${circ.cy - u * 1.5}V${circ.cy + u * 1.5}`} stroke={ORO_ESCALA} strokeWidth={1.2} vectorEffect="non-scaling-stroke" />
+                  {cerca && <circle cx={circ.cx + circ.r} cy={circ.cy} r={u * 1.6} fill={ORO_ESCALA} stroke="#000" strokeWidth={1} vectorEffect="non-scaling-stroke" />}
+                </>)}
+                {esf && a.brillos.map((b, k) => b && b.ok ? (
+                  <g key={k}>
+                    <circle cx={b.x} cy={b.y} r={u * 2.2} fill="none" stroke="#6db85d" strokeWidth={1.4} vectorEffect="non-scaling-stroke" />
+                    {cerca && <text x={b.x + u * 2.8} y={b.y - u * 1.6} fontSize={u * 4} fill="#6db85d" stroke="#000" strokeWidth={u * 0.5} paintOrder="stroke" fontFamily="monospace">{k + 1}</text>}
+                  </g>
+                ) : null)}
+              </svg>
+              <div style={{ position:"absolute",top:8,left:"50%",transform:"translateX(-50%)",padding:"4px 11px",borderRadius:14,background:"rgba(26,23,20,0.88)",border:`1px solid ${T.acBd}`,fontFamily:"'Crimson Pro',serif",fontSize:12.5,color:"#e8e0d4",pointerEvents:"none",whiteSpace:"nowrap",maxWidth:"94%",overflow:"hidden",textOverflow:"ellipsis" }}>
+                {!esf ? tr("Si en las fotos hay una esfera brillante, tocala; si no, no marques nada", "If there is a shiny sphere in the photos, tap it; if not, mark nothing")
+                  : cerca ? tr("Ajustá el círculo: arrastrá adentro para moverlo, el borde para cambiarlo", "Fit the circle: drag inside to move it, drag the edge to resize it")
+                  : tr("Tocá otra vez la esfera para marcarla de nuevo", "Tap the sphere again to mark it anew")}
+              </div>
+            </div>
+            <div style={{ display:"flex",gap:14,marginTop:6,fontSize:9 }}>
+              {esf && <button onClick={()=>cerca ? setCerca(false) : acercar(circRef.current || esf)} style={enlace}>{cerca ? tr("Ver toda la foto","Show the whole photo") : tr("Acercar la esfera","Zoom to the sphere")}</button>}
+              {esf && <button onClick={()=>onCambiar({ esfera: null })} disabled={a.calculando} style={enlace}>{tr("Sin esfera","No sphere")}</button>}
+              <span style={{ color:T.td }}>{tr("Se ven todas las fotos juntas: cada luz dejó su brillo en la esfera.","All the photos are shown together: each light left its highlight on the sphere.")}</span>
+            </div>
+          </div>
+
+          {/* Las fotos y las luces */}
+          <div style={{ flex:"0 1 330px",minWidth:260,display:"flex",flexDirection:"column",gap:10 }}>
+            <div>
+              <div style={rotulo}>{tr("Foto sin luz","Unlit photo")}</div>
+              <select value={a.ambiente} disabled={a.calculando} onChange={e=>onCambiar({ ambiente: Number(e.target.value) })} style={{ width:"100%",padding:"5px 6px",fontSize:9.5,fontFamily:mono,background:T.bBg,color:T.text,border:`1px solid ${T.cBd}`,borderRadius:5 }}>
+                <option value={-1}>{tr("Ninguna","None")}</option>
+                {a.fotos.map((f, k) => <option key={k} value={k}>{k + 1}. {f.archivo}</option>)}
+              </select>
+              <div style={{ fontSize:8,color:T.td,marginTop:3,lineHeight:1.4 }}>{tr("Solo con la luz del lugar: se resta de las demás.","Only the light of the place: it is subtracted from the others.")}</div>
+            </div>
+            <div>
+              <div style={rotulo}>{tr("Fotos","Photos")}</div>
+              <div style={{ maxHeight:190,overflowY:"auto",border:`1px solid ${T.cBd}`,borderRadius:6 }}>
+                {a.fotos.map((f, k) => { const s = estado(k); return (
+                  <div key={k} style={{ display:"flex",gap:6,alignItems:"baseline",padding:"4px 7px",borderTop:k ? `1px solid ${T.cBd}` : "none",fontSize:9 }}>
+                    <span style={{ color:T.td,width:16,textAlign:"right",flexShrink:0 }}>{k + 1}</span>
+                    <span title={f.archivo} style={{ flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",color:T.text }}>{f.archivo}</span>
+                    <span style={{ color:s.color,flexShrink:0 }}>{s.txt}</span>
+                  </div>
+                ); })}
+              </div>
+            </div>
+            {esf && (
+              <div style={{ display:"flex",gap:10,alignItems:"center" }}>
+                <svg viewBox="-70 -70 140 140" width={120} height={120} style={{ flexShrink:0 }} aria-label={tr("Dirección de las luces","Direction of the lights")}>
+                  {[60, 40, 20].map(r => <circle key={r} r={r} fill="none" stroke={T.cBd} strokeWidth={1} />)}
+                  <path d="M-60 0H60M0 -60V60" stroke={T.cBd} strokeWidth={1} />
+                  <text x={0} y={-63} fontSize={7} fill={T.td} textAnchor="middle" fontFamily="monospace">{tr("arriba","up")}</text>
+                  {a.luces.map((L, k) => { if (!L) return null; const g = angulosLuz(L), rr = 60 * (1 - Math.max(0, g.elev) / 90), an = g.rumbo * Math.PI / 180;
+                    return (<g key={k}><circle cx={rr * Math.sin(an)} cy={-rr * Math.cos(an)} r={6.5} fill={T.ac} /><text x={rr * Math.sin(an)} y={-rr * Math.cos(an) + 2.6} fontSize={7.5} fill="#fff" textAnchor="middle" fontFamily="monospace">{k + 1}</text></g>); })}
+                </svg>
+                <div style={{ fontSize:8.5,color:T.tm,lineHeight:1.5 }}>
+                  {tr("De dónde vino cada luz, vista desde la cámara. El borde es la luz rasante; el centro, la luz de frente.","Where each light came from, seen from the camera. The rim is raking light; the centre, frontal light.")}
+                  {conLuz > 0 && conLuz < nFotos && <div style={{ color:T.ac,marginTop:4 }}>{tr(`En ${nFotos - conLuz} foto(s) no se ve el brillo: quedan afuera.`, `${nFotos - conLuz} photo(s) show no highlight: they are left out.`)}</div>}
+                  {conLuz === 0 && <div style={{ color:T.ac,marginTop:4 }}>{tr("Dentro del círculo no hay ningún brillo. El círculo tiene que rodear la esfera brillante; si las fotos no la tienen, apretá «Sin esfera».", "There is no highlight inside the circle. The circle must surround the shiny sphere; if the photos do not have one, press “No sphere”.")}</div>}
+                </div>
+              </div>
+            )}
+            {/* Sin esfera marcada: para qué sirve, porque sin ella no hay luces que mostrar */}
+            {!esf && (
+              <div style={{ fontSize:8.5,color:T.tm,lineHeight:1.55,padding:"8px 10px",border:`1px dashed ${T.cBd}`,borderRadius:6 }}>
+                <strong style={{ color:T.text }}>{tr("¿Para qué es la esfera?","What is the sphere for?")}</strong>{" "}
+                {tr("Una esfera brillante puesta en el encuadre (una bolita de rulemán, un adorno navideño) refleja cada luz en un punto distinto: de ese brillo OPC saca de dónde vino la luz en cada foto, y con eso calcula el relieve. Si tus fotos no tienen esfera, no marques nada: se promedian las luces.",
+                    "A shiny sphere placed in the frame (a ball bearing, a Christmas bauble) reflects each light at a different point: from that highlight OPC works out where the light came from in each photo, and with that it computes the relief. If your photos have no sphere, mark nothing: the lights are averaged.")}
+              </div>
+            )}
+            <div style={{ borderTop:`1px solid ${T.cBd}`,paddingTop:4 }}>
+              <button onClick={()=>setMasOp(!masOp)} aria-expanded={masOp} style={{ display:"flex",alignItems:"center",gap:6,width:"100%",padding:"5px 0",background:"none",border:"none",cursor:"pointer",fontFamily:mono,fontSize:8.5,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",textAlign:"left" }}>
+                <span style={{ display:"inline-block",width:10,transform:masOp?"rotate(90deg)":"none",transition:"transform .15s" }}>{"▸"}</span>{tr("Más opciones","More options")}
+              </button>
+              {masOp && [["descartar", tr("Descartar la toma más clara y la más oscura de cada punto (brillos y sombras), desde 5 luces","Drop the brightest and the darkest shot at each point (highlights and shadows), from 5 lights")],
+                ["igualar", tr("Igualar la potencia de las luces: supone que el panel, en conjunto, mira a la cámara","Equalize the power of the lights: assumes the panel as a whole faces the camera")]].map(([k, txt]) => (
+                <button key={k} onClick={()=>onCambiar({ opts: { ...a.opts, [k]: !a.opts[k] } })} disabled={a.calculando} style={{ display:"flex",alignItems:"flex-start",gap:6,width:"100%",padding:"4px 0",background:"none",border:"none",cursor:"pointer",fontFamily:mono,fontSize:8.5,color:T.tm,textAlign:"left",lineHeight:1.4 }}>
+                  {llave(a.opts[k])}<span>{txt}</span>
+                </button>
+              ))}
+            </div>
+            {a.error && <div role="alert" style={{ fontSize:9,color:T.ac,lineHeight:1.45 }}>⚠ {a.error}</div>}
+            <div style={{ marginTop:"auto",display:"flex",flexDirection:"column",gap:6 }}>
+              <div style={{ fontSize:8.5,color:T.tm,lineHeight:1.5 }}>
+                {fotometrico
+                  ? tr(`Estéreo fotométrico con ${conLuz} luces: salen la inclinación de cada punto (las normales), el color sin sombras (el albedo) y el relieve.`, `Photometric stereo with ${conLuz} lights: it yields the tilt of each point (the normals), the colour without shadows (the albedo) and the relief.`)
+                  : tr(`Sin esfera (o con menos de ${ML_MIN_LUCES} brillos) se promedian las ${nFotos} luces: queda como una foto con luz rasante desde todos lados.`, `Without a sphere (or with fewer than ${ML_MIN_LUCES} highlights) the ${nFotos} lights are averaged: it looks like a photo with raking light from every side.`)}
+                {!fotometrico && nFotos < ML_MIN_LUCES && <div style={{ color:T.td,marginTop:3 }}>{tr(`Para calcular el relieve hacen falta al menos ${ML_MIN_LUCES} fotos con luz, y la esfera.`, `Computing the relief needs at least ${ML_MIN_LUCES} lit photos, and the sphere.`)}</div>}
+              </div>
+              <div style={{ display:"flex",gap:6 }}>
+                <button onClick={onCancelar} disabled={a.calculando} style={{ flex:"0 0 auto",padding:"8px 12px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8,color:T.tm,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{tr("Cancelar","Cancel")}</button>
+                <button onClick={onCalcular} disabled={a.calculando || nFotos < 2} style={{ flex:1,padding:"8px 10px",background:`linear-gradient(135deg,${T.ac},#8e2118)`,border:"none",borderRadius:8,color:"#fff",fontWeight:600,fontSize:12,cursor:a.calculando?"wait":"pointer",fontFamily:"'Crimson Pro',serif",opacity:a.calculando?0.7:1 }}>
+                  {a.calculando ? tr("Calculando…","Computing…") : fotometrico ? tr("Calcular el relieve","Compute the relief") : tr("Promediar las luces","Average the lights")}
+                </button>
+              </div>
+              {a.calculando && <div style={{ fontSize:8,color:T.td }}>{tr("Unos segundos por megapíxel; la página sigue respondiendo.","A few seconds per megapixel; the page stays responsive.")}</div>}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// NOVEDADES Y GUÍA (v4.0.0)
+// Las novedades van en la pantalla de inicio, debajo del cuadro para subir la
+// foto; la guía, en Info: para qué sirve cada herramienta y cómo funciona. Los
+// textos están en los dos idiomas ({ es, en }). El historial completo de
+// versiones sigue en Info, en su pestaña.
+// ============================================================
+const NOVEDADES_DESDE = "3.7.3";
+const NOVEDADES = [
+  { v: "4.0.0", titulo: { es: "Series multi-luz", en: "Multi-light series" }, items: [
+    { t: { es: "Varias fotos, la luz desde distintos lados.", en: "Several photos, light from different sides." },
+      d: { es: "Se abren de 2 a 16 fotos del mismo panel, sacadas con la cámara quieta en el trípode: arrastrándolas juntas o con «Serie multi-luz».", en: "Open 2 to 16 photos of the same panel, taken with the camera still on a tripod: drop them together or use “Multi-light series”." } },
+    { t: { es: "Relieve que no depende de la luz.", en: "Relief that does not depend on the light." },
+      d: { es: "Con una esfera brillante en el encuadre, OPC calcula hacia dónde mira cada punto de la roca (estéreo fotométrico): un surco sale oscuro venga de donde venga la luz, y la pintura no se confunde con el relieve.", en: "With a shiny sphere in the frame, OPC works out which way each point of the rock faces (photometric stereo): a groove comes out dark wherever the light came from, and paint is not mistaken for relief." } },
+    { t: { es: "El color sin las sombras.", en: "Color without the shadows." },
+      d: { es: "Sale el albedo, sobre el que trabajan los filtros de color. Sin esfera, se promedian las luces: queda como una foto con luz rasante desde todos lados.", en: "You get the albedo, which the color filters work on. Without a sphere, the lights are averaged: it looks like a photo with raking light from every side." } },
+    { t: { es: "Baja todo.", en: "Everything is downloaded." },
+      d: { es: "La descarga trae además el albedo y el mapa de normales, y el registro anota la luz de cada foto.", en: "The download also brings the albedo and the normal map, and the record notes the light of each photo." } },
+  ]},
+  { v: "3.9.0", titulo: { es: "Modelos de elevación", en: "Elevation models" }, items: [
+    { t: { es: "Abre un MDT en GeoTIFF.", en: "Opens a DEM in GeoTIFF." },
+      d: { es: "El modelo de elevación de Metashape u otro programa, con las alturas reales, en coma flotante, sin pasarlas a 8 bits.", en: "The elevation model from Metashape or another program, with the real heights, in floating point, never reduced to 8 bits." } },
+    { t: { es: "Relieve en milímetros.", en: "Relief in millimetres." },
+      d: { es: "El Relieve trabaja sobre las alturas, con la escala en mm que da el tamaño de la celda: surcos, picado y grietas sin depender de la luz ni del color.", en: "The Relief works on the heights, with the scale in mm given by the cell size: grooves, pecking and cracks regardless of light or color." } },
+    { t: { es: "Para medir en un SIG.", en: "To measure in a GIS." },
+      d: { es: "Bajan la imagen georreferenciada y el residuo en mm como GeoTIFF, que se abren en QGIS encima del ortomosaico.", en: "The georeferenced image and the residual in mm come down as GeoTIFF, to open in QGIS over the orthomosaic." } },
+  ]},
+  { v: "3.8.0", titulo: { es: "Registro, escala e informe", en: "Record, scale and report" }, items: [
+    { t: { es: "Cada imagen dice cómo se hizo.", en: "Every image says how it was made." },
+      d: { es: "Lleva adentro un registro con la foto de entrada y su huella SHA-256, la resolución, los filtros, la zona, el gotero y los ajustes. «Reproducir un registro» la rehace y comprueba que salga igual píxel a píxel.", en: "It carries a record inside with the input photo and its SHA-256 fingerprint, the resolution, filters, area, eyedropper and adjustments. “Replay a record” rebuilds it and checks that it comes out identical pixel for pixel." } },
+    { t: { es: "Escala métrica.", en: "Metric scale." },
+      d: { es: "«Calibrar con la regla»: se marcan dos puntos sobre la escala de la foto y la imagen sabe cuántos píxeles mide un milímetro. El visor dibuja una barra de escala y el Relieve da su escala en mm.", en: "“Calibrate with the ruler”: mark two points on the photo’s scale and the image knows how many pixels a millimetre measures. The viewer draws a scale bar and the Relief gives its scale in mm." } },
+    { t: { es: "Informe en PDF y .zip.", en: "PDF report and .zip." },
+      d: { es: "+PDF baja un informe para adjuntar a una publicación; con +JSON o +PDF, todo baja junto en un .zip.", en: "+PDF downloads a report to attach to a publication; with +JSON or +PDF, everything comes down together in a .zip." } },
+    { t: { es: "Más opciones del Relieve.", en: "More Relief options." },
+      d: { es: "Doble (objeto y textura), compresión suave, CLAHE y mezcla con DS-LAB o LDS. Apagadas, el Relieve da lo mismo que antes.", en: "Double (object and texture), soft compression, CLAHE and blending with DS-LAB or LDS. With them off, the Relief gives the same as before." } },
+  ]},
+];
+
+// La guía: por grupo, cada herramienta con «para qué» (lo que resuelve) y
+// «cómo» (lo que hace por dentro). El detalle está en docs/.
+const GUIA = [
+  { id: "abrir", titulo: { es: "Qué se abre", en: "What it opens" },
+    intro: { es: "Todo se procesa en la computadora: las fotos no se suben a ningún lado.", en: "Everything is processed on the computer: photos are not uploaded anywhere." },
+    items: [
+      { ic: "🖼", nombre: { es: "Foto", en: "Photo" },
+        para: { es: "Una foto de un panel con pintura o grabados, en JPG, PNG o WebP: se arrastra a la página o se elige con un clic.", en: "A photo of a panel with paintings or engravings, as JPG, PNG or WebP: drop it on the page or choose it with a click." },
+        como: { es: "Se lee en el navegador. Al descargar en JPG se conservan el EXIF y el GPS de la foto. Los RAW hay que convertirlos antes a JPG o PNG.", en: "It is read in the browser. Downloading as JPG keeps the photo’s EXIF and GPS. RAW files must be converted to JPG or PNG first." } },
+      { ic: "⤢", nombre: { es: "Resolución de trabajo", en: "Working resolution" },
+        para: { es: "Elegir a qué tamaño se procesa: completa, 16, 12 u 8 MP, o 2000 px para probar rápido.", en: "Choose the size it is processed at: full, 16, 12 or 8 MP, or 2000 px for a quick try." },
+        como: { es: "Con más de 16 MP, al abrir se propone 16 MP: conserva tres cuartos de cada lado y cada filtro tarda la mitad. Micro-relieve, Relieve y CLAHE dependen del tamaño en píxeles, así que dos resultados solo se comparan si se hicieron a la misma resolución. Mientras se trabaja reducido, el recuadro queda en rojo.", en: "Above 16 MP, opening suggests 16 MP: it keeps three quarters of each side and each filter takes half the time. Micro-relief, Relief and CLAHE depend on the size in pixels, so two results can only be compared if made at the same resolution. While working reduced, the box stays red." } },
+      { ic: "⛰", nombre: { es: "Modelo de elevación (MDT)", en: "Elevation model (DEM)" },
+        para: { es: "Ver la forma de la roca sin que importen la luz ni el color: surcos, picado, grietas, descascarados.", en: "See the shape of the rock regardless of light or color: grooves, pecking, cracks, flaking." },
+        como: { es: "Abre un GeoTIFF de una banda con las alturas en coma flotante, como el MDT que exporta Metashape; hasta 16 MP, y si es más grande lo reduce. Se ve sombreado, como una foto con luz rasante, y el Relieve trabaja sobre las alturas con la escala en mm que da la celda. No muestra pintura: la pintura no tiene un espesor que la fotogrametría pueda medir.", en: "Opens a single-band GeoTIFF with floating-point heights, like the DEM Metashape exports; up to 16 MP, and larger ones are reduced. It is shown hillshaded, like a photo under raking light, and the Relief works on the heights with the scale in mm given by the cell. It does not show paint: paint has no thickness photogrammetry can measure." } },
+      { ic: "◐", nombre: { es: "Serie multi-luz", en: "Multi-light series" },
+        para: { es: "Separar la forma de la superficie de su color, con varias fotos sacadas desde el mismo lugar y la luz desde distintos lados.", en: "Separate the shape of the surface from its color, with several photos taken from the same spot and the light from different sides." },
+        como: { es: "De 2 a 16 fotos del mismo tamaño, con la cámara quieta en el trípode. Si hay una esfera brillante en el encuadre, de su brillo sale la dirección de cada luz y se calcula en cada punto hacia dónde mira la superficie (estéreo fotométrico, Woodham 1980): salen el albedo, que es el color sin sombras, y las alturas, sobre las que va el Relieve. Sin esfera, se promedian las luces. La foto sin luz, si la hay, se resta de las demás.", en: "2 to 16 photos of the same size, with the camera still on a tripod. If there is a shiny sphere in the frame, its highlight gives the direction of each light, and at each point the direction the surface faces is computed (photometric stereo, Woodham 1980): you get the albedo, the color without shadows, and the heights, which the Relief works on. Without a sphere, the lights are averaged. The photo without light, if any, is subtracted from the others." } },
+    ] },
+  { id: "pintura", titulo: { es: "Filtros para pintura", en: "Filters for paint" },
+    intro: { es: "Realce selectivo en CIE-LAB, con reglas sobre qué es pigmento y qué es roca. Los colores se parecen a los reales.", en: "Selective enhancement in CIE-LAB, with rules about what is pigment and what is rock. Colors stay close to the real ones." },
+    items: [
+      { ic: "🔴", nombre: { es: "Rojo", en: "Red" },
+        para: { es: "Pintura roja y ocre, también sobre rocas rojizas o con manchas de hierro.", en: "Red and ochre paint, also on reddish rocks or rocks with iron staining." },
+        como: { es: "Calcula el color de la roca en la propia foto (o en la zona seleccionada), lo lleva a gris y estira el plano de color a*-b* igualando sus dos ejes de variación; lo que es más rojo que la roca se refuerza. La luminosidad no se toca.", en: "Works out the rock’s color from the photo itself (or the selected area), takes it to gray and stretches the a*-b* color plane by equalizing its two axes of variation; whatever is redder than the rock is boosted. Lightness is left alone." } },
+      { ic: "⚪", nombre: { es: "Blanco", en: "White" },
+        para: { es: "Pintura blanca o clara, sobre todo sobre un soporte oscuro.", en: "White or light paint, especially on a dark surface." },
+        como: { es: "Aclara lo que está por encima del brillo medio (L*) en proporción a cuánto se aparta, oscurece el resto y desatura los claros, porque el blanco degradado toma el tinte de la roca.", en: "Lightens what lies above the mean lightness (L*) in proportion to how far it departs, darkens the rest and desaturates the light tones, because weathered white takes on the rock’s tint." } },
+      { ic: "⚫", nombre: { es: "Negro", en: "Black" },
+        para: { es: "Pintura negra: carbón, manganeso.", en: "Black paint: charcoal, manganese." },
+        como: { es: "Toma como pigmento lo que es más oscuro que la media y casi no tiene color (croma menor a 20) y lo oscurece. La sombra y la roca oscura, que sí tienen color, quedan afuera.", en: "Takes as pigment whatever is darker than the mean and nearly colorless (chroma below 20) and darkens it. Shadow and dark rock, which do have color, are left out." } },
+      { ic: "◑", nombre: { es: "Bicromo", en: "Bichrome" },
+        para: { es: "Paneles con pintura roja y blanca a la vez.", en: "Panels with red and white paint together." },
+        como: { es: "Junta las dos reglas en una pasada: refuerza el rojo (a* mayor a 5), aclara los blancos poco saturados y oscurece lo demás.", en: "Combines both rules in one pass: boosts red (a* above 5), lightens low-saturation whites and darkens the rest." } },
+    ] },
+  { id: "decorrelacion", titulo: { es: "Decorrelación", en: "Decorrelation" },
+    intro: { es: "El decorrelation stretch (Gillespie et al. 1986), el método de DStretch. En una foto de roca casi toda la variación es de brillo, y las diferencias de color que interesan quedan comprimidas en pocos niveles: la decorrelación las estira. No sabe qué es pigmento; muestra todo lo que difiere en color.", en: "The decorrelation stretch (Gillespie et al. 1986), the DStretch method. In a photo of rock almost all variation is brightness, and the color differences that matter are squeezed into a few levels: decorrelation stretches them. It does not know what pigment is; it shows everything that differs in color." },
+    items: [
+      { ic: "🌈", nombre: { es: "CRGB", en: "CRGB" },
+        para: { es: "La máxima diferencia de color, para encontrar trazos que a simple vista no aparecen.", en: "The greatest color difference, to find strokes the eye does not see." },
+        como: { es: "Componentes principales de R, G y B, cada una llevada a la misma varianza y asignada directo a un canal de salida. Los colores no son reales: rojo quiere decir «valor alto en la primera componente», no «pigmento rojo».", en: "Principal components of R, G and B, each brought to the same variance and assigned straight to an output channel. The colors are not real: red means “high value on the first component”, not “red pigment”." } },
+      { ic: "🔵", nombre: { es: "DS-LAB", en: "DS-LAB" },
+        para: { es: "Pigmentos muy diluidos o degradados, cuya diferencia con la roca se ve pero en RGB es mínima.", en: "Very faint or weathered pigments, whose difference from the rock is visible but tiny in RGB." },
+        como: { es: "Lo mismo que CRGB sobre L*, a* y b*, un espacio más parecido a como vemos. Tampoco da colores reales.", en: "The same as CRGB on L*, a* and b*, a space closer to how we see. It does not give real colors either." } },
+      { ic: "🟣", nombre: { es: "LDS", en: "LDS" },
+        para: { es: "Un realce que siga pareciendo roca: para ilustrar una publicación y que el lector reconozca lo que mira.", en: "An enhancement that still looks like rock: to illustrate a publication so the reader recognizes what they see." },
+        como: { es: "Decorrelación en RGB que vuelve al espacio original (un blanqueo ZCA parcial); la intensidad es el exponente del blanqueo. El rango sale de las vallas de Tukey con una ganancia común a los tres canales, así una tarjeta de color o una mano en el cuadro no cambian el tono de la roca.", en: "RGB decorrelation that goes back to the original space (a partial ZCA whitening); the intensity is the whitening exponent. The range comes from Tukey fences with a gain common to all three channels, so a color card or a hand in the frame does not shift the rock’s hue." } },
+      { ic: "🟡", nombre: { es: "YBK", en: "YBK" },
+        para: { es: "Una separación rápida, cuando la pintura se distingue de la roca por el tono y no por el brillo.", en: "A quick separation, when the paint differs from the rock in hue rather than brightness." },
+        como: { es: "Pasa a YCbCr y amplifica la crominancia (Cb y Cr) dividida por su desvío; no usa componentes principales. Puede saturar zonas que ya tenían color.", en: "Converts to YCbCr and amplifies chrominance (Cb and Cr) divided by its deviation; it uses no principal components. It can saturate areas that already had color." } },
+    ] },
+  { id: "grabados", titulo: { es: "Grabados y relieve", en: "Engravings and relief" },
+    intro: { es: "Para lo que tiene volumen. Sobre una foto miden brillo, no altura: con luz rasante el brillo es relieve; con luz difusa, pátina y picado. Sobre un MDT o una serie multi-luz trabajan con las alturas.", en: "For what has volume. On a photo they measure brightness, not height: under raking light brightness is relief; under diffuse light, patina and pecking. On a DEM or a multi-light series they work on the heights." },
+    items: [
+      { ic: "🪨", nombre: { es: "Micro-relieve", en: "Micro-relief" },
+        para: { es: "Grabados y surcos en una foto: hace legibles la forma del surco y la diferencia de pátina.", en: "Engravings and grooves in a photo: makes the groove’s shape and the patina difference readable." },
+        como: { es: "Combina contraste local en dos escalas (promedios por imagen integral), bordes de Sobel y una expansión del color que separa la pátina del surco fresco de la de la superficie expuesta.", en: "Combines local contrast at two scales (averages from an integral image), Sobel edges and a color expansion that separates the patina of the fresh groove from that of the exposed surface." } },
+      { ic: "🗺", nombre: { es: "Relieve: Bordes", en: "Relief: Edges" },
+        para: { es: "Un calco digital, con líneas claras sobre fondo oscuro, para dibujar encima o vectorizar en un SIG.", en: "A digital tracing, light lines on a dark background, to draw over or vectorize in a GIS." },
+        como: { es: "Sobel de 3 × 3 y de 5 × 5 sobre la luminancia, sin color, con una gamma de 0,7 que levanta los bordes débiles.", en: "3 × 3 and 5 × 5 Sobel on luminance, without color, with a 0.7 gamma that lifts weak edges." } },
+      { ic: "◫", nombre: { es: "Relieve con escala", en: "Relief with a scale" },
+        para: { es: "Grabados: borra lo más chico que la escala (el grano de la roca) y lo más grande (la luz despareja, la forma del bloque), y deja el relieve local.", en: "Engravings: erases what is smaller than the scale (the rock’s grain) and what is larger (uneven light, the shape of the block), leaving the local relief." },
+        como: { es: "Un pasabanda —la diferencia de dos suavizados, como el Local Relief Model de los MDT— después de restar la tendencia. La escala va en % del lado mayor, o en mm si la foto tiene escala métrica o es un MDT, y queda en el nombre del archivo (_e0.25).", en: "A band-pass — the difference of two blurs, like the Local Relief Model used with DEMs — after removing the trend. The scale is a % of the long side, or mm if the photo has a metric scale or is a DEM, and it goes into the file name (_e0.25)." } },
+      { ic: "⚙", nombre: { es: "Más opciones del Relieve", en: "More Relief options" },
+        para: { es: "Afinar el Relieve con escala sin perder lo básico.", en: "Fine-tune the Relief with a scale without losing the basics." },
+        como: { es: "Doble: suma el nivel de la escala (textura) y uno cuatro veces mayor (objeto), con el peso que se elija. Compresión suave: los extremos se comprimen en vez de quemarse. CLAHE: realce local del contraste. Mezcla: el color de DS-LAB o LDS con la luminosidad del relieve. Apagadas, el Relieve da lo mismo que antes.", en: "Double: adds the scale’s level (texture) and one four times larger (object), with the chosen weight. Soft compression: the extremes are compressed instead of burnt out. CLAHE: local contrast enhancement. Blend: the color of DS-LAB or LDS with the relief’s lightness. With them off, the Relief gives the same as before." } },
+    ] },
+  { id: "tecnicos", titulo: { es: "Técnicos", en: "Technical" },
+    items: [
+      { ic: "◐", nombre: { es: "CLAHE", en: "CLAHE" },
+        para: { es: "Paneles con la luz despareja: medio a la sombra y medio al sol.", en: "Panels with uneven light: half in shade, half in sun." },
+        como: { es: "Ecualización adaptativa de histograma con límite de contraste (Zuiderveld 1994): grilla de 8 × 8, histogramas recortados para no amplificar el ruido e interpolación bilineal entre celdas. Se aplica como razón sobre los tres canales, así el tono se conserva.", en: "Contrast-limited adaptive histogram equalization (Zuiderveld 1994): 8 × 8 grid, clipped histograms so noise is not amplified, and bilinear interpolation between tiles. It is applied as a ratio on all three channels, so hue is kept." } },
+      { ic: "🗺️", nombre: { es: "Mapa de pigmentos", en: "Pigment map" },
+        para: { es: "Explorar: una primera hipótesis de dónde puede haber rojo, negro o blanco.", en: "Explore: a first hypothesis of where there may be red, black or white." },
+        como: { es: "Clasifica cada píxel con umbrales fijos en LAB y lo pinta en falso color. Clasifica por color, no por composición: el ocre y el óxido de hierro de la roca caen en la misma zona. Es una hipótesis, no una identificación.", en: "Classifies each pixel with fixed thresholds in LAB and paints it in false color. It classifies by color, not composition: ochre and the rock’s iron oxide fall in the same region. It is a hypothesis, not an identification." } },
+    ] },
+  { id: "herramientas", titulo: { es: "Herramientas", en: "Tools" },
+    intro: { es: "Se usan con un filtro aplicado.", en: "Used with a filter applied." },
+    items: [
+      { ic: "◧", nombre: { es: "Intensidad", en: "Intensity" },
+        para: { es: "Cuánto realza el filtro: de 0,2 a 5, por defecto 1,5.", en: "How much the filter enhances: 0.2 to 5, 1.5 by default." },
+        como: { es: "Se aplica al soltar el deslizador. Cada filtro la usa a su modo: en LDS es el exponente del blanqueo (1,5 es completo; menos conserva más el color real y sirve para ver si un motivo sigue estando con menos realce); en CRGB y DS-LAB satura cerca de 4,4.", en: "Applied when the slider is released. Each filter uses it its own way: in LDS it is the whitening exponent (1.5 is full; less keeps more of the real color and helps check whether a motif is still there with less enhancement); in CRGB and DS-LAB it saturates near 4.4." } },
+      { ic: "□", nombre: { es: "Selección (zona)", en: "Selection (area)" },
+        para: { es: "Que el filtro se calibre con la parte que interesa: rectángulo, círculo o mano alzada.", en: "Have the filter calibrated on the part that matters: rectangle, circle or freehand." },
+        como: { es: "No recorta: la media, la covarianza y los rangos se calculan con los píxeles de la zona y se aplican a toda la imagen, como en DStretch. Elegir el sector con pintura evita que el cielo, el pasto o la sombra se lleven el rango. No la usan CLAHE ni el Relieve en Bordes.", en: "It does not crop: the mean, covariance and ranges are computed from the pixels in the area and applied to the whole image, as in DStretch. Choosing the painted sector keeps the sky, grass or shade from taking the range. CLAHE and the Relief on Edges do not use it." } },
+      { ic: "💧", nombre: { es: "Gotero cromático", en: "Chromatic eyedropper" },
+        para: { es: "Realzar o atenuar un color del resultado sin tocar el resto: bajar el verde que tapa el panel, subir el color en que se lee el motivo.", en: "Boost or reduce one color of the result without touching the rest: bring down the green covering the panel, bring up the color the motif reads in." },
+        como: { es: "Actúa solo sobre la crominancia: la luminancia, y con ella el relieve, no cambia. Cada ajuste se fija y se lista, y cualquiera se puede quitar, porque la imagen se recalcula desde el resultado del filtro. Describe el color que dio el filtro, no la composición del pigmento.", en: "It acts on chrominance only: luminance, and with it relief, does not change. Each adjustment is fixed and listed, and any can be removed, because the image is recomputed from the filter output. It describes the color the filter produced, not the pigment’s composition." } },
+      { ic: "◑", nombre: { es: "Contraste y saturación", en: "Contrast and saturation" },
+        para: { es: "Retoques finales, para ver o para publicar.", en: "Final touches, for viewing or publishing." },
+        como: { es: "Se aplican después del filtro, con las fórmulas de contrast() y saturate() del navegador (coeficientes Rec.709).", en: "Applied after the filter, with the browser’s contrast() and saturate() formulas (Rec.709 coefficients)." } },
+      { ic: "⚡", nombre: { es: "Acumular", en: "Stacking" },
+        para: { es: "Encadenar filtros: el siguiente se aplica sobre el resultado del anterior. Por ejemplo, CLAHE y después DS-LAB, para una foto con luz despareja y pigmento sutil.", en: "Chain filters: the next one is applied to the previous result. For example CLAHE and then DS-LAB, for a photo with uneven light and faint pigment." },
+        como: { es: "Cada pasada amplifica también el ruido y los artefactos de la anterior: si un rasgo aparece solo con tres filtros encadenados, hay que tratarlo como hipótesis. La cadena entera queda en el registro.", en: "Each pass also amplifies the noise and artifacts of the previous one: if a feature only shows with three chained filters, treat it as a hypothesis. The whole chain goes into the record." } },
+      { ic: "📏", nombre: { es: "Calibrar con la regla", en: "Calibrate with the ruler" },
+        para: { es: "Dar escala métrica a la foto: barra de escala en el visor y escala del Relieve en mm.", en: "Give the photo a metric scale: a scale bar in the viewer and the Relief scale in mm." },
+        como: { es: "Se marcan dos puntos sobre la escala de la foto, con lupa, y se escribe cuánto mide el tramo; el registro guarda los píxeles por milímetro. Vale en el plano de la escala: con la cámara de costado o una roca muy curva, lejos de ella las medidas se deforman.", en: "Mark two points on the photo’s scale, with a loupe, and type the length of the span; the record keeps the pixels per millimetre. It holds on the scale’s plane: with the camera at an angle or a strongly curved rock, measurements away from it are distorted." } },
+      { ic: "⟺", nombre: { es: "Comparar y mover", en: "Compare and pan" },
+        para: { es: "Ver el antes y el después en la misma imagen, de cerca.", en: "See before and after on the same image, up close." },
+        como: { es: "El deslizador del visor separa el resultado del original. La rueda del mouse hace zoom y la mano ✋ mueve la imagen.", en: "The viewer’s slider splits the result from the original. The mouse wheel zooms and the hand ✋ pans the image." } },
+    ] },
+  { id: "descargar", titulo: { es: "Descargar y registrar", en: "Download and record" },
+    items: [
+      { ic: "⬇", nombre: { es: "Descargar", en: "Download" },
+        para: { es: "Guardar el resultado en PNG, JPG o TIFF.", en: "Save the result as PNG, JPG or TIFF." },
+        como: { es: "PNG: sin pérdida. JPG: más liviano, conserva el EXIF y el GPS. TIFF: RGB de 8 bits sin comprimir, según la especificación 6.0. El nombre del archivo lleva el filtro y la intensidad, igual en los dos idiomas.", en: "PNG: lossless. JPG: lighter, keeps EXIF and GPS. TIFF: uncompressed 8-bit RGB, per specification 6.0. The file name carries the filter and intensity, the same in both languages." } },
+      { ic: "🧾", nombre: { es: "Registro de sesión", en: "Session record" },
+        para: { es: "Que cualquiera pueda saber cómo se hizo una imagen y rehacerla.", en: "Let anyone know how an image was made and rebuild it." },
+        como: { es: "Va adentro de cada imagen: versión de OPC, foto de entrada con su huella SHA-256, resolución, filtros con sus parámetros, zona, gotero, ajustes y escala. Con +JSON baja además aparte, para abrirlo con otros programas.", en: "It goes inside every image: OPC version, input photo with its SHA-256 fingerprint, resolution, filters with their parameters, area, eyedropper, adjustments and scale. With +JSON it is also saved separately, to open with other programs." } },
+      { ic: "📄", nombre: { es: "+PDF: informe", en: "+PDF: report" },
+        para: { es: "Un informe para leer, imprimir o adjuntar a una publicación.", en: "A report to read, print or attach to a publication." },
+        como: { es: "Las dos imágenes, el procedimiento paso a paso, la escala y las huellas. Con +JSON o +PDF, todo baja en un .zip con una carpeta adentro; apagados los dos, baja solo la imagen.", en: "Both images, the step-by-step procedure, the scale and the fingerprints. With +JSON or +PDF, everything comes down in a .zip with a folder inside; with both off, only the image." } },
+      { ic: "↺", nombre: { es: "Reproducir un registro", en: "Replay a record" },
+        para: { es: "Comprobar una imagen, propia o ajena: que salga de esa foto con esos pasos.", en: "Check an image, yours or someone else’s: that it comes from that photo with those steps." },
+        como: { es: "Se carga el registro (o la imagen exportada) y la foto original; OPC rehace la imagen y la compara píxel a píxel. Si la versión es otra y entre medio cambió algún filtro usado, avisa. Todavía no rehace modelos de elevación ni series multi-luz.", en: "Load the record (or the exported image) and the original photo; OPC rebuilds the image and compares it pixel for pixel. If the version differs and a filter it used changed in between, it warns. It cannot yet rebuild elevation models or multi-light series." } },
+      { ic: "▦", nombre: { es: "Lote fotogramétrico", en: "Photogrammetry batch" },
+        para: { es: "Aplicar el mismo realce a todas las fotos de un modelo 3D, para que la textura salga pareja.", en: "Apply the same enhancement to every photo of a 3D model, so the texture comes out even." },
+        como: { es: "Se ajusta el filtro en una foto de referencia y sus estadísticas (la matriz de decorrelación) quedan congeladas para todo el lote. Cada foto conserva su nombre y su EXIF/GPS y lleva su registro; al terminar baja un .csv con una fila por foto. La referencia importa: conviene una con pintura y roca, y con una luz representativa.", en: "The filter is tuned on a reference photo and its statistics (the decorrelation matrix) are frozen for the whole batch. Each photo keeps its name and EXIF/GPS and carries its record; at the end a .csv with one row per photo is saved. The reference matters: pick one with paint and rock, under representative light." } },
+    ] },
+  { id: "interfaz", titulo: { es: "Interfaz", en: "Interface" },
+    items: [
+      { ic: "☀", nombre: { es: "Modo solar", en: "Solar mode" },
+        para: { es: "Trabajar al sol, en el campo.", en: "Working in direct sunlight, in the field." },
+        como: { es: "Alto contraste: fondo blanco y texto negro.", en: "High contrast: white background and black text." } },
+      { ic: "🌐", nombre: { es: "Idioma", en: "Language" },
+        para: { es: "Usar OPC en español o en inglés.", en: "Use OPC in Spanish or English." },
+        como: { es: "Se cambia en cualquier momento y queda guardado. Los resultados y los nombres de archivo no cambian con el idioma.", en: "It can be switched at any time and is remembered. Results and file names do not change with the language." } },
+      { ic: "⌁", nombre: { es: "Sin conexión", en: "Offline" },
+        para: { es: "Usar OPC en el campo, sin internet.", en: "Use OPC in the field, without internet." },
+        como: { es: "Todo se calcula en la computadora, en un hilo aparte (Web Worker): la página responde mientras procesa, y un cálculo se cancela si se cambia de filtro.", en: "Everything is computed on the computer, in a separate thread (Web Worker): the page responds while processing, and a computation is cancelled when the filter changes." } },
+    ] },
+];
+
+// Novedades en la pantalla de inicio. Se pueden ocultar; vuelven con la
+// versión siguiente.
+function Novedades({ lang, T, mono, onGuia, onOcultar }) {
+  const L = (o) => o[lang] || o.es;
+  const chip = { padding:"5px 11px",background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:7,cursor:"pointer",fontFamily:mono,fontSize:10.5,color:T.tm };
+  return (
+    <section aria-labelledby="opc-novedades" style={{ maxWidth:680,margin:"0 auto 40px",padding:"16px 22px 12px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:12 }}>
+      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap",marginBottom:8 }}>
+        <h2 id="opc-novedades" style={{ margin:0,fontFamily:mono,fontSize:11.5,fontWeight:700,letterSpacing:2.5,color:T.ac }}>
+          {lang === "es" ? "NOVEDADES" : "WHAT’S NEW"}
+          <span style={{ fontWeight:400,letterSpacing:0.3,color:T.tm,marginLeft:10 }}>{lang === "es" ? `lo nuevo desde la v${NOVEDADES_DESDE}` : `since v${NOVEDADES_DESDE}`}</span>
+        </h2>
+        <div style={{ display:"flex",gap:6 }}>
+          <button onClick={onGuia} style={chip}>{lang === "es" ? "Para qué sirve cada cosa →" : "What each tool is for →"}</button>
+          <button onClick={onOcultar} title={lang === "es" ? "Ocultar las novedades hasta la próxima versión" : "Hide what’s new until the next version"} aria-label={lang === "es" ? "Ocultar las novedades" : "Hide what’s new"} style={chip}>✕</button>
+        </div>
+      </div>
+      {NOVEDADES.map(n => (
+        <div key={n.v} style={{ display:"flex",flexWrap:"wrap",columnGap:20,rowGap:4,padding:"12px 0",borderTop:`1px solid ${T.cBd}` }}>
+          <div style={{ flex:"1 0 150px" }}>
+            <div style={{ fontFamily:mono,fontSize:10.5,color:T.ac,marginBottom:2 }}>v{n.v}</div>
+            <div style={{ fontSize:17,fontWeight:700,color:T.text,lineHeight:1.2 }}>{L(n.titulo)}</div>
+          </div>
+          <ul style={{ flex:"100 1 330px",margin:0,paddingLeft:16,fontSize:14.5,lineHeight:1.5,color:T.tm }}>
+            {n.items.map((it, i) => (
+              <li key={i} style={{ marginBottom:4 }}><strong style={{ color:T.text,fontWeight:600 }}>{L(it.t)}</strong> {L(it.d)}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <p style={{ margin:0,paddingTop:10,borderTop:`1px solid ${T.cBd}`,fontFamily:mono,fontSize:10,lineHeight:1.5,color:T.gn }}>
+        {lang === "es" ? `Con fotos sueltas no cambia ningún resultado: los filtros dan los mismos píxeles que en la v${NOVEDADES_DESDE}.` : `With single photos no result changes: the filters give the same pixels as in v${NOVEDADES_DESDE}.`}
+      </p>
+    </section>
+  );
+}
+
+// La guía de Info: un índice para saltar a cada grupo y, por herramienta,
+// para qué sirve y cómo funciona.
+function Guia({ lang, T, mono }) {
+  const L = (o) => o[lang] || o.es;
+  const ir = (id) => { const el = document.getElementById("opc-guia-" + id); if (el) el.scrollIntoView({ block:"start" }); };
+  const etiqueta = { fontFamily:mono,fontSize:9,fontWeight:700,letterSpacing:1.2,color:T.tm,marginRight:7,textTransform:"uppercase" };
+  return (
+    <div>
+      <p style={{ margin:"0 0 10px",color:T.tm,fontSize:13 }}>
+        {lang === "es"
+          ? <>Para qué sirve cada herramienta y cómo funciona por dentro. Ningún filtro identifica un pigmento: realzan diferencias de color o de brillo, que después hay que interpretar. Las fórmulas, los parámetros y los límites de cada uno están en los <a href="https://github.com/emilios81/opuntiacolor/tree/main/docs" target="_blank" rel="noopener noreferrer" style={{ color:T.ac }}>documentos del repositorio</a>.</>
+          : <>What each tool is for and how it works inside. No filter identifies a pigment: they enhance differences in color or brightness, which then have to be interpreted. The formulas, parameters and limits of each are in the <a href="https://github.com/emilios81/opuntiacolor/tree/main/docs" target="_blank" rel="noopener noreferrer" style={{ color:T.ac }}>repository documents</a> (in Spanish).</>}
+      </p>
+      <nav aria-label={lang === "es" ? "Índice de la guía" : "Guide contents"} style={{ display:"flex",flexWrap:"wrap",gap:5,marginBottom:4 }}>
+        {GUIA.map(s => (
+          <button key={s.id} onClick={() => ir(s.id)} style={{ padding:"3px 10px",background:T.bBg,border:`1px solid ${T.cBd}`,borderRadius:12,cursor:"pointer",fontFamily:mono,fontSize:10,color:T.tm }}>{L(s.titulo)}</button>
+        ))}
+      </nav>
+      {GUIA.map(s => (
+        <section key={s.id} id={"opc-guia-" + s.id} style={{ marginTop:18,scrollMarginTop:12 }}>
+          <h4 style={{ margin:"0 0 2px",fontSize:16.5,color:T.ac }}>{L(s.titulo)}</h4>
+          {s.intro && <p style={{ margin:"0 0 6px",fontSize:12.5,lineHeight:1.55,color:T.tm,fontStyle:"italic" }}>{L(s.intro)}</p>}
+          {s.items.map((it, i) => (
+            <div key={i} style={{ display:"flex",flexWrap:"wrap",columnGap:18,rowGap:2,padding:"9px 0",borderTop:`1px solid ${T.cBd}` }}>
+              <div style={{ flex:"1 0 180px",fontSize:14.5,fontWeight:700,color:T.text,lineHeight:1.35 }}>
+                <span aria-hidden="true" style={{ display:"inline-block",width:22 }}>{it.ic}</span>{L(it.nombre)}
+              </div>
+              <div style={{ flex:"100 1 340px",minWidth:0 }}>
+                <p style={{ margin:"0 0 3px",fontSize:13.5,lineHeight:1.55,color:T.text }}><span style={etiqueta}>{lang === "es" ? "Para qué" : "What for"}</span>{L(it.para)}</p>
+                <p style={{ margin:0,fontSize:12.5,lineHeight:1.55,color:T.tm }}><span style={etiqueta}>{lang === "es" ? "Cómo" : "How"}</span>{L(it.como)}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+      ))}
+    </div>
+  );
+}
+
 function RockArtEnhancer() {
   const [image, setImage] = useState(null);
   const [imageSrc, setImageSrc] = useState(null);
@@ -2742,9 +3719,18 @@ function RockArtEnhancer() {
   const [demInfo, setDemInfo] = useState(null);
   const [demEscala, setDemEscala] = useState(DEM_ESCALA_DEFECTO);
   const [avisoDEM, setAvisoDEM] = useState(null);
+  // Serie multi-luz (v4.0.0): las fotos leídas (serieRef), la ventana para
+  // armar la serie (armado), el resultado del cálculo (mlRef: las imágenes de
+  // base y las alturas) y lo que muestra el panel (mlInfo)
+  const serieRef = useRef(null), mlRef = useRef(null), serieInputRef = useRef(null);
+  const [armado, setArmado] = useState(null);
+  const [mlInfo, setMlInfo] = useState(null);
+  const relOptsFoto = opcionesRelieve(reliefScale, { doble: relDoble ? relObjeto / 100 : null, suave: relSuave, clahe: relClahe, mezcla: relMezcla, alfa: relAlfa / 100 });
+  // Con estéreo fotométrico el Relieve va sobre las alturas de las normales:
+  // queda anotado en sus opciones (no cambia el nombre del archivo)
   const relOpts = demInfo
     ? opcionesRelieveDEM(demEscala, { doble: relDoble ? relObjeto / 100 : null, suave: relSuave, clahe: relClahe })
-    : opcionesRelieve(reliefScale, { doble: relDoble ? relObjeto / 100 : null, suave: relSuave, clahe: relClahe, mezcla: relMezcla, alfa: relAlfa / 100 });
+    : mlInfo && mlInfo.metodo === "fotometrico" ? { ...relOptsFoto, sobre: "normales" } : relOptsFoto;
   const relClave = JSON.stringify(relOpts);
   const [processing, setProcessing] = useState(false);
   const [sliderPos, setSliderPos] = useState(50);
@@ -2754,6 +3740,12 @@ function RockArtEnhancer() {
   const [panning, setPanning] = useState(false);
   const panRef = useRef({ active:false, id:null, sx:0, sy:0, tx:0, ty:0 });
   const [showInfo, setShowInfo] = useState(false);
+  // Info tiene dos pestañas: la guía de uso y el historial de versiones
+  const [infoTab, setInfoTab] = useState("guia");
+  // Las novedades de la pantalla de inicio, ocultas hasta la versión siguiente
+  const [novedadesOcultas, setNovedadesOcultas] = useState(() => { try { return localStorage.getItem("opc_novedades_ocultas") === OPC_VERSION; } catch (e) { return false; } });
+  const ocultarNovedades = (v) => { setNovedadesOcultas(v); try { localStorage.setItem("opc_novedades_ocultas", v ? OPC_VERSION : ""); } catch (e) {} };
+  const abrirGuia = () => { setInfoTab("guia"); setShowInfo(true); try { window.scrollTo(0, 0); } catch (e) {} };
   const [fileName, setFileName] = useState("");
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 });
   const [solar, setSolar] = useState(false);
@@ -2998,6 +3990,7 @@ function RockArtEnhancer() {
     if (/\.tiff?$/i.test(file.name) || file.type === "image/tiff") { abrirDEM(file); return; }
     if (!file.type.startsWith("image/")) return;
     demRef.current = null; setDemInfo(null); setAvisoDEM(null);
+    mlRef.current = null; setMlInfo(null); serieRef.current = null;
     setFileName(file.name); setExifData(null); setExifRaw(null); setRegistroInfo(null);
     setEscalaCal(null); setCalibrando(null); setMmDraft("");
     entradaRef.current = null; huellasEntradaRef.current = {};
@@ -3065,6 +4058,7 @@ function RockArtEnhancer() {
       const url = cv.toDataURL("image/png");
       const img = await new Promise((ok, mal) => { const im = new Image(); im.onload = () => ok(im); im.onerror = mal; im.src = url; });
       demRef.current = dem;
+      mlRef.current = null; setMlInfo(null); serieRef.current = null;
       entradaRef.current = { archivo: file.name, bytes: file.size, sha256: sha, file };
       huellasEntradaRef.current = {};
       setFileName(file.name); setExifData(null); setExifRaw(null);
@@ -3094,6 +4088,194 @@ function RockArtEnhancer() {
     return () => clearTimeout(t);
   }, [demInfo, image]);
 
+  // ============================================================
+  // SERIE MULTI-LUZ (v4.0.0)
+  // Varias fotos del mismo panel con la luz desde distintos lados. Se leen a
+  // la vez, se arma la serie en una ventana aparte (la esfera, la foto sin
+  // luz) y el cálculo corre en el worker. El resultado entra como si fuera una
+  // foto: la imagen de base (el albedo o el promedio) para los filtros de
+  // color y, con estéreo, las alturas para el Relieve.
+  // ============================================================
+  const pngDeRGBA = async (rgba, w, h) => {
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    cv.getContext("2d").putImageData(new ImageData(rgba, w, h), 0, 0);
+    const blob = await new Promise(r => cv.toBlob(r, "image/png"));
+    cv.width = 0; cv.height = 0;
+    return blob;
+  };
+  const imagenDeRGBA = async (rgba, w, h) => {
+    const url = URL.createObjectURL(await pngDeRGBA(rgba, w, h));
+    const img = await new Promise((ok, mal) => { const im = new Image(); im.onload = () => ok(im); im.onerror = mal; im.src = url; });
+    return { img, url };
+  };
+  // El brillo de la esfera y la luz de cada foto, con la esfera y la foto sin luz elegidas
+  const lucesDeSerie = (S, esfera, ambiente) => {
+    const amb = ambiente >= 0 ? S.fotos[ambiente].data : null;
+    const brillos = S.fotos.map((f, k) => esfera && k !== ambiente ? brilloEsfera(f.data, S.w, S.h, esfera, amb) : null);
+    return { brillos, luces: brillos.map(b => b && b.ok ? luzDesdeBrillo(b.x, b.y, esfera) : null) };
+  };
+  const armadoDe = (S, c) => ({ fotos: S.fotos.map(f => ({ archivo: f.archivo, brillo: f.brillo })), w: S.w, h: S.h, w0: S.w0, h0: S.h0, vista: S.vista,
+    ambiente: c.ambiente, esfera: c.esfera, ...lucesDeSerie(S, c.esfera, c.ambiente), opts: c.opts, calculando: false, error: null });
+
+  const abrirSerie = async (lista) => {
+    const files = [...lista].filter(f => f.type.startsWith("image/") && !/\.tiff?$/i.test(f.name) && f.type !== "image/tiff")
+      .sort((x, y) => x.name.localeCompare(y.name, undefined, { numeric: true }));
+    if (files.length < 2) { if (files[0]) handleFile(files[0]); return; }
+    if (files.length > 16) {
+      setAvisoDEM({ es: `Una serie multi-luz puede tener hasta 16 fotos; elegiste ${files.length}.`, en: `A multi-light series can have up to 16 photos; you chose ${files.length}.` });
+      return;
+    }
+    cancelarProceso(); setAvisoDEM(null); setProcessing(true);
+    const urls = [];
+    try {
+      const imgs = await Promise.all(files.map(f => new Promise((ok, mal) => {
+        const u = URL.createObjectURL(f); urls.push(u);
+        const im = new Image(); im.onload = () => ok(im); im.onerror = () => mal(new Error(f.name)); im.src = u;
+      })));
+      const W0 = imgs[0].naturalWidth, H0 = imgs[0].naturalHeight;
+      const k = imgs.findIndex(im => im.naturalWidth !== W0 || im.naturalHeight !== H0);
+      if (k >= 0) {
+        setAvisoDEM({ es: `Las fotos de una serie tienen que tener el mismo tamaño: ${files[k].name} mide ${imgs[k].naturalWidth} × ${imgs[k].naturalHeight} y ${files[0].name}, ${W0} × ${H0}.`,
+          en: `The photos of a series must all be the same size: ${files[k].name} is ${imgs[k].naturalWidth} × ${imgs[k].naturalHeight} and ${files[0].name}, ${W0} × ${H0}.` });
+        return;
+      }
+      // Tamaño de trabajo: hasta ML_MAX_MP, para que entren todas en memoria
+      const s = Math.min(1, Math.sqrt(ML_MAX_MP * 1e6 / (W0 * H0)), 8192 / Math.max(W0, H0));
+      const w = Math.max(1, Math.round(W0 * s)), h = Math.max(1, Math.round(H0 * s));
+      const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+      const g = cv.getContext("2d", { willReadFrequently: true });
+      const fotos = imgs.map((im, j) => {
+        g.clearRect(0, 0, w, h); g.drawImage(im, 0, 0, w, h);
+        const data = g.getImageData(0, 0, w, h).data;
+        let b = 0, c = 0;
+        for (let p = 0; p < w * h; p += 97) { const q = 4 * p; b += 0.299 * data[q] + 0.587 * data[q + 1] + 0.114 * data[q + 2]; c++; }
+        return { archivo: files[j].name, bytes: files[j].size, sha256: files[j].arrayBuffer().then(buf => huellaSHA256(new Uint8Array(buf))), data, brillo: b / c };
+      });
+      // Lo que se ve al marcar la esfera: el máximo de todas las fotos
+      const max = new Uint8ClampedArray(w * h * 4);
+      for (const f of fotos) { const d = f.data; for (let i = 0; i < d.length; i++) if (d[i] > max[i]) max[i] = d[i]; }
+      g.putImageData(new ImageData(max, w, h), 0, 0);
+      const vista = URL.createObjectURL(await new Promise(r => cv.toBlob(r, "image/jpeg", 0.9)));
+      cv.width = 0; cv.height = 0;
+      // La foto sin luz se propone sola: la más oscura, si lo es por mucho
+      const orden = fotos.map((f, j) => [f.brillo, j]).sort((a, b) => a[0] - b[0]);
+      const med = orden[(orden.length + 1) >> 1][0];
+      const ambiente = fotos.length >= 4 && orden[0][0] < 0.35 * med ? orden[0][1] : -1;
+      if (serieRef.current && serieRef.current.vista && !mlRef.current) URL.revokeObjectURL(serieRef.current.vista);
+      serieRef.current = { fotos, w, h, w0: W0, h0: H0, vista };
+      setArmado(armadoDe(serieRef.current, { ambiente, esfera: null, opts: { descartar: true, igualar: true } }));
+    } catch (e) {
+      console.error("Serie:", e);
+      setAvisoDEM({ es: `No se pudo abrir la serie: ${(e && e.message) || e}`, en: `Could not open the series: ${(e && e.message) || e}` });
+    } finally {
+      urls.forEach(u => URL.revokeObjectURL(u));
+      setProcessing(false);
+    }
+  };
+
+  const cambiarArmado = (cambio) => {
+    setArmado(prev => {
+      if (!prev) return prev;
+      const a = { ...prev, ...cambio, error: null };
+      if ("esfera" in cambio || "ambiente" in cambio) Object.assign(a, lucesDeSerie(serieRef.current, a.esfera, a.ambiente));
+      return a;
+    });
+  };
+
+  const cancelarArmado = () => {
+    // Sin un resultado en pantalla, las fotos ya no hacen falta
+    if (!mlRef.current) {
+      const S = serieRef.current;
+      if (S && S.vista) URL.revokeObjectURL(S.vista);
+      serieRef.current = null;
+    }
+    setArmado(null);
+  };
+
+  const calcularSerie = async () => {
+    const a = armado, S = serieRef.current;
+    if (!a || !S || a.calculando) return;
+    const idx = S.fotos.map((f, k) => k).filter(k => k !== a.ambiente);
+    setArmado(p => p && { ...p, calculando: true, error: null });
+    const job = ++jobRef.current;
+    try {
+      const r = await procRef.current.correr({ tipo: "multiluz", fotos: idx.map(k => S.fotos[k].data), ambiente: a.ambiente >= 0 ? S.fotos[a.ambiente].data : null,
+        luces: idx.map(k => a.luces[k]), esfera: a.esfera, w: S.w, h: S.h, opts: a.opts });
+      if (job !== jobRef.current) return;
+      await entrarMultiluz(r.multiluz, a, idx);
+    } catch (e) {
+      if (e === PROC_CANCELADO) return;
+      console.error("Serie:", e);
+      setArmado(p => p && { ...p, calculando: false, error: String((e && e.message) || e) });
+    }
+  };
+
+  const entrarMultiluz = async (m, a, idx) => {
+    const S = serieRef.current;
+    const base = m.metodo === "fotometrico" ? "albedo" : "promedio";
+    const im = await imagenDeRGBA(m[base], m.w, m.h);
+    const foto = (k) => ({ archivo: S.fotos[k].archivo, bytes: S.fotos[k].bytes, sha256: S.fotos[k].sha256 });
+    mlRef.current = { ...m,
+      meta: { metodo: m.metodo, base, w: m.w, h: m.h, opts: a.opts,
+        fotos: idx.map(k => ({ ...foto(k), luz: m.metodo === "fotometrico" ? a.luces[k] : null })),
+        potencias: m.potencias || null, lucesPorPunto: m.lucesPorPunto, conNormal: m.conNormal,
+        ambiente: a.ambiente >= 0 ? foto(a.ambiente) : null, esfera: m.metodo === "fotometrico" ? a.esfera : null },
+      armado: { ambiente: a.ambiente, esfera: a.esfera, opts: a.opts } };
+    const nombre = nombreSerie(S.fotos.map(f => f.archivo), idx.length);
+    cancelarProceso();
+    demRef.current = null; setDemInfo(null); setAvisoDEM(null); setRegistroInfo(null);
+    entradaRef.current = { archivo: nombre, bytes: idx.reduce((s, k) => s + S.fotos[k].bytes, 0), sha256: Promise.resolve(null), file: null };
+    huellasEntradaRef.current = {};
+    setFileName(nombre); setExifData(null); setExifRaw(null);
+    setEscalaCal(null); setCalibrando(null); setMmDraft("");
+    setResId("full"); setPreguntaRes(false);
+    setImageSize({ w: m.w, h: m.h }); setImage(im.img); setImageSrc(im.url);
+    setProcessedSrc(null); setActivePreset(null); setStackMode(false); setSelData(null); setSelTool("none"); setContrast(0); setSaturation(0);
+    setPickColor(null); setPickSteps([]); setPicking(false); setPickSrc(null); processedDataRef.current = null; pickBaseRef.current = null;
+    drawRef.current = { active:false, tool:"", start:null, pts:[] }; pipelineRef.current = []; setView({ z:1, tx:0, ty:0 }); setPanTool(false);
+    // El Relieve arranca con escala: el mapa de bordes no aprovecha las alturas
+    if (!reliefScale) setReliefScale(0.25);
+    setMlInfo({ metodo: m.metodo, base, fotos: idx.length, conLuz: idx.filter(k => a.luces[k]).length, lucesPorPunto: m.lucesPorPunto, conNormal: m.conNormal,
+      ambiente: a.ambiente >= 0 ? S.fotos[a.ambiente].archivo : null, w: m.w, h: m.h, w0: S.w0, h0: S.h0 });
+    setArmado(null);
+  };
+
+  // Otra imagen de base: los filtros de color pasan a trabajar sobre ella
+  const cambiarBase = async (b) => {
+    const m = mlRef.current;
+    if (!m || !m[b] || !mlInfo || mlInfo.base === b) return;
+    const im = await imagenDeRGBA(m[b], m.w, m.h);
+    m.meta.base = b;
+    const viejo = imageSrc;
+    cancelarProceso(); setProcessedSrc(null); pipelineRef.current = []; processedDataRef.current = null; pickBaseRef.current = null;
+    setPickColor(null); setPickSteps([]); setPicking(false); setPickSrc(null); huellasEntradaRef.current = {};
+    setImage(im.img); setImageSrc(im.url);
+    setMlInfo(p => ({ ...p, base: b }));
+    if (viejo && viejo.startsWith("blob:")) setTimeout(() => URL.revokeObjectURL(viejo), 30000);
+  };
+
+  const volverASerie = () => {
+    const S = serieRef.current, m = mlRef.current;
+    if (S && m) setArmado(armadoDe(S, m.armado));
+  };
+
+  // Lo que el registro guarda de la serie, con las huellas de las fotos ya calculadas
+  const registroSerie = async () => {
+    const mm = mlRef.current.meta;
+    const fotos = await Promise.all(mm.fotos.map(async f => ({ ...f, sha256: await f.sha256 })));
+    const ambiente = mm.ambiente ? { archivo: mm.ambiente.archivo, bytes: mm.ambiente.bytes, sha256: await mm.ambiente.sha256 } : null;
+    return multiluzARegistro({ ...mm, fotos, ambiente });
+  };
+
+  // Al entrar en una serie, o al cambiar la base, se aplica el filtro activo
+  // (o el Relieve)
+  useEffect(() => {
+    if (!mlInfo || !image) return;
+    const p = PRESETS.find(x => x.id === (activePreset || "relief"));
+    const t = setTimeout(() => processImage(p, intensity), 60);
+    return () => clearTimeout(t);
+  }, [mlInfo, image]);
+
   const setWorkingRes = (nv) => {
     setPreguntaRes(false);
     if (nv === resId) return;
@@ -3116,7 +4298,8 @@ function RockArtEnhancer() {
     procRef.current.cancelar();
     omitirAutoRef.current = null;
     setProcessing(true); setActivePreset(preset.id); setRegistroInfo(null);
-    const apilar = stackMode && !!processedSrc && !demRef.current;
+    // Con estéreo fotométrico tampoco: el Relieve va siempre sobre las alturas
+    const apilar = stackMode && !!processedSrc && !demRef.current && !(mlRef.current && mlRef.current.z);
     // setTimeout directo (no requestAnimationFrame): rAF se pausa si la
     // pestaña pierde visibilidad y el procesamiento quedaba colgado
     setTimeout(async () => {
@@ -3141,7 +4324,8 @@ function RockArtEnhancer() {
         // sobre la zona seleccionada (decorrelación local, como DStretch)
         const dm = demRef.current;
         const r = await procRef.current.correr({ presetId: preset.id, origen: sourceData.data, w, h, intensity: int, mask, frozen: null, opts,
-          dem: dm && preset.id === "relief" ? { z: dm.z, valido: dm.valido, pxmm: dm.pxmm } : null });
+          dem: dm && preset.id === "relief" ? { z: dm.z, valido: dm.valido, pxmm: dm.pxmm } : null,
+          alturas: mlRef.current && mlRef.current.z && preset.id === "relief" ? mlRef.current.z : null });
         if (job !== jobRef.current) return;   // llegó otro pedido mientras tanto
         // Ya viene combinado con la selección (aplicarMascara)
         const final = new ImageData(r.data, w, h);
@@ -3307,9 +4491,10 @@ function RockArtEnhancer() {
         reg = armarRegistro({
           version: OPC_VERSION, fecha: new Date().toISOString(),
           entrada: { archivo: fileName, bytes: ent ? ent.bytes : null, sha256: ent ? await ent.sha256 : null, ancho: image.naturalWidth, alto: image.naturalHeight },
-          trabajo: { resolucion: resId, ancho: w, alto: h, sha256_pixeles: await huellaEntrada(w, h) },
+          trabajo: { resolucion: mlRef.current ? "multiluz" : resId, ancho: w, alto: h, sha256_pixeles: await huellaEntrada(w, h) },
           escala: escalaCal ? escalaARegistro(escalaCal, { ancho: image.naturalWidth, alto: image.naturalHeight }, { ancho: w, alto: h }) : null,
           dem: demRef.current ? demARegistro(demRef.current) : null,
+          multiluz: mlRef.current ? await registroSerie() : null,
           pasos: pipelineRef.current, gotero: gPasos,
           contraste: contrast, saturacion: saturation, metodoAjustes: "filtro_css",
           salida: { archivo: `${base}.${ext}`, formato: ext, sha256_pixeles: await huellaSHA256(pixelesRGB(pix.data)) },
@@ -3343,6 +4528,11 @@ function RockArtEnhancer() {
         if (demA.geo) archivos.push({ nombre: `${base}_georref.tif`, blob: new Blob([geotiffRGB(pix.data, cv.width, cv.height, demA.geo, texto)], { type: "image/tiff" }) });
         archivos.push({ nombre: `${base}_residuo_mm.tif`, blob: new Blob([geotiffFloat32(residuoDEM(demA, demA.w, demA.h, optsDEM), demA.w, demA.h, demA.geo, DEM_SIN_DATO)], { type: "image/tiff" }) });
       }
+      // De una serie multi-luz (v4.0.0) van además las imágenes de base: el
+      // albedo y el mapa de normales, o el promedio
+      const mlA = mlRef.current;
+      if (mlA) for (const b of (mlA.metodo === "fotometrico" ? ["albedo", "normales"] : ["promedio"]))
+        archivos.push({ nombre: `${base}_${b}.png`, blob: await pngDeRGBA(mlA[b], mlA.w, mlA.h) });
       if (extras && reg) {
         // Afuera lleva además la huella del archivo ya armado (adentro no
         // puede ir: cambiaría el archivo que describe)
@@ -3404,6 +4594,11 @@ function RockArtEnhancer() {
     };
     try {
       const pasos = pasosDesdeRegistro(rec), lote = !!rec.lote;
+      if (rec.multiluz || mlRef.current) {
+        nota(false, "Reproducir el registro de una serie multi-luz todavía no está disponible (v4.0.0). Cada foto, su luz y las opciones quedan anotadas en el registro y en el informe.",
+          "Replaying the record of a multi-light series is not available yet (v4.0.0). Each photo, its light and the options are written down in the record and in the report.");
+        return terminar({ es: "No se pudo reproducir", en: "Could not replay" });
+      }
       if (rec.dem || demRef.current) {
         nota(false, "Reproducir el registro de un modelo de elevación todavía no está disponible (v3.9.0). El procedimiento queda anotado en el registro y en el informe.",
           "Replaying the record of an elevation model is not available yet (v3.9.0). The procedure is written down in the record and in the report.");
@@ -3674,7 +4869,13 @@ function RockArtEnhancer() {
     setBatchRunning(false);
   };
 
-  const handleDrop = (e) => { e.preventDefault(); const f=e.dataTransfer?.files?.[0]; if(f) handleFile(f); };
+  // Varias fotos juntas son una serie multi-luz (v4.0.0)
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const fs = [...(e.dataTransfer?.files || [])];
+    if (fs.filter(f => f.type.startsWith("image/") && !/\.tiff?$/i.test(f.name)).length >= 2) abrirSerie(fs);
+    else if (fs[0]) handleFile(fs[0]);
+  };
   // --- Gotero cromático ---------------------------------------------------
   // Muestra el color de un punto del RESULTADO del filtro (no de la vista con
   // ajustes post): promedia un entorno de 5×5 para que el grano de la roca o un
@@ -3754,7 +4955,7 @@ function RockArtEnhancer() {
     return () => clearTimeout(t);
   }, [processedSrc, pickSteps, pickColor, pickTol, pickFeather, pickGain]);
 
-  const handleReset = () => { cancelarProceso();setImage(null);setImageSrc(null);setProcessedSrc(null);setActivePreset(null);setExifData(null);setExifRaw(null);setFileName("");setStackMode(false);setContrast(0);setSaturation(0);setPickColor(null);setPickSteps([]);setPicking(false);setPickSrc(null);processedDataRef.current=null;pickBaseRef.current=null;setSelTool("none");setSelData(null);drawRef.current={active:false,tool:"",start:null,pts:[]};pipelineRef.current=[];setShowBatch(false);setBatchFiles([]);setView({z:1,tx:0,ty:0});setPanTool(false);entradaRef.current=null;huellasEntradaRef.current={};omitirAutoRef.current=null;setRegistroInfo(null);setEscalaCal(null);setCalibrando(null);setMmDraft("");setAvisoGuardado(null);demRef.current=null;setDemInfo(null);setAvisoDEM(null);if(fileInputRef.current)fileInputRef.current.value=""; };
+  const handleReset = () => { cancelarProceso();setImage(null);setImageSrc(null);setProcessedSrc(null);setActivePreset(null);setExifData(null);setExifRaw(null);setFileName("");setStackMode(false);setContrast(0);setSaturation(0);setPickColor(null);setPickSteps([]);setPicking(false);setPickSrc(null);processedDataRef.current=null;pickBaseRef.current=null;setSelTool("none");setSelData(null);drawRef.current={active:false,tool:"",start:null,pts:[]};pipelineRef.current=[];setShowBatch(false);setBatchFiles([]);setView({z:1,tx:0,ty:0});setPanTool(false);entradaRef.current=null;huellasEntradaRef.current={};omitirAutoRef.current=null;setRegistroInfo(null);setEscalaCal(null);setCalibrando(null);setMmDraft("");setAvisoGuardado(null);demRef.current=null;setDemInfo(null);setAvisoDEM(null);mlRef.current=null;setMlInfo(null);if(serieRef.current&&serieRef.current.vista)URL.revokeObjectURL(serieRef.current.vista);serieRef.current=null;setArmado(null);if(fileInputRef.current)fileInputRef.current.value=""; };
 
   // --- Herramientas de selección ---
   const clearSelection = () => { cancelarProceso(); setSelData(null); setSelTool("none"); setProcessedSrc(null); drawRef.current={active:false,tool:"",start:null,pts:[]}; pipelineRef.current=[]; };
@@ -3867,7 +5068,7 @@ function RockArtEnhancer() {
             <h1 style={{ margin:0,fontSize:18,fontWeight:700,color:T.text,display:"flex",alignItems:"baseline",gap:6 }}>
               <span style={{ color:T.gn,fontFamily:mono,fontSize:11,fontWeight:500,background:T.gnBg,padding:"1px 6px",borderRadius:4,border:`1px solid ${T.gnBd}` }}>OPC</span>
               Opuntia<span style={{ color:T.ac,fontWeight:700 }}>Color</span>
-              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v3.9.0</span>
+              <span style={{ fontSize:9,color:T.tm,fontFamily:mono }}>v4.0.0</span>
             </h1>
           </div>
         </div>
@@ -3887,8 +5088,16 @@ function RockArtEnhancer() {
       {/* INFO PANEL */}
       {showInfo && (
         <div style={{ margin:"0 20px",padding:20,background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:10,fontSize:13,lineHeight:1.7,position:"relative",zIndex:10 }}>
-          <h3 style={{ margin:"0 0 10px",color:T.ac,fontSize:15 }}>OPC v3.9.0 &mdash; {tr("Novedades","What\u2019s new")}</h3>
-          {lang === "es" ? (<>
+          <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap",marginBottom:10 }}>
+            <h3 style={{ margin:0,color:T.ac,fontSize:15 }}>OPC v4.0.0 &mdash; {infoTab === "historial" ? tr("Historial de versiones","Version history") : tr("Guía de uso","User guide")}</h3>
+            <div role="tablist" aria-label={tr("Secciones de la información","Information sections")} style={{ display:"flex",gap:4 }}>
+              {[["guia", tr("Guía de uso","User guide")], ["historial", tr("Historial de versiones","Version history")]].map(([id, txt]) => (
+                <button key={id} role="tab" aria-selected={infoTab === id} onClick={()=>setInfoTab(id)} style={{ padding:"5px 11px",borderRadius:7,cursor:"pointer",fontFamily:mono,fontSize:10.5,fontWeight:infoTab===id?700:400,background:infoTab===id?T.acBg:T.bBg,border:`1px solid ${infoTab===id?T.acBd:T.cBd}`,color:infoTab===id?T.ac:T.tm }}>{txt}</button>
+              ))}
+            </div>
+          </div>
+          {infoTab !== "historial" ? <Guia lang={lang} T={T} mono={mono} /> : lang === "es" ? (<>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Series multi-luz (v4.0.0)</strong> &mdash; Se abren <strong style={{color:T.text}}>varias fotos del mismo panel</strong>, sacadas con la cámara quieta en el trípode y la luz desde distintos lados: se arrastran juntas o se eligen con «Serie multi-luz». Si en el encuadre hay una <strong style={{color:T.text}}>esfera brillante</strong> (una bolita de rulemán, un adorno navideño), se la marca con un círculo y OPC saca de su brillo de dónde vino cada luz. Con eso calcula, punto por punto, hacia dónde mira la superficie (<strong style={{color:T.text}}>estéreo fotométrico</strong>): salen el <strong style={{color:T.text}}>albedo</strong>, que es el color sin las sombras, y las alturas, sobre las que va el Relieve. Lo hundido sale oscuro venga de donde venga la luz, y la pintura no se confunde con el relieve. Los filtros de color trabajan sobre el albedo. Sin esfera, se <strong style={{color:T.text}}>promedian las luces</strong>: queda como una foto con luz rasante desde todos lados. La descarga trae además el albedo y el mapa de normales. Con fotos sueltas <strong style={{color:T.text}}>no cambia ningún resultado</strong>.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Modelos de elevaci&oacute;n (v3.9.0)</strong> &mdash; OPC abre un <strong style={{color:T.text}}>DEM en GeoTIFF</strong> exportado de Metashape u otro programa: alturas en coma flotante, sin pasar a 8 bits. Se ve con sombreado, como una foto con luz rasante, y el Relieve trabaja sobre las alturas, con la escala en mil&iacute;metros que da el tama&ntilde;o de la celda; los huecos sin dato no contaminan el resultado. Al descargar, adem&aacute;s de la imagen, bajan la imagen <strong style={{color:T.text}}>georreferenciada</strong> y el <strong style={{color:T.text}}>residuo en mm</strong> como GeoTIFF, para medir en QGIS u otro SIG. Con fotos, <strong style={{color:T.text}}>ning&uacute;n resultado cambia</strong>.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Registro de sesi&oacute;n (v3.8.0)</strong> &mdash; Cada imagen que se descarga lleva <strong style={{color:T.text}}>adentro un registro</strong> con todo lo necesario para rehacerla: versi&oacute;n de OPC, foto de entrada con su huella SHA-256, resoluci&oacute;n de trabajo, cadena de filtros con sus par&aacute;metros, zona seleccionada, gotero con el color muestreado, ajustes y, si se calibr&oacute;, la escala m&eacute;trica. Con <code>+JSON</code>, el mismo registro baja aparte como <code>.json</code>; el lote deja adem&aacute;s un <code>.csv</code> con una fila por foto. Con <strong style={{color:T.text}}>Reproducir un registro</strong>, cargando la foto original y el registro (o la propia imagen exportada), OPC rehace la imagen y comprueba que salga <strong style={{color:T.text}}>igual p&iacute;xel a p&iacute;xel</strong>; si la versi&oacute;n es otra y entre medio cambi&oacute; alg&uacute;n filtro usado, avisa. Con <strong style={{color:T.text}}>Calibrar con la regla</strong> se marcan dos puntos sobre la escala de la foto, con una lupa, y se elige o se escribe cu&aacute;nto mide el tramo: el registro guarda cu&aacute;ntos p&iacute;xeles mide un mil&iacute;metro, el Relieve muestra su escala tambi&eacute;n en mm y el visor dibuja una barra de escala. Con <code>+PDF</code> baja adem&aacute;s un <strong style={{color:T.text}}>informe en PDF</strong> para leer, imprimir o adjuntar a una publicaci&oacute;n: las dos im&aacute;genes, el procedimiento, la escala y las huellas. Con <code>+JSON</code> o <code>+PDF</code>, todo baja junto en un <code>.zip</code> con el nombre de la imagen, que trae adentro <strong style={{color:T.text}}>una carpeta</strong> con la imagen y los dem&aacute;s archivos. Apagados los dos, baja solo la imagen. En el Relieve con escala, <strong style={{color:T.text}}>M&aacute;s opciones</strong> agrega el Relieve doble (objeto y textura), la compresi&oacute;n suave, el realce con CLAHE y la mezcla con DS-LAB o LDS; apagadas, el Relieve da lo mismo que antes. <strong style={{color:T.text}}>Ning&uacute;n resultado cambia.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Fotos grandes: se elige la resoluci&oacute;n al abrirlas (v3.7.3)</strong> &mdash; Una foto de m&aacute;s de 16 MP abre con un cartel que propone trabajarla a <strong style={{color:T.text}}>16 MP</strong>: conserva tres cuartos de cada lado y cada filtro tarda alrededor de la mitad. Tambi&eacute;n se puede elegir 12 MP o la completa. En el panel, la resoluci&oacute;n de trabajo pasa a ser un men&uacute; con m&aacute;s escalones (completa, 16, 12 y 8 MP, 2000 px). A resoluci&oacute;n completa y en 2000 px <strong style={{color:T.text}}>nada cambia</strong>: dan el mismo tama&ntilde;o que antes.</p>
@@ -3903,6 +5112,7 @@ function RockArtEnhancer() {
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Gotero crom&aacute;tico (v3.5.0)</strong> &mdash; Despu&eacute;s de aplicar un filtro, se toca un color del resultado y se lo <strong style={{color:T.text}}>realza o se lo aten&uacute;a</strong> sin tocar el resto de la escena. Sirve para bajar el verde o el violeta que tapan el panel y para subir el color en el que se lee el motivo. Cada ajuste se <strong style={{color:T.text}}>fija</strong> y el gotero queda libre para el color siguiente, que se muestrea ya sobre el resultado acumulado; los ajustes se listan numerados y <strong style={{color:T.text}}>cualquiera se puede quitar de a uno</strong>, porque la imagen se recalcula entera desde el resultado del filtro. Act&uacute;a solo sobre la crominancia: la luminancia, y con ella el relieve y la textura, quedan intactos. <strong style={{color:T.text}}>La m&aacute;scara describe el color que produjo el filtro, no la composici&oacute;n del pigmento.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>La intensidad ya funciona en LDS (v3.4.0)</strong> &mdash; Hasta v3.3.0 el control no ten&iacute;a ning&uacute;n efecto en LDS: el factor se cancelaba con la normalizaci&oacute;n posterior. Ahora la intensidad es el <strong style={{color:T.text}}>exponente de blanqueo</strong>: por debajo de 1.5 la decorrelaci&oacute;n es parcial y la roca conserva m&aacute;s su color real &mdash; &uacute;til para <strong style={{color:T.text}}>verificar si un motivo sigue estando</strong> con menos realce&mdash;; por encima, se amplifican de m&aacute;s las componentes menores. <strong style={{color:T.text}}>El valor por defecto (1.5) da exactamente el mismo resultado que v3.3.0</strong>, as&iacute; que no hay nada que reprocesar.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Correcci&oacute;n importante (v3.3.0)</strong> &mdash; Se corrigi&oacute; un error en la eigendescomposici&oacute;n que hac&iacute;a que los eigenvalores fueran incorrectos. <strong style={{color:T.text}}>Los resultados de CRGB, DS-LAB y LDS cambian respecto de las versiones 3.0 a 3.2</strong>: las im&aacute;genes procesadas con versiones anteriores deben reprocesarse para poder compararlas.</p>
+          <p style={{ margin:"14px 0 6px",fontFamily:mono,fontSize:10,letterSpacing:1,color:T.td }}>v3.0 &ndash; v3.2</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}>12 filtros para pinturas, grabados y an&aacute;lisis t&eacute;cnico. Funciona 100% offline: procesamiento local sin conexi&oacute;n.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Procesado por lote (fotogrametr&iacute;a)</strong> &mdash; Ajust&aacute; el filtro en una foto de referencia y aplicalo autom&aacute;ticamente a todo el lote fotogram&eacute;trico. Las estad&iacute;sticas (matriz de decorrelaci&oacute;n) se congelan de la referencia: colores id&eacute;nticos en todas las fotos, textura coherente en el modelo 3D. Cada foto conserva su nombre y su EXIF/GPS.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Estad&iacute;sticas por zona</strong> &mdash; Con una selecci&oacute;n activa, la decorrelaci&oacute;n (CRGB, DS-LAB, LDS, YBK) se calcula con los datos de esa zona: mejor separaci&oacute;n de pigmentos locales, como en DStretch.</p>
@@ -3910,8 +5120,8 @@ function RockArtEnhancer() {
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>CLAHE real</strong> &mdash; Ecualizaci&oacute;n adaptativa de histograma con l&iacute;mite de contraste (Zuiderveld 1994).</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Mucho m&aacute;s r&aacute;pido</strong> &mdash; Micro-relieve optimizado con imagen integral. Se trabaja a resoluci&oacute;n completa por defecto.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Exportaci&oacute;n con metadatos</strong> &mdash; El nombre del archivo registra filtro e intensidad; el JPG conserva el EXIF/GPS original. TIFF v&aacute;lido seg&uacute;n spec 6.0.</p>
-          <p style={{ margin:"0 0 8px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Reconocimiento</strong> &mdash; El decorrelation stretch (Gillespie et al. 1986) fue popularizado en arte rupestre por <strong style={{color:T.text}}>DStretch</strong> (J. Harman). OPC es una implementaci&oacute;n independiente de c&oacute;digo abierto, escrita desde cero a partir de la bibliograf&iacute;a publicada, sin c&oacute;digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci&oacute;n entre herramientas.</p>
           </>) : (<>
+          <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Multi-light series (v4.0.0)</strong> &mdash; OPC opens <strong style={{color:T.text}}>several photos of the same panel</strong>, taken with the camera still on a tripod and the light from different sides: drop them together or choose them with “Multi-light series”. If there is a <strong style={{color:T.text}}>shiny sphere</strong> in the frame (a ball bearing, a Christmas bauble), you mark it with a circle and OPC works out from its highlight where each light came from. With that it computes, point by point, which way the surface faces (<strong style={{color:T.text}}>photometric stereo</strong>): you get the <strong style={{color:T.text}}>albedo</strong>, the colour without the shadows, and the heights, on which the Relief works. What is sunken comes out dark wherever the light came from, and paint is not mistaken for relief. The colour filters work on the albedo. Without a sphere, the <strong style={{color:T.text}}>lights are averaged</strong>: it looks like a photo with raking light from every side. The download also brings the albedo and the normal map. With single photos <strong style={{color:T.text}}>no result changes</strong>.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Elevation models (v3.9.0)</strong> &mdash; OPC opens a <strong style={{color:T.text}}>DEM in GeoTIFF</strong> exported from Metashape or another program: floating-point heights, never reduced to 8 bits. It is shown hillshaded, like a photo under raking light, and the Relief works on the heights, with the scale in millimetres given by the cell size; cells without data do not contaminate the result. On download, besides the image, you get the <strong style={{color:T.text}}>georeferenced</strong> image and the <strong style={{color:T.text}}>residual in mm</strong> as GeoTIFF, to measure in QGIS or another GIS. With photos, <strong style={{color:T.text}}>no result changes</strong>.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Session record (v3.8.0)</strong> &mdash; Every downloaded image carries <strong style={{color:T.text}}>a record inside</strong> with everything needed to rebuild it: OPC version, input photo with its SHA-256 fingerprint, working resolution, filter chain with its parameters, selected area, eyedropper with the sampled color, adjustments and, if calibrated, the metric scale. With <code>+JSON</code>, the same record is also saved as a separate <code>.json</code>; a batch also leaves a <code>.csv</code> with one row per photo. With <strong style={{color:T.text}}>Replay a record</strong>, loading the original photo and the record (or the exported image itself), OPC rebuilds the image and checks that it comes out <strong style={{color:T.text}}>identical pixel for pixel</strong>; if the version differs and a filter it uses changed in between, it warns. With <strong style={{color:T.text}}>Calibrate with the ruler</strong> you mark two points on the photo&rsquo;s scale, with a loupe, and pick or type the length of the span: the record keeps how many pixels a millimetre measures, the Relief shows its scale in mm too, and the viewer draws a scale bar. With <code>+PDF</code> a <strong style={{color:T.text}}>PDF report</strong> to read, print or attach to a publication is downloaded too: both images, the procedure, the scale and the fingerprints. With <code>+JSON</code> or <code>+PDF</code>, everything is downloaded together in a <code>.zip</code> named after the image, with <strong style={{color:T.text}}>a folder</strong> inside holding the image and the other files. With both off, only the image is downloaded. In the Relief with a scale, <strong style={{color:T.text}}>More options</strong> adds the double Relief (object and texture), soft compression, CLAHE enhancement and blending with DS-LAB or LDS; with them off, the Relief gives the same as before. <strong style={{color:T.text}}>No result changes.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Large photos: pick the resolution when opening them (v3.7.3)</strong> &mdash; A photo over 16 MP opens with a notice that suggests working at <strong style={{color:T.text}}>16 MP</strong>: it keeps three quarters of each side and each filter takes about half the time. 12 MP or full resolution can also be chosen. In the panel, the working resolution becomes a menu with more steps (full, 16, 12 and 8 MP, 2000 px). At full resolution and at 2000 px <strong style={{color:T.text}}>nothing changes</strong>: they give the same size as before.</p>
@@ -3926,6 +5136,7 @@ function RockArtEnhancer() {
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Chromatic eyedropper (v3.5.0)</strong> &mdash; After applying a filter, you tap a color in the result and <strong style={{color:T.text}}>boost it or reduce it</strong> without touching the rest of the scene. It brings down the green or the violet that cover the panel, and brings up the color in which the motif reads. Each adjustment is <strong style={{color:T.text}}>fixed</strong> and the eyedropper is freed for the next color, which is sampled on the accumulated result; the adjustments are listed and numbered, and <strong style={{color:T.text}}>any one of them can be removed on its own</strong>, because the image is recomputed in full from the filter output. It acts on chrominance only: luminance, and with it relief and texture, are left intact. <strong style={{color:T.text}}>The mask describes the color the filter produced, not the composition of the pigment.</strong></p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Intensity now works in LDS (v3.4.0)</strong> &mdash; Up to v3.3.0 the control had no effect at all in LDS: the factor was cancelled out by the normalization that followed. Intensity is now the <strong style={{color:T.text}}>whitening exponent</strong>: below 1.5 the decorrelation is partial and the rock keeps more of its real color &mdash; useful to <strong style={{color:T.text}}>check whether a motif is still there</strong> with less enhancement &mdash;; above it, the minor components are amplified too much. <strong style={{color:T.text}}>The default value (1.5) gives exactly the same result as v3.3.0</strong>, so there is nothing to reprocess.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.ac}}>Important fix (v3.3.0)</strong> &mdash; A bug in the eigendecomposition that made the eigenvalues incorrect was fixed. <strong style={{color:T.text}}>CRGB, DS-LAB and LDS results change with respect to versions 3.0 to 3.2</strong>: images processed with earlier versions must be reprocessed before they can be compared.</p>
+          <p style={{ margin:"14px 0 6px",fontFamily:mono,fontSize:10,letterSpacing:1,color:T.td }}>v3.0 &ndash; v3.2</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}>12 filters for paintings, engravings and technical analysis. Works 100% offline: local processing, no connection needed.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Batch processing (photogrammetry)</strong> &mdash; Tune the filter on a reference photo and apply it automatically to the whole photogrammetric set. The statistics (the decorrelation matrix) are frozen from the reference: identical colors across every photo, coherent texture in the 3D model. Each photo keeps its name and its EXIF/GPS.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Per-area statistics</strong> &mdash; With a selection active, the decorrelation (CRGB, DS-LAB, LDS, YBK) is computed from the data inside that area: better separation of local pigments, as in DStretch.</p>
@@ -3933,8 +5144,12 @@ function RockArtEnhancer() {
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Real CLAHE</strong> &mdash; Contrast Limited Adaptive Histogram Equalization (Zuiderveld 1994).</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Much faster</strong> &mdash; Micro-relief optimized with an integral image. Full resolution is the default working size.</p>
           <p style={{ margin:"0 0 8px",color:T.tm }}><strong style={{color:T.text}}>Export with metadata</strong> &mdash; The file name records filter and intensity; the JPG keeps the original EXIF/GPS. TIFF valid per spec 6.0.</p>
-          <p style={{ margin:"0 0 8px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Acknowledgement</strong> &mdash; Decorrelation stretch (Gillespie et al. 1986) was popularized in rock art by <strong style={{color:T.text}}>DStretch</strong> (J. Harman). OPC is an independent open-source implementation, written from scratch from the published literature, with no derived code. The names CRGB, LDS and YBK follow the color-space nomenclature spread by DStretch, to make comparison between tools easier.</p>
           </>)}
+          {lang === "es" ? (
+            <p style={{ margin:"0 0 8px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Reconocimiento</strong> &mdash; El decorrelation stretch (Gillespie et al. 1986) fue popularizado en arte rupestre por <strong style={{color:T.text}}>DStretch</strong> (J. Harman). OPC es una implementaci&oacute;n independiente de c&oacute;digo abierto, escrita desde cero a partir de la bibliograf&iacute;a publicada, sin c&oacute;digo derivado. Los nombres CRGB, LDS e YBK siguen la nomenclatura de espacios de color difundida por DStretch para facilitar la comparaci&oacute;n entre herramientas.</p>
+          ) : (
+            <p style={{ margin:"0 0 8px",color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Acknowledgement</strong> &mdash; Decorrelation stretch (Gillespie et al. 1986) was popularized in rock art by <strong style={{color:T.text}}>DStretch</strong> (J. Harman). OPC is an independent open-source implementation, written from scratch from the published literature, with no derived code. The names CRGB, LDS and YBK follow the color-space nomenclature spread by DStretch, to make comparison between tools easier.</p>
+          )}
           <p style={{ margin:0,color:T.tm,fontSize:11.5 }}><strong style={{color:T.text}}>Dr. Emilio A. Villafa&ntilde;ez</strong> &middot; <strong style={{color:T.text}}>LATDAA</strong> &middot; <strong style={{color:T.text}}>Fund. F&eacute;lix de Azara</strong> &middot; <strong style={{color:T.text}}>Universidad Nacional de Catamarca (UNCA), Argentina</strong></p>
         </div>
       )}
@@ -3948,6 +5163,10 @@ function RockArtEnhancer() {
             <p style={{ fontSize:19,fontWeight:600,margin:"0 0 6px",color:solar?"#000":"#e8e0d4" }}>{tr("Arrastr\u00E1 tu foto aqu\u00ED","Drop your photo here")}</p>
             <p style={{ fontSize:13,color:solar?"#555":"#8a7e6e",margin:0 }}>{tr("o hac\u00E9 clic para seleccionar \u00B7 JPG, PNG, WebP \u00B7 DEM GeoTIFF","or click to browse \u00B7 JPG, PNG, WebP \u00B7 DEM GeoTIFF")}</p>
             <p style={{ fontSize:10,color:solar?"#777":"#6a5e4e",margin:"14px 0 0",fontFamily:mono }}>{tr("Procesamiento 100% local, sin conexi\u00F3n \u00B7 RAW: convertir antes a JPG/PNG","100% local processing, works offline \u00B7 RAW: convert to JPG/PNG first")}</p>
+            {/* Serie multi-luz (v4.0.0): también se abre arrastrando varias fotos juntas */}
+            <button onClick={(e)=>{e.stopPropagation();serieInputRef.current?.click();}} style={{ marginTop:18,padding:"6px 14px",background:"none",border:`1px solid ${solar?"#999":"#5a504a"}`,borderRadius:16,cursor:"pointer",fontFamily:mono,fontSize:10.5,color:solar?"#444":"#b8ab98" }}>
+              {"◐ "}{tr("Serie multi-luz: varias fotos con la luz desde distintos lados","Multi-light series: several photos with the light from different sides")}
+            </button>
           </div>
         )}
         {avisoDEM && (
@@ -3956,7 +5175,18 @@ function RockArtEnhancer() {
             <button onClick={()=>setAvisoDEM(null)} title={tr("Cerrar","Close")} style={{ background:"none",border:"none",color:T.ac,cursor:"pointer",fontSize:11,padding:0 }}>✕</button>
           </div>
         )}
+        {/* Novedades (v4.0.0): en la pantalla de inicio, hasta que se ocultan */}
+        {!image && (novedadesOcultas ? (
+          <div style={{ textAlign:"center",margin:"0 auto 40px" }}>
+            <button onClick={()=>ocultarNovedades(false)} style={{ padding:"5px 12px",background:"none",border:`1px solid ${T.cBd}`,borderRadius:14,cursor:"pointer",fontFamily:mono,fontSize:10.5,color:T.tm }}>
+              {"✦ "}{tr(`Novedades de la v${OPC_VERSION}`, `What’s new in v${OPC_VERSION}`)}
+            </button>
+          </div>
+        ) : (
+          <Novedades lang={lang} T={T} mono={mono} onGuia={abrirGuia} onOcultar={()=>ocultarNovedades(true)} />
+        ))}
         <input ref={fileInputRef} type="file" accept="image/*,.tif,.tiff" style={{display:"none"}} onChange={e=>{handleFile(e.target.files?.[0]);e.target.value="";}} />
+        <input ref={serieInputRef} type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>{abrirSerie(e.target.files || []);e.target.value="";}} />
 
         {/* EDITOR */}
         {image && (
@@ -3979,18 +5209,19 @@ function RockArtEnhancer() {
                     <button onClick={cambiarInforme} aria-pressed={conInforme} title={tr("Informe en PDF para leer, imprimir o adjuntar: las dos imágenes, el procedimiento, la escala y las huellas. Baja junto con la imagen y el .json","PDF report to read, print or attach: both images, the procedure, the scale and the fingerprints. Downloaded with the image and the .json")} style={{ flex:1,padding:"4px 2px",fontSize:9,fontFamily:mono,fontWeight:conInforme?700:400,background:conInforme?T.gnBg:T.bBg,border:`1px solid ${conInforme?T.gn:T.cBd}`,borderRadius:4,cursor:"pointer",color:conInforme?T.gn:T.td }}>{conInforme ? "+PDF" : "PDF"}</button>
                   </div>
                 )}
-                {processedSrc && (conJSON || conInforme || demInfo) && (
+                {processedSrc && (conJSON || conInforme || demInfo || mlInfo) && (
                   <div role="status" style={{ fontSize:8,fontFamily:mono,color:avisoGuardado?T.gn:T.td,lineHeight:1.45,padding:"1px 2px 2px" }}>
                     {avisoGuardado
                       ? `✓ ${tr(`Bajó ${avisoGuardado.zip}: adentro, una carpeta con los ${avisoGuardado.cuantos} archivos`, `Downloaded ${avisoGuardado.zip}: inside, a folder with the ${avisoGuardado.cuantos} files`)}`
                       : (() => {
                           const p = [tr("la imagen","the image"), demInfo && demInfo.georref && tr("la georreferenciada","the georeferenced one"), demInfo && tr("el residuo en mm","the residual in mm"),
+                            mlInfo && (mlInfo.metodo === "fotometrico" ? tr("el albedo, las normales","the albedo, the normals") : tr("el promedio","the average")),
                             conJSON && tr("el .json","the .json"), conInforme && tr("el informe","the report")].filter(Boolean);
                           return <>{"📦"} {tr("Baja un .zip con una carpeta adentro:","Downloads a .zip with a folder inside:")} {p.slice(0, -1).join(", ")}{tr(" y "," and ")}{p[p.length - 1]}</>;
                         })()}
                   </div>
                 )}
-                {processedSrc && !demInfo && (
+                {processedSrc && !demInfo && !mlInfo && (
                   <button onClick={()=>{setShowBatch(true);setBatchFiles([]);setBatchProgress({done:0,total:0,current:"",errors:[]});}} style={{ padding:"7px 8px",background:T.gnBg,border:`1px solid ${T.gnBd}`,borderRadius:8,color:T.gn,fontWeight:600,fontSize:11,cursor:"pointer",fontFamily:"'Crimson Pro',serif" }}>{"▦"} {tr("Procesar lote (fotogrametr\u00EDa)","Batch processing (photogrammetry)")}</button>
                 )}
                 {/* Reproducir un registro (v3.8.0): con la foto original cargada */}
@@ -4014,7 +5245,7 @@ function RockArtEnhancer() {
                   panel pasaba inadvertida: se terminaba analizando en baja sin
                   querer. Las dos opciones se muestran juntas para que se vea que
                   hay una elección y cuál está activa. */}
-              {image && !demInfo && Math.max(image.naturalWidth,image.naturalHeight) > 2000 && (() => {
+              {image && !demInfo && !mlInfo && Math.max(image.naturalWidth,image.naturalHeight) > 2000 && (() => {
                 const grande = esFotoGrande(image.naturalWidth, image.naturalHeight);
                 return (
                 <div style={{ marginBottom:4,padding:"8px 10px",background:T.cBg,border:`1px solid ${resId==="full"?T.cBd:T.acBd}`,borderRadius:8 }}>
@@ -4046,7 +5277,7 @@ function RockArtEnhancer() {
               ))}
 
               {/* Stacking toggle: sobre un DEM no se acumula */}
-              {!demInfo && <button onClick={()=>setStackMode(!stackMode)} style={{ margin:"6px 0 2px",padding:"7px 10px",background:stackMode?"rgba(109,184,93,0.15)":T.cBg,border:`1px solid ${stackMode?"rgba(109,184,93,0.4)":T.cBd}`,borderRadius:7,cursor:"pointer",fontSize:10,fontFamily:mono,color:stackMode?T.gn:T.tm,fontWeight:stackMode?600:400,textAlign:"left" }}>
+              {!demInfo && !(mlInfo && mlInfo.metodo === "fotometrico") && <button onClick={()=>setStackMode(!stackMode)} style={{ margin:"6px 0 2px",padding:"7px 10px",background:stackMode?"rgba(109,184,93,0.15)":T.cBg,border:`1px solid ${stackMode?"rgba(109,184,93,0.4)":T.cBd}`,borderRadius:7,cursor:"pointer",fontSize:10,fontFamily:mono,color:stackMode?T.gn:T.tm,fontWeight:stackMode?600:400,textAlign:"left" }}>
                 {stackMode ? "\uD83D\uDD17 " + tr("Acumular: ON","Stacking: ON") : "\uD83D\uDD17 " + tr("Acumular: OFF","Stacking: OFF")}{stackMode && <span style={{fontSize:8,display:"block",fontWeight:400,marginTop:1}}>{tr("Aplica sobre resultado previo","Applies on top of the previous result")}</span>}
               </button>}
 
@@ -4069,6 +5300,36 @@ function RockArtEnhancer() {
                     : tr("Sin selecci\u00F3n \u2014 filtro en toda la imagen","No selection \u2014 filter applied to the whole image")}
                 </div>
               </div>
+
+              {/* Serie multi-luz (v4.0.0): cómo se calculó y qué imagen hace de base */}
+              {mlInfo && (
+                <div style={{ marginTop:6,padding:"9px 10px 10px",background:T.cBg,border:`1px solid ${T.cBd}`,borderRadius:8 }}>
+                  <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8 }}>
+                    <span style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase" }}>{tr("Serie multi-luz","Multi-light series")}</span>
+                    <span style={{ fontSize:8.5,fontFamily:mono,color:T.gn }}>{mlInfo.metodo === "fotometrico" ? tr("ESTÉREO","STEREO") : tr("PROMEDIO","AVERAGE")}</span>
+                  </div>
+                  <div style={{ display:"flex",alignItems:"baseline",gap:6 }}>
+                    <span style={{ fontFamily:"'Crimson Pro',serif",fontSize:26,fontWeight:600,color:T.text,lineHeight:1 }}>{mlInfo.fotos}</span>
+                    <span style={{ fontFamily:mono,fontSize:9.5,color:T.tm }}>{mlInfo.metodo === "fotometrico" ? tr(`fotos · ${mlInfo.conLuz} luces desde la esfera`, `photos · ${mlInfo.conLuz} lights from the sphere`) : tr("fotos promediadas","photos averaged")}</span>
+                  </div>
+                  <div style={{ fontFamily:mono,fontSize:8.5,color:T.tm,marginTop:6,lineHeight:1.55 }}>
+                    {mlInfo.metodo === "fotometrico" && <div>{tr(`${numCorto(mlInfo.lucesPorPunto)} luces por punto · ${Math.round(mlInfo.conNormal * 1000) / 10} % con normal`, `${numCorto(mlInfo.lucesPorPunto)} lights per point · ${Math.round(mlInfo.conNormal * 1000) / 10} % with a normal`)}</div>}
+                    <div>{mlInfo.ambiente ? tr(`sin luz: ${mlInfo.ambiente}`, `unlit: ${mlInfo.ambiente}`) : tr("sin foto de ambiente","no ambient photo")}</div>
+                    <div>{mlInfo.w} × {mlInfo.h} px{(mlInfo.w !== mlInfo.w0 || mlInfo.h !== mlInfo.h0) ? tr(` · reducidas de ${mlInfo.w0} × ${mlInfo.h0}`, ` · reduced from ${mlInfo.w0} × ${mlInfo.h0}`) : ""}</div>
+                  </div>
+                  {mlInfo.metodo === "fotometrico" && (<>
+                    <div style={{ fontSize:8.5,fontFamily:mono,color:T.td,letterSpacing:"1.5px",textTransform:"uppercase",margin:"9px 0 4px" }}>{tr("Imagen de base","Base image")}</div>
+                    <select value={mlInfo.base} onChange={e=>cambiarBase(e.target.value)} disabled={processing} style={{ width:"100%",padding:"5px 6px",fontSize:9.5,fontFamily:mono,background:T.bBg,color:T.text,border:`1px solid ${T.cBd}`,borderRadius:5,cursor:"pointer" }}>
+                      <option value="albedo">{tr("Albedo: el color, sin sombras","Albedo: the colour, without shadows")}</option>
+                      <option value="promedio">{tr("Promedio de las luces","Average of the lights")}</option>
+                      <option value="sombreado">{tr("Sombreado: la forma, sin color","Shading: the shape, without colour")}</option>
+                      <option value="normales">{tr("Normales (mapa de colores)","Normals (colour map)")}</option>
+                    </select>
+                    <div style={{ fontSize:8,fontFamily:mono,color:T.td,marginTop:4,lineHeight:1.4 }}>{tr("Los filtros de color trabajan sobre la base; el Relieve, sobre las alturas de las normales.","The colour filters work on the base; the Relief, on the heights from the normals.")}</div>
+                  </>)}
+                  <button onClick={volverASerie} disabled={processing} style={{ marginTop:8,background:"none",border:"none",padding:0,fontFamily:mono,fontSize:9,color:T.tm,cursor:"pointer",textDecoration:"underline",textUnderlineOffset:2 }}>{"◐ "}{tr("Volver a la serie","Back to the series")}</button>
+                </div>
+              )}
 
               {/* Modelo de elevación (v3.9.0): lo que se leyó del DEM. Reemplaza a
                   la escala métrica: el tamaño de la celda ya da los mm. */}
@@ -4238,6 +5499,9 @@ function RockArtEnhancer() {
                              `Erases what measures less than ~${Math.max(2, Math.round(Math.max(imageSize.w, imageSize.h) * reliefScale / 100))} px${mmRelieve} (${reliefScale}% of the long side) and subtracts the background: grain and uneven lighting drop out. If the motif blurs, lower the scale.`)
                         : tr("Mapa de bordes de v3.6: todo detalle por igual, para calcar. Para grabados, probá una escala.","v3.6 edge map: every detail alike, for tracing. For engravings, try a scale.")}
                     </div>
+                    {mlInfo && mlInfo.metodo === "fotometrico" && (
+                      <div style={{ fontSize:8,fontFamily:mono,color:T.gn,marginTop:3,lineHeight:1.4 }}>{tr("Sobre las alturas de la serie, sacadas de las normales: lo hundido sale oscuro venga de donde venga la luz, y la pintura no se confunde con el relieve.","On the series’ heights, taken from the normals: what is sunken comes out dark wherever the light came from, and paint is not mistaken for relief.")}</div>
+                    )}
                     </>)}
                     {/* Más opciones del Relieve con escala (v3.8.0), en un desplegable.
                         Apagadas, el Relieve da byte a byte lo mismo que en v3.7. */}
@@ -4557,7 +5821,7 @@ function RockArtEnhancer() {
 
       {/* FOOTER */}
       <footer style={{ padding:"14px 20px",borderTop:`1px solid ${T.fBd}`,textAlign:"center",fontSize:10,color:T.fTx,fontFamily:mono,position:"relative",zIndex:5,lineHeight:1.8 }}>
-        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v3.9.0 &middot; {tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline","12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")}</div>
+        <div><span style={{color:T.gn,fontWeight:500}}>OPC</span> &ndash; OpuntiaColor v4.0.0 &middot; {tr("12 filtros \u00B7 Gotero crom\u00E1tico \u00B7 Zoom y encuadre \u00B7 Lote fotogram\u00E9trico \u00B7 Estad\u00EDsticas por zona \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline","12 filters \u00B7 Chromatic eyedropper \u00B7 Zoom and pan \u00B7 Photogrammetric batch \u00B7 Per-area statistics \u00B7 Stacking \u00B7 GPS/EXIF \u00B7 100% offline")}</div>
         <div><span style={{color:T.tm}}>Dr. Emilio A. Villafa&ntilde;ez</span> &middot; <span style={{color:T.tm}}>LATDAA</span> &middot; <span style={{color:T.tm}}>Fund. F&eacute;lix de Azara</span> &middot; <span style={{color:T.tm}}>Universidad Nacional de Catamarca (UNCA), Argentina</span></div>
       </footer>
 
@@ -4570,6 +5834,8 @@ function RockArtEnhancer() {
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:${T.sT};border-radius:2px}
       `}</style>
+      {/* Serie multi-luz (v4.0.0): la ventana para armarla */}
+      {armado && <ArmadoSerie a={armado} onCambiar={cambiarArmado} onCalcular={calcularSerie} onCancelar={cancelarArmado} tr={tr} T={T} mono={mono} />}
       {/* Cartel de foto grande (v3.7.3): se elige la resolución antes de procesar */}
       {preguntaRes && image && (() => {
         const completa = tamanoTrabajo(image.naturalWidth, image.naturalHeight, "full");
@@ -4616,12 +5882,21 @@ if (typeof document !== "undefined") {
   self.onmessage = async (e) => {
     const t = e.data;
     try {
+      // Una serie multi-luz (v4.0.0): el cálculo completo, de una vez
+      if (t.tipo === "multiluz") {
+        const r = calcularMultiluz(t);
+        const tr = ["promedio", "albedo", "normales", "sombreado", "z"].filter(k => r[k]).map(k => r[k].buffer);
+        self.postMessage({ id: t.id, multiluz: r }, tr);
+        return;
+      }
       const p = PRESETS.find(x => x.id === t.presetId);
       const store = t.frozen ? { frozen: t.frozen } : {};
       // Con selección se guarda la foto: fuera de la zona queda tal cual
       const origen = t.mask ? new Uint8ClampedArray(t.data) : null;
       // Sobre un DEM (v3.9.0) llegan también las alturas: el Relieve va sobre ellas
+      // En una serie multi-luz con esfera (v4.0.0), las alturas de las normales
       const r = t.dem ? relieveDEM(t.dem, t.w, t.h, t.intensity, t.mask, store, t.opts)
+        : t.alturas && t.presetId === "relief" ? reliefMap(new ImageData(t.data, t.w, t.h), t.intensity, t.mask, store, t.opts, t.alturas)
         : p.fn(new ImageData(t.data, t.w, t.h), t.intensity, t.mask, store, t.opts);
       const data = aplicarMascara(origen, r.data, t.mask, t.w * t.h);
       // El PNG para mostrar también se arma acá: con 29 MP, codificarlo en la

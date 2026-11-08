@@ -2262,6 +2262,246 @@ async function testAsync(name, fn) {
     assert(dv.getUint16(10, true) === ((21 << 11) | (30 << 5) | 5) && dv.getUint16(12, true) === (((2026 - 1980) << 9) | (11 << 5) | 7), "fecha y hora en formato DOS");
   });
 
+  // ============================================================
+  // Modo multi-luz (v4.0.0)
+  //
+  // Una serie inventada de 160 × 112 píxeles: un panel apenas inclinado, con
+  // un bulto suave, un surco en anillo de 2,5 px de hondo y un rectángulo de
+  // pintura roja que no tiene relieve. Ocho luces a 30° de altura (o variable),
+  // cada una con su potencia; una esfera espejada en un rincón y una foto sin
+  // luz. Se dibuja en luz lineal (Lambert) y se pasa a sRGB de 8 bits, como un
+  // JPG o un PNG de cámara.
+  // ============================================================
+
+  console.log("\n\x1b[1mModo multi-luz (v4.0.0)\x1b[0m");
+  const mlCtx = cargarApp({ postMessage() {}, TextEncoder, TextDecoder, setTimeout, clearTimeout });
+  const ML = (nombre) => vm.runInContext(nombre, mlCtx);
+  const serieML = (o) => {
+    const w = o.w || 160, h = o.h || 112, n = w * h;
+    const z = new Float64Array(n), alb = [0, 1, 2].map(() => new Float64Array(n));
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x, d = Math.hypot(x - 0.42 * w, y - 0.55 * h);
+      z[i] = 0.02 * x + 0.01 * y + 5 * Math.exp(-((x - 0.25 * w) ** 2 + (y - 0.3 * h) ** 2) / (2 * 15 * 15)) - 2.5 * Math.exp(-((d - 22) ** 2) / (2 * 2.2 * 2.2));
+      const pint = x > 0.62 * w && x < 0.8 * w && y > 0.6 * h && y < 0.85 * h;
+      alb[0][i] = pint ? 0.55 : 0.36; alb[1][i] = pint ? 0.16 : 0.30; alb[2][i] = pint ? 0.10 : 0.24;
+    }
+    const N = [0, 1, 2].map(() => new Float64Array(n));
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      const zx = (z[y * w + Math.min(w - 1, x + 1)] - z[y * w + Math.max(0, x - 1)]) / ((x > 0 && x < w - 1) ? 2 : 1);
+      const zr = (z[Math.min(h - 1, y + 1) * w + x] - z[Math.max(0, y - 1) * w + x]) / ((y > 0 && y < h - 1) ? 2 : 1);
+      const m = Math.hypot(zx, zr, 1);
+      N[0][i] = -zx / m; N[1][i] = zr / m; N[2][i] = 1 / m;
+    }
+    let s = 11;
+    const rnd = () => (s = (s * 1103515245 + 12345) % 2147483648) / 2147483648;
+    const luces = [], pot = [];
+    for (let k = 0; k < 8; k++) {
+      const az = (k * 45 + 10) * Math.PI / 180, e = (30 + (o.elevVar ? (rnd() - 0.5) * o.elevVar : 0)) * Math.PI / 180;
+      luces.push([Math.sin(az) * Math.cos(e), Math.cos(az) * Math.cos(e), Math.sin(e)]);
+      pot.push(o.potVar ? 0.7 + 0.7 * rnd() : 1);
+    }
+    const esf = { cx: w - 18, cy: 18, r: 15 }, amb = 0.02;
+    const aS = (v) => { v = Math.max(0, Math.min(1, v)); return Math.round(255 * (v > 0.0031308 ? 1.055 * Math.pow(v, 1 / 2.4) - 0.055 : 12.92 * v)); };
+    const dibujar = (L, p, brillo) => {
+      const out = new Uint8ClampedArray(n * 4);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = y * w + x, q = 4 * i, dx = (x + 0.5 - esf.cx) / esf.r, dy = -(y + 0.5 - esf.cy) / esf.r;
+        out[q + 3] = 255;
+        if (dx * dx + dy * dy < 1) {
+          const sz = Math.sqrt(1 - dx * dx - dy * dy), R = [2 * sz * dx, 2 * sz * dy, 2 * sz * sz - 1];
+          const v = L && R[0] * L[0] + R[1] * L[1] + R[2] * L[2] > Math.cos(7 * Math.PI / 180) ? 1 : 0.03 + amb;
+          out[q] = out[q + 1] = out[q + 2] = aS(v);
+          continue;
+        }
+        const nl = L ? Math.max(0, N[0][i] * L[0] + N[1][i] * L[1] + N[2][i] * L[2]) : 0;
+        const extra = brillo && brillo(x, y) ? 3 : 1;
+        for (let c = 0; c < 3; c++) out[q + c] = aS(p * alb[c][i] * nl * 1.5 * extra + amb);
+      }
+      return out;
+    };
+    return { w, h, z, N, alb, luces, pot, esf, fotos: luces.map((L, k) => dibujar(L, pot[k], o.brillo && k === 2 ? o.brillo : null)), amb: dibujar(null, 0) };
+  };
+  // Error angular medio de las normales, afuera de la esfera y del borde
+  const errorNormales = (S, r) => {
+    let suma = 0, cnt = 0;
+    for (let y = 2; y < S.h - 2; y++) for (let x = 2; x < S.w - 2; x++) {
+      if (Math.hypot(x + 0.5 - S.esf.cx, y + 0.5 - S.esf.cy) < S.esf.r + 3) continue;
+      const i = y * S.w + x, c = S.N[0][i] * r.nx[i] + S.N[1][i] * r.ny[i] + S.N[2][i] * r.nz[i];
+      suma += Math.acos(Math.max(-1, Math.min(1, c))) * 180 / Math.PI; cnt++;
+    }
+    return suma / cnt;
+  };
+  const angulo = (a, b) => Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))) * 180 / Math.PI;
+
+  await testAsync("la luz sale del brillo en la esfera: la normal de la esfera es la bisectriz entre la cámara y la luz", () => {
+    const e = { cx: 50, cy: 50, r: 20 };
+    const L0 = ML("luzDesdeBrillo")(50, 50, e);
+    assert(angulo(L0, [0, 0, 1]) < 1e-9, "brillo en el centro: luz de frente");
+    // Luz rasante desde la derecha (0° de altura): el brillo a sen 45° del radio
+    const L1 = ML("luzDesdeBrillo")(50 + 20 * Math.SQRT1_2, 50, e);
+    assert(angulo(L1, [1, 0, 0]) < 1e-6, "luz horizontal desde la derecha: " + L1);
+    // 30° de altura, desde arriba a la izquierda (rumbo 315°)
+    const elev = 30 * Math.PI / 180, rumbo = 315 * Math.PI / 180;
+    const L = [Math.sin(rumbo) * Math.cos(elev), Math.cos(rumbo) * Math.cos(elev), Math.sin(elev)];
+    const H = [L[0], L[1], L[2] + 1], m = Math.hypot(...H);   // la normal, entre la luz y la cámara
+    const L2 = ML("luzDesdeBrillo")(50 + 20 * H[0] / m, 50 - 20 * H[1] / m, e);
+    assert(angulo(L2, L) < 1e-6, "luz a 30°, desde 315°");
+    const g = ML("angulosLuz")(L2);
+    assertClose(g.elev, 30, 1e-6, "altura"); assertClose(g.rumbo, 315, 1e-6, "rumbo");
+    const g1 = ML("angulosLuz")([0, 1, 0]);
+    assert(Math.abs(g1.elev) < 1e-9 && Math.abs(g1.rumbo) < 1e-9, "desde arriba: rumbo 0°");
+  });
+
+  const SML = serieML({});
+  await testAsync("el brillo de cada luz se encuentra en la esfera, con la foto sin luz restada", () => {
+    for (let k = 0; k < 8; k++) {
+      const b = ML("brilloEsfera")(SML.fotos[k], SML.w, SML.h, SML.esf, SML.amb);
+      assert(b.ok, "foto " + (k + 1) + ": no encontró el brillo");
+      const L = ML("luzDesdeBrillo")(b.x, b.y, SML.esf);
+      assert(angulo(L, SML.luces[k]) < 3, "foto " + (k + 1) + ": la luz sale con " + angulo(L, SML.luces[k]).toFixed(2) + "° de error");
+    }
+    const sinBrillo = ML("brilloEsfera")(SML.amb, SML.w, SML.h, SML.esf, null);
+    assert(!sinBrillo.ok, "en la foto sin luz no hay brillo");
+  });
+
+  await testAsync("el estéreo fotométrico recupera las normales y separa la pintura del relieve", () => {
+    const r = ML("estereoFotometrico")(SML.fotos, SML.amb, SML.luces, SML.w, SML.h, { igualar: false });
+    const e = errorNormales(SML, r);
+    assert(e < 1, "error medio de las normales: " + e.toFixed(2) + "°");
+    // El albedo no tiene la sombra del surco: dentro y fuera del anillo, igual
+    const px = (x, y) => r.albedo[4 * (y * SML.w + x)];
+    const enSurco = px(Math.round(0.42 * SML.w + 22), Math.round(0.55 * SML.h)), fuera = px(Math.round(0.42 * SML.w + 30), Math.round(0.55 * SML.h));
+    assert(Math.abs(enSurco - fuera) <= 3, `el surco no se ve en el albedo (${enSurco} contra ${fuera})`);
+    // La pintura sí: más roja que la roca
+    const q = 4 * (Math.round(0.72 * SML.h) * SML.w + Math.round(0.7 * SML.w)), qr = 4 * (Math.round(0.72 * SML.h) * SML.w + Math.round(0.5 * SML.w));
+    assert(r.albedo[q] - r.albedo[q + 2] > r.albedo[qr] - r.albedo[qr + 2] + 30, "la pintura queda en el albedo");
+    assert(r.lucesPorPunto > 5.5 && r.lucesPorPunto <= 6, "con 8 luces se descartan dos por punto: " + r.lucesPorPunto);
+  });
+
+  await testAsync("igualar las potencias corrige una linterna a distinta distancia en cada toma", () => {
+    const S = serieML({ potVar: true, elevVar: 20 });
+    const sin = errorNormales(S, ML("estereoFotometrico")(S.fotos, S.amb, S.luces, S.w, S.h, { igualar: false }));
+    const r = ML("estereoFotometrico")(S.fotos, S.amb, S.luces, S.w, S.h, {});
+    const con = errorNormales(S, r);
+    // Al igualar se supone que el panel mira a la cámara: queda su inclinación (~1,3°)
+    assert(sin > 3 && con < 2 && con < sin / 2, `error medio de las normales: ${sin.toFixed(2)}° sin igualar, ${con.toFixed(2)}° igualando`);
+    const media = S.pot.reduce((a, b) => a + b, 0) / 8;
+    S.pot.forEach((p, k) => assert(Math.abs(r.potencias[k] - p / media) < 0.08, `potencia de la luz ${k + 1}: ${r.potencias[k].toFixed(3)} contra ${(p / media).toFixed(3)}`));
+  });
+
+  await testAsync("descartar la toma más clara y la más oscura saca un brillo de una sola foto", () => {
+    const zona = (x, y) => x > 20 && x < 50 && y > 60 && y < 90;
+    const S = serieML({ brillo: zona });
+    const err = (r) => { let s = 0, c = 0; for (let y = 62; y < 88; y++) for (let x = 22; x < 48; x++) { const i = y * S.w + x; s += Math.acos(Math.min(1, S.N[0][i] * r.nx[i] + S.N[1][i] * r.ny[i] + S.N[2][i] * r.nz[i])) * 180 / Math.PI; c++; } return s / c; };
+    const con = err(ML("estereoFotometrico")(S.fotos, S.amb, S.luces, S.w, S.h, { igualar: false }));
+    const sin = err(ML("estereoFotometrico")(S.fotos, S.amb, S.luces, S.w, S.h, { igualar: false, descartar: false }));
+    assert(con < 1 && sin > 3 * con, `en la zona del brillo: ${con.toFixed(2)}° descartando, ${sin.toFixed(2)}° sin descartar`);
+  });
+
+  await testAsync("integrar las pendientes devuelve la superficie, en píxeles", () => {
+    const { w, h, z } = SML, n = w * h, gx = new Float32Array(n), gy = new Float32Array(n);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      gx[i] = x > 0 && x < w - 1 ? (z[i + 1] - z[i - 1]) / 2 : 0;
+      gy[i] = y > 0 && y < h - 1 ? (z[i + w] - z[i - w]) / 2 : 0;
+    }
+    const zr = ML("integrarGradientes")(gx, gy, w, h);
+    let mz = 0, mr = 0;
+    for (let i = 0; i < n; i++) { mz += z[i]; mr += zr[i]; }
+    mz /= n; mr /= n;
+    assert(Math.abs(mr) < 1e-3, "promedio 0");
+    let se = 0, sz = 0;
+    for (let i = 0; i < n; i++) { se += (zr[i] - (z[i] - mz)) ** 2; sz += (z[i] - mz) ** 2; }
+    assert(Math.sqrt(se / sz) < 0.02, "error relativo " + Math.sqrt(se / sz).toFixed(4));
+  });
+
+  await testAsync("la serie completa: alturas sin la esfera y un Relieve con el surco oscuro y sin la pintura", () => {
+    const luces = SML.fotos.map(f => { const b = ML("brilloEsfera")(f, SML.w, SML.h, SML.esf, SML.amb); return b.ok ? ML("luzDesdeBrillo")(b.x, b.y, SML.esf) : null; });
+    const m = ML("calcularMultiluz")({ fotos: SML.fotos, ambiente: SML.amb, luces, esfera: SML.esf, w: SML.w, h: SML.h, opts: {} });
+    assert(m.metodo === "fotometrico" && m.z && m.albedo && m.normales && m.sombreado && m.promedio, "faltan resultados");
+    assert(m.potencias.length === 8 && m.conNormal > 0.9 && m.conNormal < 0.99, "la esfera queda afuera: " + m.conNormal.toFixed(3));
+    // Alturas: correlación con las verdaderas, sin el plano (la inclinación se pierde al igualar)
+    const plano = (v) => { const a = Float32Array.from(v); ML("quitarTendencia")(a, SML.w, SML.h); return a; };
+    const a = plano(SML.z), b = plano(m.z);
+    let c = 0, sa = 0, sb = 0;
+    for (let y = 0; y < SML.h; y++) for (let x = 0; x < SML.w; x++) {
+      if (Math.hypot(x + 0.5 - SML.esf.cx, y + 0.5 - SML.esf.cy) < SML.esf.r + 8) continue;
+      const i = y * SML.w + x; c += a[i] * b[i]; sa += a[i] * a[i]; sb += b[i] * b[i];
+    }
+    assert(c / Math.sqrt(sa * sb) > 0.99, "correlación de las alturas " + (c / Math.sqrt(sa * sb)).toFixed(4));
+    const rel = ML("reliefMap")(new ImageData(new Uint8ClampedArray(m.albedo), SML.w, SML.h), 1.5, null, {}, { escala: 1 }, m.z).data;
+    const v = (x, y) => rel[4 * (Math.round(y) * SML.w + Math.round(x))];
+    const cx = 0.42 * SML.w, cy = 0.55 * SML.h;
+    let surco = 0, fuera = 0;
+    for (let k = 0; k < 16; k++) { const t = k * Math.PI / 8; surco += v(cx + 22 * Math.cos(t), cy + 22 * Math.sin(t)); fuera += v(cx + 30 * Math.cos(t), cy + 30 * Math.sin(t)); }
+    assert(surco / 16 < fuera / 16 - 40, `el surco sale oscuro (${(surco / 16).toFixed(0)} contra ${(fuera / 16).toFixed(0)})`);
+    const p = v(0.7 * SML.w, 0.72 * SML.h), roca = v(0.7 * SML.w, 0.5 * SML.h);
+    assert(Math.abs(p - roca) < 25, `la pintura no aparece como relieve (${p} contra ${roca})`);
+    // Con menos de tres luces conocidas, el promedio
+    const pr = ML("calcularMultiluz")({ fotos: SML.fotos, ambiente: SML.amb, luces: [luces[0], null, luces[2], null, null, null, null, null], esfera: SML.esf, w: SML.w, h: SML.h, opts: {} });
+    assert(pr.metodo === "promedio" && pr.promedio && !pr.z, "con dos luces, promedio");
+  });
+
+  await testAsync("el promedio de las luces no depende de la potencia de cada una", () => {
+    const LIN = (v) => { const c = v / 255; return c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92; };
+    const aS = (v) => { v = Math.max(0, Math.min(1, v)); return Math.round(255 * (v > 0.0031308 ? 1.055 * Math.pow(v, 1 / 2.4) - 0.055 : 12.92 * v)); };
+    const a = ML("promedioLuces")(SML.fotos, SML.amb, SML.w, SML.h);
+    // La tercera foto, con la mitad de luz (en lineal, sin tocar el ambiente)
+    const amb = LIN(SML.amb[4 * (60 * SML.w + 10)]);
+    const otra = SML.fotos.map((f, k) => k !== 2 ? f : f.map((v, i) => (i & 3) === 3 ? v : aS(amb + (LIN(v) - amb) * 0.5)));
+    const b = ML("promedioLuces")(otra, SML.amb, SML.w, SML.h);
+    let d = 0, cnt = 0;
+    for (let i = 0; i < a.length; i += 4) { d += Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]); cnt += 2; }
+    assert(d / cnt < 1.5, "diferencia media " + (d / cnt).toFixed(2) + " niveles");
+    // Sale expuesto a un gris medio: la mediana cerca de 118 (0,18 en lineal)
+    const vals = []; for (let i = 0; i < a.length; i += 4) vals.push(Math.round(0.2126 * a[i] + 0.7152 * a[i + 1] + 0.0722 * a[i + 2]));
+    vals.sort((x, y) => x - y);
+    assert(Math.abs(vals[vals.length >> 1] - 118) < 8, "mediana " + vals[vals.length >> 1]);
+  });
+
+  await testAsync("el registro de la serie guarda cada foto, su luz, su potencia y la esfera en fracciones", () => {
+    const r = ML("multiluzARegistro")({ metodo: "fotometrico", base: "albedo", w: 200, h: 100, opts: { descartar: true },
+      fotos: [{ archivo: "a.jpg", bytes: 10, sha256: "aa", luz: [0.5, 0.5, Math.SQRT1_2] }, { archivo: "b.jpg", bytes: 11, sha256: "bb", luz: null }],
+      potencias: [1.234567, null], ambiente: { archivo: "c.jpg", bytes: 9, sha256: "cc" }, esfera: { cx: 150, cy: 25, r: 20 }, lucesPorPunto: 5.987, conNormal: 0.98765 });
+    assert(r.metodo === "fotometrico" && r.base === "albedo" && r.fotos.length === 2, "campos");
+    assert(r.fotos[0].altura_luz_grados === 45 && r.fotos[0].rumbo_luz_grados === 45 && r.fotos[0].potencia === 1.2346, "la luz de la primera: " + JSON.stringify(r.fotos[0]));
+    assert(r.fotos[1].luz === null && r.fotos[1].potencia === null && r.fotos[1].rumbo_luz_grados === null, "la segunda, sin luz");
+    assert(r.esfera.cx === 0.75 && r.esfera.cy === 0.25 && r.esfera.r === 0.1, "esfera en fracción: " + JSON.stringify(r.esfera));
+    assert(r.opciones.descartar === true && r.opciones.igualar === true && r.luces_por_punto === 6 && r.con_normal === 0.9877, "opciones y cifras");
+    assert(r.ambiente.sha256 === "cc", "la foto sin luz");
+  });
+
+  await testAsync("el nombre de una serie sale de lo que tienen en común sus fotos", () => {
+    const ns = ML("nombreSerie");
+    assert(ns(["panel3_luz1.jpg", "panel3_luz2.jpg", "panel3_luz10.jpg"], 3) === "panel3_luz_multiluz3", ns(["panel3_luz1.jpg", "panel3_luz2.jpg", "panel3_luz10.jpg"], 3));
+    assert(ns(["DSC_0101.JPG", "DSC_0102.JPG"], 2) === "DSC_multiluz2", ns(["DSC_0101.JPG", "DSC_0102.JPG"], 2));
+    assert(ns(["alero.norte.a.png", "alero.norte.b.png"], 2) === "alero_norte_multiluz2", ns(["alero.norte.a.png", "alero.norte.b.png"], 2));
+    assert(ns(["x1.jpg", "y2.jpg"], 2) === "x1_multiluz2", "sin nada en común, el de la primera");
+  });
+
+  await testAsync("el worker calcula la serie y el Relieve sobre las alturas igual que la página", async () => {
+    const luces = SML.luces.slice();
+    const directo = ML("calcularMultiluz")({ fotos: SML.fotos, ambiente: SML.amb, luces, esfera: SML.esf, w: SML.w, h: SML.h, opts: {} });
+    const w = cargarWorker();
+    await w.self.onmessage({ data: { id: 3, tipo: "multiluz", fotos: SML.fotos.map(f => new Uint8ClampedArray(f)), ambiente: new Uint8ClampedArray(SML.amb), luces, esfera: SML.esf, w: SML.w, h: SML.h, opts: {} } });
+    const r = w.salida.pop();
+    assert(r && r.id === 3 && r.multiluz && !r.error, "el worker no respondió bien (" + (r && r.error) + ")");
+    for (const k of ["albedo", "normales", "sombreado", "promedio"]) assert(fnv1a(r.multiluz[k]) === fnv1a(directo[k]), k + " distinto");
+    assert(fnv1a(new Uint8Array(r.multiluz.z.buffer)) === fnv1a(new Uint8Array(directo.z.buffer)), "alturas distintas");
+    const opts = { escala: 0.5, doble: 0.5, sobre: "normales" };
+    const esperado = ML("reliefMap")(new ImageData(new Uint8ClampedArray(directo.albedo), SML.w, SML.h), 2, null, {}, opts, directo.z);
+    await w.self.onmessage({ data: { id: 4, presetId: "relief", data: new Uint8ClampedArray(directo.albedo), w: SML.w, h: SML.h, intensity: 2, mask: null, frozen: null, opts, alturas: directo.z } });
+    const r2 = w.salida.pop();
+    assert(r2 && r2.id === 4 && !r2.error, "el worker no hizo el Relieve (" + (r2 && r2.error) + ")");
+    assert(fnv1a(r2.data) === fnv1a(esperado.data), "el Relieve sobre las alturas dio otra cosa en el worker");
+    // Sin alturas, el mismo pedido es el Relieve de siempre, sobre el brillo
+    await w.self.onmessage({ data: { id: 5, presetId: "relief", data: new Uint8ClampedArray(directo.albedo), w: SML.w, h: SML.h, intensity: 2, mask: null, frozen: null, opts: { escala: 0.5 } } });
+    const r3 = w.salida.pop();
+    const foto = ML("reliefMap")(new ImageData(new Uint8ClampedArray(directo.albedo), SML.w, SML.h), 2, null, {}, { escala: 0.5 });
+    assert(fnv1a(r3.data) === fnv1a(foto.data) && fnv1a(r3.data) !== fnv1a(r2.data), "sin alturas, sobre el brillo");
+  });
+
   console.log(
     "\n" + (failed === 0 ? "\x1b[32m" : "\x1b[31m") +
     passed + " prueba(s) OK, " + failed + " fallida(s)\x1b[0m\n"

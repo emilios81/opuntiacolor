@@ -26,6 +26,7 @@ todavía no se corrigieron.
 7. [La resolución de trabajo cambia el resultado](#7-la-resolución-de-trabajo-cambia-el-resultado)
 8. [Sin calibración fotométrica](#8-sin-calibración-fotométrica)
 14. [El modo elevación: falta probarlo con un DEM real](#14-el-modo-elevación-falta-probarlo-con-un-dem-real)
+15. [El modo multi-luz: falta probarlo con una serie real](#15-el-modo-multi-luz-falta-probarlo-con-una-serie-real)
 
 **De reproducibilidad**
 9. [Lo que queda registrado y lo que no](#9-lo-que-queda-registrado-y-lo-que-no)
@@ -415,6 +416,41 @@ Además, con cualquier DEM:
   las celdas son más grandes y se pierde detalle fino.
 - **Reproducir un registro de un DEM** todavía no está disponible: el registro
   anota todo, pero OPC no lo rehace.
+
+## 15. El modo multi-luz: falta probarlo con una serie real
+
+El modo multi-luz (v4.0.0) se hizo y se probó con series inventadas, dibujadas
+con el mismo modelo de luz que supone el cálculo. Con una serie real hay que
+ver cómo responde a lo que ese modelo deja afuera:
+
+- **La roca no es mate.** El estéreo supone que cada punto devuelve la luz
+  igual hacia todos lados (Lambert). Una roca húmeda, con barniz o con cristales
+  brilla, y el brillo inclina la normal. Descartar la toma más clara ayuda solo
+  si el brillo aparece en una foto.
+- **La luz no está lejos.** Se supone que la luz llega con la misma dirección a
+  todo el panel. Una linterna a un metro de un panel de un metro ilumina cada
+  punto desde un ángulo distinto: eso agrega una inclinación de conjunto, que el
+  Relieve saca, y algo de curvatura, que en parte queda.
+- **La esfera vista de cerca.** La dirección de la luz supone la cámara lejos
+  de la esfera. Con la esfera en un rincón y un gran angular hay unos grados de
+  error, y una esfera chica (menos de 100 px de diámetro) suma otros tantos
+  por la ubicación del brillo.
+- **Igualar las potencias supone que el panel mira a la cámara.** Si se fotografió
+  de costado, la inclinación de conjunto se pierde (el Relieve la saca igual) y
+  el albedo puede quedar con un gradiente.
+- **Las alturas no son una medida.** Salen en píxeles, de integrar normales, y
+  acumulan error de gran escala: sirven para ver relieve local, no para medir
+  profundidades. Para eso, la fotogrametría y el modo elevación.
+- **La cámara no se puede mover.** Un corrimiento de un píxel entre tomas
+  mezcla puntos distintos y deja bordes dobles. OPC no alinea las fotos.
+- **Sombras proyectadas.** Un punto en la sombra de un saliente con una luz
+  queda con esa luz afuera si es lo bastante oscura; si no, inclina la normal.
+- **Memoria.** Con 16 fotos a 8 MP la serie ocupa más de 500 MB; en una
+  computadora con poca memoria el navegador puede cerrarse. Las fotos más
+  grandes se reducen a 8 MP.
+- **Reproducir el registro de una serie** todavía no está disponible: el
+  registro anota cada foto con su huella, su luz y su potencia, pero OPC no lo
+  rehace.
 
 ---
 

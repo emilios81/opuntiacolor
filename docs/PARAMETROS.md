@@ -15,6 +15,7 @@ Rangos, valores por defecto y efecto real de cada control.
 | Resolución del lote | 2000 / 4000 / 8192 px | — | **8192 px** |
 | Escala métrica | dos puntos sobre la escala de la foto y los mm entre ellos | — | **sin escala** |
 | Escala del Relieve sobre un DEM | cinco valores según la celda (con 0,5 mm: 1 a 20 mm; con 8 cm: 20 cm a 5 m) | — | **la segunda** |
+| Serie multi-luz | de 2 a 16 fotos del mismo tamaño, hasta 8 MP | — | foto sin luz: la más oscura si lo es por mucho; descartar e igualar: **sí** |
 
 ---
 
@@ -620,3 +621,93 @@ original, `reducido`, `con_dato` (fracción de celdas con dato) y
 por fila, antes de quitar la inclinación). Las opciones del Relieve van con
 `escala_mm` en vez de `escala`. Reproducir un registro de un DEM todavía no
 está disponible.
+
+## Modo multi-luz
+
+**Desde v4.0.0.** Varias fotos del mismo panel, con la cámara quieta en el
+trípode y la luz desde distintos lados. Se abren arrastrándolas juntas o con el
+botón «Serie multi-luz» de la pantalla de inicio, y se arma la serie en una
+ventana aparte.
+
+### Cómo sacar la serie
+
+- **Cámara** en trípode y en manual: ISO, diafragma, velocidad, foco y balance
+  de blancos fijos. Se dispara con temporizador o control remoto, para no
+  moverla.
+- **De 6 a 8 fotos**, moviendo una linterna potente o un flash de mano
+  alrededor del panel, más o menos cada 45°. Mejor a la misma distancia y con
+  la luz baja, rasante (entre 15° y 45° sobre el panel).
+- **Una esfera brillante** (una bolita de rulemán, un adorno navideño) en un
+  rincón del encuadre, que salga en todas las fotos y no se mueva. Cuanto más
+  grande se vea, mejor: con 100 px de diámetro o más, la dirección de cada luz
+  sale con un par de grados de error.
+- **Una foto sin la linterna**, solo con la luz del lugar.
+- A la sombra o al atardecer, para que mande la linterna.
+
+### La ventana de la serie
+
+| Control | Valores | Por defecto |
+|---|---|---|
+| Esfera | un círculo: un toque en la esfera, o un arrastre del centro al borde; se ajusta de cerca | sin esfera |
+| Foto sin luz | ninguna o una de la serie | la más oscura, si su brillo es menos del 35 % de la mediana (con 4 fotos o más) |
+| Descartar la toma más clara y la más oscura | sí / no (vale desde 5 luces) | **sí** |
+| Igualar la potencia de las luces | sí / no | **sí** |
+
+La lista de fotos muestra, para cada una, la altura y el rumbo de su luz (0°
+arriba, 90° a la derecha) o «no se ve el brillo»; el gráfico, de dónde vino
+cada luz vista desde la cámara: el borde es la luz rasante y el centro, la luz
+de frente. Las fotos sin brillo quedan afuera del estéreo.
+
+Con tres luces o más se calcula el **estéreo fotométrico**; si no, el
+**promedio de las luces**.
+
+### Constantes
+
+| Constante | Valor | Qué es |
+|---|---|---|
+| `ML_MAX_MP` | 8 | Tope del tamaño de trabajo, en megapíxeles |
+| `ML_MIN_LUCES` | 3 | Luces mínimas por punto (y en la serie) |
+| `ML_DESCARTE_DESDE` | 5 | Desde cuántas luces se descartan la más clara y la más oscura |
+| `ML_SATURADO` | 250 | Un canal desde este valor se toma como recortado |
+| `ML_SOMBRA` | 0,003 | Luminancia lineal por debajo de la cual el punto está en sombra |
+| `ML_BRILLO_MIN` | 25 | Niveles que el brillo tiene que superar a la mediana de la esfera |
+| `ML_PENDIENTE_MAX` | 5 | Tope de la pendiente al integrar (≈ 79°) |
+| `ML_CICLOS` | 5 | Ciclos de multigrid al integrar |
+
+### En el panel
+
+El recuadro «Serie multi-luz» muestra cuántas fotos entraron, cuántas luces
+salieron de la esfera, cuántas luces hubo en promedio en cada punto, el
+porcentaje de puntos con normal y la foto sin luz. Con estéreo, el
+desplegable **Imagen de base** elige sobre qué trabajan los filtros de color:
+
+| Base | Qué es |
+|---|---|
+| Albedo (por defecto) | El color de la superficie sin las sombras |
+| Promedio de las luces | Como una foto con luz rasante desde todos lados |
+| Sombreado | La forma sola, con luz desde arriba a la izquierda |
+| Normales | El mapa de normales en colores |
+
+El **Relieve** trabaja siempre sobre las alturas sacadas de las normales, con
+las escalas y las opciones de siempre; arranca con escala 0,25 %. No hay modo
+Acumular (el Relieve no tomaría lo anterior), ni lote, ni menú de resolución.
+«Volver a la serie» reabre la ventana con la misma esfera y las mismas
+opciones. Sin esfera, el promedio se trabaja como una foto cualquiera.
+
+### Qué baja
+
+Siempre un `.zip`: la imagen, el **albedo** y el **mapa de normales** en PNG
+(o el **promedio**, sin esfera) y, con `+JSON` y `+PDF`, el registro y el
+informe. El nombre sale de lo que tienen en común los nombres de las fotos:
+`panel3_luz1.jpg`… `panel3_luz8.jpg` → `panel3_luz_multiluz8`.
+
+### Registro
+
+El registro agrega el campo `multiluz`: `metodo` (`fotometrico` o `promedio`),
+`fotos` (cada una con `archivo`, `bytes`, `sha256`, `luz` [x, y, z],
+`altura_luz_grados`, `rumbo_luz_grados` y `potencia`), `ambiente` (la foto sin
+luz), `esfera` (`cx`, `cy` en fracción del ancho y del alto; `r` en fracción
+del ancho), `opciones` (`descartar`, `igualar`), `base`, `luces_por_punto` y
+`con_normal`. La resolución de trabajo dice `multiluz`, y las opciones del
+Relieve llevan `sobre: "normales"`. Reproducir el registro de una serie todavía
+no está disponible.

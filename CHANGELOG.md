@@ -4,6 +4,100 @@ Todas las versiones que cambian resultados están señaladas de forma explícita
 Las imágenes procesadas con versiones anteriores a un cambio así **no son
 reproducibles** con la versión nueva: para comparar, hay que reprocesarlas.
 
+## v4.0.0 (2026-11-08)
+
+**Con fotos sueltas y con modelos de elevación, no cambia ningún resultado:** los
+filtros, el gotero, los ajustes y el Relieve dan los mismos píxeles que en
+v3.9.0. Lo nuevo es un modo aparte para series de fotos con la luz desde
+distintos lados.
+
+### Modo multi-luz
+
+- **El problema.** Con una sola foto, el Relieve muestra lo que esa luz deja
+  ver: un surco paralelo a la luz casi no se ve, y una mancha oscura de pintura
+  se lee como un hueco
+  ([LIMITACIONES.md §12](docs/LIMITACIONES.md#12-el-relieve-mide-brillo-no-altura)).
+  Sacar varias fotos con la luz desde distintos lados es la práctica habitual
+  con luz rasante y la base de la captura de RTI.
+
+- **La serie.** Se abren varias fotos del mismo panel, con la cámara quieta en
+  el trípode: arrastrándolas juntas o con el botón «Serie multi-luz» (hasta 16).
+  Tienen que tener el mismo tamaño y se trabajan a 8 MP como máximo. Se arma la
+  serie en una ventana aparte: ahí se ve el máximo de todas las fotos, donde
+  aparecen a la vez los brillos que cada luz dejó en la esfera. La **foto sin
+  luz** (solo con la luz del lugar) se propone sola —la más oscura, si lo es por
+  mucho— y se resta de las demás.
+
+- **Con una esfera brillante: estéreo fotométrico** (Woodham 1980). Se marca la
+  esfera con un círculo (un toque, o un arrastre desde el centro hasta el borde)
+  y se ajusta de cerca. Del brillo que cada luz deja en la esfera sale su
+  dirección, como en la captura de RTI: la normal de la esfera en el brillo es
+  la bisectriz entre la cámara y la luz. Después, en cada punto, se resuelve por
+  mínimos cuadrados `I = ρ (n · L)` con las luces que no lo dejan en sombra ni
+  recortado; desde cinco luces se descartan además la toma más clara (puede ser
+  un brillo) y la más oscura (puede ser una sombra). Salen la **normal** (hacia
+  dónde mira la superficie) y el **albedo** (el color sin las sombras). Las
+  cuentas van en luz lineal: la curva sRGB se deshace antes.
+
+- **Las potencias de las luces.** Una linterna en la mano no queda siempre a la
+  misma distancia. Se igualan suponiendo que el panel, en conjunto, mira a la
+  cámara. Con la serie de prueba, con potencias entre 0,7 y 1,4, el error medio
+  de las normales baja de casi 4° a menos de 2°; lo que queda es la inclinación
+  de conjunto del panel, que se pierde.
+
+- **El Relieve sobre las alturas.** Las normales se integran (la ecuación de
+  Poisson, resuelta con multigrid) y dan alturas, en píxeles. Sobre ellas va el
+  mismo Relieve de siempre, con sus escalas y sus opciones: lo hundido sale
+  oscuro venga de donde venga la luz, y la pintura no se confunde con el
+  relieve. El registro lo anota en las opciones (`sobre: "normales"`); el nombre
+  del archivo no cambia.
+
+- **La imagen de base.** Los filtros de color trabajan sobre el **albedo**, o
+  sobre la imagen que se elija en el panel: el promedio de las luces, el
+  sombreado de las normales (la forma sola) o el mapa de normales.
+
+- **Sin esfera, el promedio de las luces.** Sin esfera, o con menos de tres
+  brillos, cada foto se divide por la mediana de su brillo y se promedian: queda
+  como una foto con luz rasante desde todos lados. Como el Relieve es lineal, es
+  lo mismo que aplicarle el Relieve a cada foto y promediarlos. Sirve para las
+  series que ya existen, sacadas sin esfera.
+
+- **La descarga** trae además el albedo y el mapa de normales en PNG (o el
+  promedio), siempre en un `.zip`. El registro agrega el campo `multiluz`: cada
+  foto con su huella, la dirección de su luz (vector, altura y rumbo) y su
+  potencia; la foto sin luz; la esfera, en fracción de la imagen; las opciones
+  y la imagen de base. El informe en PDF lo resume. Reproducir el registro de
+  una serie todavía no está disponible.
+
+### También
+
+- **Novedades en la pantalla de inicio.** Debajo del cuadro para subir la foto
+  se lista lo nuevo desde v3.7.3 (las series multi-luz, los modelos de
+  elevación y el registro), versión por versión. Se pueden ocultar con ✕ y
+  vuelven con la versión siguiente.
+- **Info pasa a ser una guía.** Para cada herramienta —lo que se abre, los
+  doce filtros, la selección, el gotero, acumular, la escala, la descarga, el
+  registro y el lote— dice para qué sirve y cómo funciona por dentro, en
+  grupos con un índice. El historial de versiones queda en su propia pestaña.
+- El informe de un modelo de elevación ya no dice que se puede comprobar con
+  «Reproducir un registro», que para un DEM todavía no está.
+
+### Verificado
+
+Con una serie inventada (un panel con un surco en anillo, un bulto y un
+rectángulo de pintura sin relieve; ocho luces y una esfera de 15 px de radio):
+
+- Las luces salen de la esfera con menos de 3° de error.
+- Las normales, con menos de 1° de error medio con potencias iguales.
+- Las alturas integradas correlacionan en más de 0,99 con las verdaderas.
+- En el albedo no queda la sombra del surco; en el Relieve el surco sale oscuro
+  y la pintura no aparece.
+- El worker da byte a byte lo mismo que la página.
+- **Once pruebas nuevas** (134 en total).
+
+**Falta probarlo con una serie real**
+([LIMITACIONES.md §15](docs/LIMITACIONES.md#15-el-modo-multi-luz-falta-probarlo-con-una-serie-real)).
+
 ## v3.9.0 (2026-11-08)
 
 **Con fotos, no cambia ningún resultado:** los filtros, el gotero, los ajustes y

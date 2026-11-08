@@ -1,4 +1,4 @@
-# OPC – OpuntiaColor v3.9.0
+# OPC – OpuntiaColor v4.0.0
 
 **Herramienta de código abierto para el realce digital de pigmentos y grabados en arte rupestre.**
 
@@ -152,6 +152,22 @@ metros). Se verificó con DEM de Metashape de vuelos de dron; falta uno de cerca
 de un panel con grabados
 ([limitaciones](docs/LIMITACIONES.md#14-el-modo-elevación-falta-probarlo-con-un-dem-real)).
 
+## Series multi-luz
+
+Desde v4.0.0, OPC abre **varias fotos del mismo panel** sacadas con la cámara
+quieta y la luz desde distintos lados: se arrastran juntas o se eligen con
+«Serie multi-luz». Si en el encuadre hay una **esfera brillante**, se la marca
+con un círculo y OPC saca de su brillo la dirección de cada luz, como en la
+captura de RTI. Con eso calcula, punto por punto, hacia dónde mira la superficie
+(**estéreo fotométrico**): salen el **albedo**, que es el color sin las sombras,
+y las alturas, sobre las que va el Relieve. Lo hundido sale oscuro venga de
+donde venga la luz, y la pintura no se confunde con el relieve. Los filtros de
+color trabajan sobre el albedo. Sin esfera, se **promedian las luces**. La
+descarga trae además el albedo y el mapa de normales
+([cómo sacar la serie y detalle](docs/PARAMETROS.md#modo-multi-luz)). Se probó
+con series inventadas; falta una real
+([limitaciones](docs/LIMITACIONES.md#15-el-modo-multi-luz-falta-probarlo-con-una-serie-real)).
+
 ## Entrada y salida
 
 | | |
@@ -273,7 +289,7 @@ resultados no son equivalentes.**
 ## Cómo citar
 
 Villafañez, E. A. (2026). *OPC – OpuntiaColor: herramienta de código abierto
-para el realce digital de pigmentos y grabados en arte rupestre* (v3.9.0)
+para el realce digital de pigmentos y grabados en arte rupestre* (v4.0.0)
 [Software]. LATDAA, Universidad Nacional de Catamarca.
 https://doi.org/10.5281/zenodo.21796290
 

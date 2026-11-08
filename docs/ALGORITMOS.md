@@ -696,6 +696,68 @@ copiadas del DEM, y 42113 (`GDAL_NODATA`) en el residuo.
 
 ---
 
+## Modo multi-luz (v4.0.0)
+
+Una serie de `N` fotos del mismo panel, con la cámara fija y la luz `k` desde
+la dirección `Lₖ` (unitaria; x a la derecha, y hacia arriba, z hacia la cámara).
+Todo se calcula en luz lineal: cada canal de 8 bits pasa por `SRGB_LINEAL`, y la
+luminancia es `Y = 0,2126 R + 0,7152 G + 0,0722 B`. Si hay foto sin luz, se
+resta canal por canal.
+
+1. **La luz, desde la esfera** (`brilloEsfera`, `luzDesdeBrillo`). Dentro del
+   círculo marcado (al 97 % del radio, para no tomar el borde) se busca el
+   reflejo: los puntos en el décimo superior entre la mediana de la esfera y su
+   máximo, promediados con peso. Si el máximo no supera a la mediana en 25
+   niveles, no hay brillo. Con el centro del reflejo `(hx, hy)`, la normal de la
+   esfera es `n = ((hx − cx)/r, −(hy − cy)/r, √(1 − nx² − ny²))` y la luz es el
+   reflejo de la cámara `v = (0, 0, 1)`: `L = 2 (n·v) n − v`. Supone la cámara
+   lejos comparada con la esfera.
+
+2. **Las potencias** (`potenciasLuces`). En una muestra de hasta 100 000 puntos
+   que no están en sombra ni recortados con ninguna luz, `Yₖ / Lₖ,z` dividido
+   por su promedio en el punto; la mediana de cada luz es su potencia `sₖ`
+   (promedio 1). Si el panel mira a la cámara, `Yₖ ≈ sₖ ρ Lₖ,z`.
+
+3. **Estéreo fotométrico** (`estereoFotometrico`). En cada punto entran las
+   luces con los tres canales por debajo de 250 y `Yₖ / sₖ` por encima de
+   0,003. Con cinco o más, se descartan la más clara y la más oscura. Con tres
+   o más se resuelve `g = ρ n = (Σ Lₖ Lₖᵀ)⁻¹ Σ Iₖ Lₖ`: la matriz es de 3 × 3 y se
+   invierte por adjuntos. `ρ = |g|`, `n = g / ρ`; si `g_z ≤ 0` o falta luz, el
+   punto queda sin normal (`n = (0, 0, 1)`).
+
+4. **Albedo**, por canal y con las mismas luces de cada punto:
+   `ρ_c = Σ Cₖ (n·Lₖ) / Σ (n·Lₖ)²`. Donde no hay normal, el promedio de las
+   fotos. Su escala es arbitraria: se expone para que la mediana de la
+   luminancia quede en 0,18 (un gris medio) sin que más del 0,5 % de los puntos
+   pase de 0,95 (`exposicionML`), y se vuelve a sRGB.
+
+5. **Alturas** (`integrarNormales`, `integrarGradientes`). Pendientes
+   `∂z/∂x = −nx/nz` y `∂z/∂fila = ny/nz`, con tope ±5 (79°); 0 donde no hay
+   normal y dentro de la esfera (con 3 px de margen). Se busca `z` cuyas
+   diferencias entre vecinos mejor ajusten el promedio de las pendientes de los
+   dos puntos de cada lado: es `Σ_vecinos (z_j − z_i) = div`, la ecuación de
+   Poisson con bordes libres. Se resuelve con ciclos en V de multigrid: dos
+   pasadas de Gauss-Seidel, el residuo sumado de a 2 × 2 en una grilla de la
+   mitad, la corrección interpolada (bilineal) y otras dos pasadas; en la grilla
+   más chica, 60 pasadas. Cinco ciclos. En la serie de prueba, con las
+   pendientes exactas el error es del 1 % del desvío de las alturas.
+
+6. **Relieve** (`reliefEscala` con `alturas`). El mismo de siempre, con la
+   altura en lugar de la luminancia: tendencia cuadrática, pasabanda
+   `S(r) − S(16·r)` y normalización por cuartiles.
+
+**El promedio de las luces** (`promedioLuces`): cada foto, sin el ambiente, por
+`1 / mediana(Y)`, se promedia canal por canal y se expone como el albedo. Como
+el Relieve es lineal (tendencia y pasabanda), el Relieve del promedio es el
+promedio de los Relieves de cada foto, cada una con su peso.
+
+**Mapa de normales** (`mapaNormales`): `(n + 1) · 127,5` en R, G y B, la
+convención de los mapas de normales (verde hacia arriba). **Sombreado**
+(`sombreadoNormales`): `30 + 225 · max(0, n·L)` con `L = (−½, ½, √½)`, como el
+del DEM.
+
+---
+
 ## Referencias
 
 Gillespie, A. R., Kahle, A. B. y Walker, R. E. (1986). Color enhancement of
@@ -705,3 +767,15 @@ https://doi.org/10.1016/0034-4257(86)90044-1
 
 Zuiderveld, K. (1994). Contrast Limited Adaptive Histogram Equalization. En
 P. Heckbert (ed.), *Graphics Gems IV* (pp. 474–485). Academic Press.
+
+Woodham, R. J. (1980). Photometric method for determining surface orientation
+from multiple images. *Optical Engineering*, 19(1), 139–144.
+https://doi.org/10.1117/12.7972479
+
+Mudge, M., Malzbender, T., Schroer, C. y Lum, M. (2006). New reflection
+transformation imaging methods for rock art and multiple-viewpoint display. En
+*Proceedings of the 7th International Symposium on Virtual Reality,
+Archaeology and Cultural Heritage (VAST 2006)*. Eurographics.
+
+Briggs, W. L., Henson, V. E. y McCormick, S. F. (2000). *A Multigrid Tutorial*
+(2.ª ed.). SIAM.
