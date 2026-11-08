@@ -300,8 +300,9 @@ concretas son [10.5281/zenodo.21796291](https://doi.org/10.5281/zenodo.21796291)
 para v3.4.0, [10.5281/zenodo.22145678](https://doi.org/10.5281/zenodo.22145678)
 para v3.5.0, [10.5281/zenodo.22162329](https://doi.org/10.5281/zenodo.22162329)
 para v3.6.0, [10.5281/zenodo.23283507](https://doi.org/10.5281/zenodo.23283507)
-para v3.7.0 y [10.5281/zenodo.24052932](https://doi.org/10.5281/zenodo.24052932)
-para v3.9.0 (incluye la v3.8.0).
+para v3.7.0, [10.5281/zenodo.24052932](https://doi.org/10.5281/zenodo.24052932)
+para v3.9.0 (incluye la v3.8.0) y
+[10.5281/zenodo.24061925](https://doi.org/10.5281/zenodo.24061925) para v4.0.0.
 
 El archivo [CITATION.cff](CITATION.cff) permite que GitHub genere la cita en
 distintos formatos desde el botón *Cite this repository*.
